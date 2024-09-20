@@ -12,7 +12,7 @@ set up the build process with the correct version of SC2 API so you can focus on
 
 ## Windows
 
-Download and install [Visual Studio 2022](https://www.visualstudio.com/downloads/) if you need it. Building with Visual Studio 2019 not yet supported.
+Download and install [Visual Studio 2022](https://www.visualstudio.com/downloads/) if you need it.
 
 ```bat
 :: Clone the project
