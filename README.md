@@ -37,6 +37,7 @@ Note: Try opening the SC2 game client before installing. If the game crashes bef
 * Click on `Sharing`
 * In the `Computer Name` textfield, change the default 'Macbook Pro' to a single word name (the exact name shouldn't matter, as long as its not the default name)
 
+To build, you must use the version of clang that comes with MacOS. 
 ```bat
 :: Clone the project
 $ git clone --recursive https://github.com/tuero/BasicSc2Bot.git
@@ -45,6 +46,10 @@ $ cd BasicSc2Bot
 :: Create build directory.
 $ mkdir build
 $ cd build
+
+:: Set Apple Clang as the default compiler
+export CC=/usr/bin/clang
+export CXX=/usr/bin/clang++
 
 :: Generate a Makefile
 :: Use 'cmake -DCMAKE_BUILD_TYPE=Debug ../' if debug info is needed
