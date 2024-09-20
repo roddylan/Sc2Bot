@@ -8,7 +8,7 @@ set up the build process with the correct version of SC2 API so you can focus on
 ## Requirements
 * [CMake](https://cmake.org/download/)
 * Starcraft 2 ([Windows](https://starcraft2.com/en-us/)) ([Linux](https://github.com/Blizzard/s2client-proto#linux-packages)) 
-* [Starcraft 2 Map Packs](https://github.com/Blizzard/s2client-proto#map-packs)
+* [Starcraft 2 Map Packs](https://github.com/Blizzard/s2client-proto#map-packs), The maps we will be using are in the `Ladder 2017 Season 1` pack. Read the instructions for how to extract and where to place the maps.
 
 ## Windows
 
@@ -16,7 +16,7 @@ Download and install [Visual Studio 2019](https://www.visualstudio.com/downloads
 
 ```bat
 :: Clone the project
-$ git clone --recursive https://github.com/solinas/BasicSc2Bot.git
+$ git clone --recursive https://github.com/tuero/BasicSc2Bot.git
 $ cd BasicSc2Bot
 
 :: Create build directory.
@@ -39,7 +39,7 @@ Note: Try opening the SC2 game client before installing. If the game crashes bef
 
 ```bat
 :: Clone the project
-$ git clone --recursive https://github.com/solinas/BasicSc2Bot.git
+$ git clone --recursive https://github.com/tuero/BasicSc2Bot.git
 $ cd BasicSc2Bot
 
 :: Create build directory.
@@ -48,7 +48,7 @@ $ cd build
 
 :: Generate a Makefile
 :: Use 'cmake -DCMAKE_BUILD_TYPE=Debug ../' if debug info is needed
-$ cmake ../
+$ cmake cmake -DCMAKE_BUILD_TYPE=Release ../
 
 :: Build
 $ make
@@ -79,10 +79,14 @@ Remember to replace `<USER>` with the name of your user profile.
 In addition to competing against other bots using the [Sc2LadderServer](https://github.com/solinas/Sc2LadderServer), this bot can play against the built-in
 AI by specifying command line argurments.
 
-For example,
+You can find the build target under the `bin` directory. For example,
 
 ```
+# Windows
 /BasicSc2Bot.exe -c -a zerg -d Hard -m CactusValleyLE.SC2Map
+
+# Mac
+./BasicSc2Bot -c -a zerg -d Hard -m CactusValleyLE.SC2Map
 ```
 
 will result in the bot playing against the zerg built-in AI on hard difficulty on the map CactusValleyLE.
