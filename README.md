@@ -12,7 +12,7 @@ set up the build process with the correct version of SC2 API so you can focus on
 
 ## Windows
 
-Download and install [Visual Studio 2019](https://www.visualstudio.com/downloads/) if you need it. Building with Visual Studio 2019 not yet supported.
+Download and install [Visual Studio 2022](https://www.visualstudio.com/downloads/) if you need it. Building with Visual Studio 2019 not yet supported.
 
 ```bat
 :: Clone the project
@@ -24,7 +24,7 @@ $ mkdir build
 $ cd build
 
 :: Generate VS solution.
-$ cmake ../ -G "Visual Studio 16 2019"
+$ cmake ../ -G "Visual Studio 17 2022"
 
 :: Build the project using Visual Studio.
 $ start BasicSc2Bot.sln
@@ -83,7 +83,7 @@ You can find the build target under the `bin` directory. For example,
 
 ```
 # Windows
-/BasicSc2Bot.exe -c -a zerg -d Hard -m CactusValleyLE.SC2Map
+./BasicSc2Bot.exe -c -a zerg -d Hard -m CactusValleyLE.SC2Map
 
 # Mac
 ./BasicSc2Bot -c -a zerg -d Hard -m CactusValleyLE.SC2Map
