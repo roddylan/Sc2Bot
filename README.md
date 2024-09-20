@@ -48,7 +48,7 @@ $ cd build
 
 :: Generate a Makefile
 :: Use 'cmake -DCMAKE_BUILD_TYPE=Debug ../' if debug info is needed
-$ cmake cmake -DCMAKE_BUILD_TYPE=Release ../
+$ cmake -DCMAKE_BUILD_TYPE=Release ../
 
 :: Build
 $ make
