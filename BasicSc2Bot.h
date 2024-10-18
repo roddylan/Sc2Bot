@@ -11,6 +11,9 @@ class BasicSc2Bot : public sc2::Agent {
 public:
 	virtual void OnGameStart();
 	virtual void OnStep();
+	virtual void OnUnitIdle(const sc2::Unit* unit) final;
+	virtual bool TryBuildSupplyDepot();
+	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
 
 private:
 };
