@@ -13,7 +13,16 @@ public:
 	virtual void OnStep();
 	virtual void OnUnitIdle(const sc2::Unit* unit) final;
 	virtual bool TryBuildSupplyDepot();
+	virtual bool TryBuildRefinery();
+	virtual bool TryBuildSeigeTank();
+	virtual bool BuildRefinery();
+	virtual bool TryBuildFactory();
+	virtual bool TryBuildBunker();
+	virtual bool TryBuildBarracks();
+	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
+	virtual size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
+	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
 
 private:
 };
