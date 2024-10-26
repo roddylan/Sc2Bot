@@ -6,7 +6,7 @@
 #include "sc2lib/sc2_lib.h"
 #include "sc2utils/sc2_manage_process.h"
 #include "sc2utils/sc2_arg_parser.h"
-
+ 
 class BasicSc2Bot : public sc2::Agent {
 public:
 	virtual void OnGameStart();
