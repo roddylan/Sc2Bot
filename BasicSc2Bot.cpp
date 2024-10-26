@@ -115,9 +115,7 @@ bool BasicSc2Bot::BuildRefinery() {
             unit_to_build = unit;
         }
     }
-
-    float rx = sc2::GetRandomScalar();
-    float ry = sc2::GetRandomScalar();
+    
     const sc2::Unit* target;
     if(unit_to_build != nullptr) {
         const sc2::Unit* target = FindNearestVespeneGeyser(unit_to_build->pos);
