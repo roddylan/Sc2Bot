@@ -11,7 +11,10 @@ class BasicSc2Bot : public sc2::Agent {
 public:
 	virtual void OnGameStart();
 	virtual void OnStep();
+	virtual bool AttackIntruders();
+	virtual bool LoadBunker(const sc2::Unit* marine);
 	virtual void OnUnitIdle(const sc2::Unit* unit) final;
+	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
 	virtual bool TryBuildSeigeTank();
