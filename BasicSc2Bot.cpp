@@ -17,7 +17,7 @@ void BasicSc2Bot::OnStep() {
     TryBuildBunker();
     TryBuildFactory();
     TryBuildSeigeTank();
-    HandleBuild();
+    HandleBuild(); // TODO: move rest of build inside
     return;
 }
 
