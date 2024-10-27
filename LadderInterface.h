@@ -1,4 +1,9 @@
 
+#include <sc2api/sc2_coordinator.h>
+#include <sc2api/sc2_gametypes.h>
+#include <sc2utils/sc2_arg_parser.h>
+#include <iostream>
+
 std::string kDefaultMap = "BelshirVestigeLE.SC2Map";
 
 static sc2::Difficulty GetDifficultyFromString(const std::string &InDifficulty)

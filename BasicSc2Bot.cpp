@@ -2,12 +2,16 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
+#include <_types/_uint32_t.h>
+#include <sc2api/sc2_typeenums.h>
+#include <sc2api/sc2_unit_filters.h>
 
 void BasicSc2Bot::OnGameStart() {
     return;
 }
 
 void BasicSc2Bot::OnStep() {
+    // HandleBuild(); // TODO: move rest of build inside
     TryBuildSupplyDepot();
     TryBuildBarracks();
     TryBuildRefinery();
@@ -16,14 +20,17 @@ void BasicSc2Bot::OnStep() {
     TryBuildSeigeTank();
     return;
 }
+
 struct IsUnit {
     IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
     sc2::UNIT_TYPEID type_;
     bool operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
 };
+
 size_t BasicSc2Bot::CountUnitType(sc2::UNIT_TYPEID unit_type) {
     return Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unit_type)).size();
 }
+
 bool BasicSc2Bot::TryBuildFactory() {
     const sc2::ObservationInterface* observation = Observation();
 
@@ -38,6 +45,7 @@ bool BasicSc2Bot::TryBuildFactory() {
     }
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY);
 }
+
 bool BasicSc2Bot::TryBuildSeigeTank() {
     const sc2::ObservationInterface* observation = Observation();
 
@@ -49,6 +57,7 @@ bool BasicSc2Bot::TryBuildSeigeTank() {
     }
     return TryBuildStructure(sc2::ABILITY_ID::TRAIN_SIEGETANK);
 }
+
 bool BasicSc2Bot::TryBuildBunker() {
 
     const sc2::ObservationInterface* observation = Observation();
@@ -153,23 +162,36 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 }
 
 void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
+    // TODO: refactor
+    sc2::Units barracks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
+    sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
-        sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+        if (Observation()->GetFoodWorkers() > (n_workers * bases.size()) && !barracks.empty()){
+            HandleBuild(); // TODO: refactor and move
+        } else {
+            sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+        }
         break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
+        // std::cout << "ORBITAL COMMAND\n";
+        sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
     }
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
         const sc2::ObservationInterface* observation = Observation();
         const sc2::Unit* mineral_target; 
-        if (observation->GetVespene() < 150) {
-            mineral_target = FindNearestVespeneGeyser(unit->pos);
+        const sc2::Units refineries = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+        
+        for (const auto &refinery : refineries) {
+            if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
+                Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
+                return;
+            }
         }
-        else {
-            mineral_target = FindNearestMineralPatch(unit->pos);
-        }
-        if (!mineral_target) {
-            break;
-        }
+        // TODO: handle diff. bases
+        mineral_target = FindNearestMineralPatch(unit->pos);
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
         break;
     }
@@ -223,5 +245,46 @@ const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start
     return target;
 }
 
+/**
+ * @brief Handle unit upgrades
+ * 
+ */
+void BasicSc2Bot::HandleUpgrades() {
+    const sc2::ObservationInterface *obs = Observation();
+
+    auto cur_upgrades = obs->GetUpgrades();
+
+    // get no. of bases
+    size_t base_count = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
+}
+
+/**
+ * @brief Handle building logic
+ * 
+ */
+void BasicSc2Bot::HandleBuild() {
+    const uint32_t ORBITAL_COMMAND_COST = 150;
+    const sc2::ObservationInterface *obs = Observation();
+
+    // track each type of unit
+    sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    // TODO: separate barracks, factory, starports from 
+    sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
+    sc2::Units factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_FACTORY, sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING, sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR, sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB}));
+    sc2::Units starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_STARPORT, sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING, sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR, sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB}));
+
+    // TODO: handle other building
 
 
+    // Handle Orbital Command
+
+    if (!barracks.empty()) {
+        for (const auto &base : bases) {
+            if (obs->GetMinerals() > 150) {
+                Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+            }
+        }
+    }
+
+
+}
