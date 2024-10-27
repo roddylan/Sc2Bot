@@ -11,13 +11,13 @@ void BasicSc2Bot::OnGameStart() {
 }
 
 void BasicSc2Bot::OnStep() {
+    // HandleBuild(); // TODO: move rest of build inside
     TryBuildSupplyDepot();
     TryBuildBarracks();
     TryBuildRefinery();
     TryBuildBunker();
     TryBuildFactory();
     TryBuildSeigeTank();
-    HandleBuild(); // TODO: move rest of build inside
     return;
 }
 
@@ -162,10 +162,21 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 }
 
 void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
+    // TODO: refactor
+    sc2::Units barracks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
+
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
-        sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+        if (Observation()->GetFoodWorkers() > 20 && !barracks.empty()){
+            HandleBuild(); // TODO: refactor and move
+        } else {
+            sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+        }
         break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
+        std::cout << "ORBITAL COMMAND\n";
+        sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
     }
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
         const sc2::ObservationInterface* observation = Observation();
