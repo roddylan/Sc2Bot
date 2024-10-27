@@ -175,7 +175,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
-        std::cout << "ORBITAL COMMAND\n";
+        // std::cout << "ORBITAL COMMAND\n";
         sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
     }
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
