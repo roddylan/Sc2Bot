@@ -2,7 +2,6 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
-#include <_types/_uint32_t.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 
@@ -169,6 +168,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
         if (Observation()->GetFoodWorkers() > (n_workers * bases.size()) && !barracks.empty()){
+            std::cout << n_workers * bases.size() << std::endl;
             HandleBuild(); // TODO: refactor and move
         } else {
             sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);

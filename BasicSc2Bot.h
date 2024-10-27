@@ -30,7 +30,8 @@ private:
 	const size_t n_tanks = 8;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
-	const size_t n_workers = 22; // workers per base goal amnt
+	// TODO: increase to 22
+	const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
 };
 
