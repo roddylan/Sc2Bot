@@ -1,12 +1,9 @@
 #include "BasicSc2Bot.h"
-<<<<<<< Updated upstream
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
-#include <_types/_uint32_t.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
-=======
 #include <iostream>
 struct IsUnit {
     IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
@@ -87,8 +84,6 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit){
             break;
         }
     }
-
->>>>>>> Stashed changes
 }
 
 struct IsUnit {
@@ -355,6 +350,4 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
-
-
 }
