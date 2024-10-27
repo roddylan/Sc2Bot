@@ -181,16 +181,20 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
         const sc2::ObservationInterface* observation = Observation();
         const sc2::Unit* mineral_target; 
+        const sc2::Units refineries = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+        
         if (observation->GetVespene() < 150) {
-            mineral_target = FindNearestVespeneGeyser(unit->pos);
+            for (const auto &refinery : refineries) {
+                Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
+            }
         }
         else {
             mineral_target = FindNearestMineralPatch(unit->pos);
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
         }
         if (!mineral_target) {
             break;
         }
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
