@@ -164,10 +164,11 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     // TODO: refactor
     sc2::Units barracks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
+    sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
 
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
-        if (Observation()->GetFoodWorkers() > 20 && !barracks.empty()){
+        if (Observation()->GetFoodWorkers() > (n_workers * bases.size()) && !barracks.empty()){
             HandleBuild(); // TODO: refactor and move
         } else {
             sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
@@ -183,18 +184,15 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         const sc2::Unit* mineral_target; 
         const sc2::Units refineries = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
         
-        if (observation->GetVespene() < 150) {
-            for (const auto &refinery : refineries) {
+        for (const auto &refinery : refineries) {
+            if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
                 Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
+                return;
             }
         }
-        else {
-            mineral_target = FindNearestMineralPatch(unit->pos);
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
-        }
-        if (!mineral_target) {
-            break;
-        }
+        // TODO: handle diff. bases
+        mineral_target = FindNearestMineralPatch(unit->pos);
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
@@ -270,6 +268,7 @@ void BasicSc2Bot::HandleBuild() {
 
     // track each type of unit
     sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    // TODO: separate barracks, factory, starports from 
     sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
     sc2::Units factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_FACTORY, sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING, sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR, sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB}));
     sc2::Units starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_STARPORT, sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING, sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR, sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB}));
