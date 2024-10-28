@@ -7,6 +7,7 @@
 #include "sc2utils/sc2_manage_process.h"
 #include "sc2utils/sc2_arg_parser.h"
 #include <sc2api/sc2_common.h>
+#include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
  
 class BasicSc2Bot : public sc2::Agent {
@@ -26,6 +27,7 @@ public:
 	virtual bool TryBuildBarracks();
 	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
+	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, bool isExpansion=true); // generalized; for expansions
 	virtual size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
 	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
 	virtual void HandleUpgrades();

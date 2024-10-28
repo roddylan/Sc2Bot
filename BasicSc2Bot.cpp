@@ -473,14 +473,55 @@ bool BasicSc2Bot::HandleExpansion() {
 
     for (const auto &exp : expansion_locations) {
         float cur_dist = sc2::Distance2D(start_location, exp);
+        
         if (cur_dist < min_dist) {
-            min_dist = cur_dist;
-            closest_expansion = exp;
+            // check if actually able to expand here
+            if (!(Query()->Placement(sc2::ABILITY_ID::BUILD_COMMANDCENTER, exp))) {
+                min_dist = cur_dist;
+                closest_expansion = exp;
+            }
         }
+    }
+
+    if (TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER, closest_expansion)) {
+
     }
 
 
 
     return true;
 
+}
+
+bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, bool isExpansion) {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::Units workers = obs->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+
+    // no workers
+    if (workers.empty()) {
+        return false;
+    }
+
+    const sc2::Unit* unit_to_build = nullptr;
+    for (const auto& worker : workers) {
+        for (const auto& order : worker->orders) {
+            if (order.ability_id == ability_type_for_structure) {
+                return false;
+            }
+        }
+        
+        unit_to_build = worker;
+    }
+
+    // check if scv can get there
+    // todo: fix
+    if (Query()->PathingDistance(unit_to_build, location) < 0.1F) {
+        return false;
+    }
+
+    if (Query()->Placement(ability_type_for_structure, location)) {
+        Actions()->UnitCommand(unit_to_build, ability_type_for_structure, location);
+        return true;
+    }
+    return false;
 }
