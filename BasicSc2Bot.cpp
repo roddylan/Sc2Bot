@@ -17,22 +17,57 @@ void BasicSc2Bot::OnStep() {
     TryBuildBunker();
     TryBuildFactory();
     TryBuildSeigeTank();
+    AttackIntruders();
     return;
 }
+sc2::Filter isEnemy = [](const sc2::Unit& unit) {
+    return unit.alliance != sc2::Unit::Alliance::Self; 
+    };
 
 struct IsUnit {
     IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
     sc2::UNIT_TYPEID type_;
     bool operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
 };
-
+bool BasicSc2Bot::LoadBunker(const sc2::Unit* marine) {
+    sc2::Units myUnits = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+    bool bunkerLoaded = false;
+    for (auto target : myUnits) {
+        if (target->passengers.size() == 4) {
+            continue;
+        }
+        Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, target);
+        bunkerLoaded = true;
+    }
+    return bunkerLoaded;
+}
+bool BasicSc2Bot::AttackIntruders() {
+    const sc2::ObservationInterface* observation = Observation();
+    sc2::Units units = observation->GetUnits();
+    
+    for (auto target : units) {
+        if (target->alliance != sc2::Unit::Alliance::Self) {
+            sc2::Units myUnits = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+            for (auto myUnit : myUnits) {
+                Actions()->UnitCommand(myUnit, sc2::ABILITY_ID::BUNKERATTACK, target);
+            }
+        }
+    }
+    return true;
+}
 size_t BasicSc2Bot::CountUnitType(sc2::UNIT_TYPEID unit_type) {
     return Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unit_type)).size();
 }
+bool BasicSc2Bot::UpgradeFactoryTechLab(const sc2::Unit* factory) {
+        
+    Actions()->UnitCommand(factory, sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY);
+    
+    return true;
 
+}
 bool BasicSc2Bot::TryBuildFactory() {
     const sc2::ObservationInterface* observation = Observation();
-
+    
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) < 1) {
         return false;
     }
@@ -54,7 +89,12 @@ bool BasicSc2Bot::TryBuildSeigeTank() {
     if (observation->GetVespene() < 125) {
         return false;
     }
-    return TryBuildStructure(sc2::ABILITY_ID::TRAIN_SIEGETANK);
+    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    for (auto unit : units) {
+
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+    }
+    return true;
 }
 
 bool BasicSc2Bot::TryBuildBunker() {
@@ -65,6 +105,7 @@ bool BasicSc2Bot::TryBuildBunker() {
         return false;
     }
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BUNKER) > 2) {
+        
         return false;
     }
 
@@ -90,7 +131,7 @@ bool BasicSc2Bot::TryBuildBarracks() {
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
 
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) > 0) {
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) > 2) {
         return false;
     }
 
@@ -149,13 +190,30 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         if (unit->unit_type == unit_type) {
             unit_to_build = unit;
         }
+
     }
+
 
     float rx = sc2::GetRandomScalar();
     float ry = sc2::GetRandomScalar();
-
+    switch (unit_type) {
+    case sc2::UNIT_TYPEID::TERRAN_BUNKER: {
+        Actions()->ToggleAutocast(unit_to_build->tag, sc2::ABILITY_ID::BUNKERATTACK);
+        break;
+    }
+    // TODO: fix placement so far enough away enough from obstructions so tech lab can be built on it
+    case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
+        Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
+            sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
+        return true;
+    }
+    default: {
+        break;
+    }
+    }
     Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
         sc2::Point2D(unit_to_build->pos.x + rx * sc2::GetRandomScalar(), unit_to_build->pos.y + ry * sc2::GetRandomScalar()));
+    
 
     return true;
 }
@@ -200,9 +258,19 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MARINE: {
-        const sc2::GameInfo& game_info = Observation()->GetGameInfo();
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, game_info.enemy_start_locations.front());
+        // if the bunkers are full
+        
+        if (!LoadBunker(unit)) {
+            const sc2::GameInfo& game_info = Observation()->GetGameInfo();
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
+            , game_info.enemy_start_locations.front(), true);
+            std::cout << "sent";
+        }
+        
         break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_FACTORY:{
+        UpgradeFactoryTechLab(unit);
     }
     default: {
         break;
