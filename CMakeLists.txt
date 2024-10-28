@@ -59,6 +59,7 @@ include_directories(SYSTEM
     ${PROJECT_SOURCE_DIR}/cpp-sc2/include
     ${PROJECT_SOURCE_DIR}/cpp-sc2/contrib/protobuf/src
     ${PROJECT_BINARY_DIR}/cpp-sc2/generated
+    ${PROJECT_BINARY_DIR}
 )
 
 # Create the executable.

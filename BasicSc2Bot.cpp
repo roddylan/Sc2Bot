@@ -1,53 +1,24 @@
 #include "BasicSc2Bot.h"
+#include "Utilities.h"
+#include "Betweenness.h"
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <iostream>
-struct IsUnit {
-    IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
-    sc2::UNIT_TYPEID type_;
-    bool operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
-};
-static std::string GetStringFromRace(const sc2::Race RaceIn)
-{
-    if (RaceIn == sc2::Race::Terran)
-    {
-        return "terran";
-    }
-    else if (RaceIn == sc2::Race::Protoss)
-    {
-        return "protoss";
-    }
-    else if (RaceIn == sc2::Race::Zerg)
-    {
-        return "zerg";
-    }
-    else if (RaceIn == sc2::Race::Random)
-    {
-        return "random";
-    }
+#include <cmath>
 
-    return "random";
-}
 void BasicSc2Bot::OnGameFullStart() {
-    std::cout << "Player ID: " << Observation()->GetPlayerID() << std::endl;
-    sc2::PlayerInfo player_info_1 = Observation()->GetGameInfo().player_info[0];
-    sc2::PlayerInfo player_info_2 = Observation()->GetGameInfo().player_info[1];
-    bool curr_player_is_1 = player_info_1.player_id == Observation()->GetPlayerID();
-    std::cout << "Player Name: " << (curr_player_is_1 ? player_info_1.player_name : player_info_2.player_name) << std::endl;
-    std::cout << "Player Race: " << (curr_player_is_1 ? GetStringFromRace(player_info_1.race_actual) : GetStringFromRace(player_info_2.race_actual)) << std::endl;
-    std::cout << "Player Race Requested: " << (curr_player_is_1 ? GetStringFromRace(player_info_1.race_requested) : GetStringFromRace(player_info_2.race_requested)) << std::endl;
-    std::cout << "Player Type: " << (curr_player_is_1 ? player_info_1.player_type : player_info_2.player_type) << std::endl;
-    std::cout << "Opponent ID: " << (curr_player_is_1 ? player_info_2.player_id : player_info_1.player_id) << std::endl;
-    std::cout << "Opponent Name: " << (curr_player_is_1 ? player_info_2.player_name : player_info_1.player_name) << std::endl;
-    std::cout << "Opponent Race: " << (curr_player_is_1 ? GetStringFromRace(player_info_2.race_actual) : GetStringFromRace(player_info_1.race_actual)) << std::endl;
-    std::cout << "Opponent Race Requested: " << (curr_player_is_1 ? GetStringFromRace(player_info_2.race_requested) : GetStringFromRace(player_info_1.race_requested)) << std::endl;
-    std::cout << "Let the Games Begin!" << std::endl;
+    sc2::GameInfo obs = Observation()->GetGameInfo();
+    sc2::Point3D start_3d = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
+    sc2::Point2DI start = sc2::Point2DI(round(start_3d.x), round(start_3d.y));
+
+	sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
+	PrintMap(obs.pathing_grid, pinchpoint);
+	return;
 }
 void BasicSc2Bot::OnGameStart() { 
-    
     return; 
 }
 
@@ -60,37 +31,6 @@ void BasicSc2Bot::OnStep() {
     TryBuildFactory();
     TryBuildSeigeTank();
     return; }
-
-// 14 supply; 16 barracks; 16 gas;
-// 3 racks timing
-// Zerg/Terran - Marines only
-// Protos - Marines and Morauters
-// Reactor; Command Center; Orbital;
-// Bunker; Maines; 2 Barracks
-
-// Alliance
-//! Belongs to the player. Self = 1,
-//! Ally of the player. Ally = 2,
-//! A neutral unit, usually a non-player unit like a mineral field. Neutral = 3,
-//! Enemy of the player. Enemy = 4
-
-void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit){
-    switch (unit->unit_type.ToType()){
-    case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-}
-
-struct IsUnit {
-    IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
-    sc2::UNIT_TYPEID type_;
-    bool operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
-};
 
 size_t BasicSc2Bot::CountUnitType(sc2::UNIT_TYPEID unit_type) {
     return Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unit_type)).size();
