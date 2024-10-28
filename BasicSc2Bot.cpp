@@ -1,4 +1,6 @@
 #include "BasicSc2Bot.h"
+#include "Utilities.h"
+#include "Betweenness.h"
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
@@ -6,12 +8,24 @@
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
+#include <iostream>
+#include <cmath>
 
 void BasicSc2Bot::OnGameStart() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::QueryInterface *query = Query();
     expansion_locations = sc2::search::CalculateExpansionLocations(obs, query);
     start_location = obs->GetStartLocation();
+}
+
+void BasicSc2Bot::OnGameFullStart() {
+    sc2::GameInfo obs = Observation()->GetGameInfo();
+    sc2::Point3D start_3d = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
+    sc2::Point2DI start = sc2::Point2DI(round(start_3d.x), round(start_3d.y));
+
+	sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
+	PrintMap(obs.pathing_grid, pinchpoint);
+	return;
 }
 
 void BasicSc2Bot::OnStep() {
@@ -33,11 +47,7 @@ sc2::Filter isEnemy = [](const sc2::Unit& unit) {
     return unit.alliance != sc2::Unit::Alliance::Self; 
     };
 
-struct IsUnit {
-    IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
-    sc2::UNIT_TYPEID type_;
-    bool operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
-};
+
 bool BasicSc2Bot::LoadBunker(const sc2::Unit* marine) {
     sc2::Units myUnits = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     bool bunkerLoaded = false;
