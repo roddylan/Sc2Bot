@@ -6,6 +6,8 @@
 #include "sc2lib/sc2_lib.h"
 #include "sc2utils/sc2_manage_process.h"
 #include "sc2utils/sc2_arg_parser.h"
+#include <sc2api/sc2_common.h>
+#include <sc2api/sc2_unit.h>
  
 class BasicSc2Bot : public sc2::Agent {
 public:
@@ -28,6 +30,9 @@ public:
 	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
 	virtual void HandleUpgrades();
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
+	virtual void AssignWorkers(const sc2::Unit *);
+	virtual void BuildWorkers();
+	virtual bool HandleExpansion();
 
 private:
 	const size_t n_tanks = 8;
@@ -36,6 +41,10 @@ private:
 	// TODO: increase to 22
 	const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
+	const size_t n_mules = 3; // goal no. mules per base
+	const size_t n_marines = 6;
+	std::vector<sc2::Point3D> expansion_locations;
+	sc2::Point3D start_location;
 };
 
 #endif
