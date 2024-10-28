@@ -2,12 +2,8 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
-#include <_types/_uint32_t.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
-
-void BasicSc2Bot::OnGameStart() {
-    return;
 #include <iostream>
 
 void BasicSc2Bot::OnGameStart() { 
@@ -26,6 +22,7 @@ void BasicSc2Bot::OnStep() {
     TryBuildBunker();
     TryBuildFactory();
     TryBuildSeigeTank();
+    CheckScoutStatus();
     return;
 }
 
@@ -37,11 +34,6 @@ struct IsUnit {
 
 size_t BasicSc2Bot::CountUnitType(sc2::UNIT_TYPEID unit_type) {
     return Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unit_type)).size();
-}
-    CheckScoutStatus();
-    //Actions()->SendChat("Hello, World!", sc2::ChatChannel::All);
-
-    return; 
 }
 
 
@@ -60,23 +52,6 @@ bool BasicSc2Bot::TryBuildFactory() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY);
 }
 
-void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit){
-    const sc2::ObservationInterface* observation = Observation();
-    switch (unit->unit_type.ToType()){
-    case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-        break;
-    }
-    case sc2::UNIT_TYPEID::TERRAN_SCV: {
-        if (TryScouting(*unit)) {
-            return;
-        }
-        break;
-    }
-        default: {
-            break;
-        }
-    }
 bool BasicSc2Bot::TryBuildSeigeTank() {
     const sc2::ObservationInterface* observation = Observation();
 
@@ -104,6 +79,26 @@ bool BasicSc2Bot::TryBuildBunker() {
 }
 
 bool BasicSc2Bot::TryBuildBarracks() {
+    const sc2::ObservationInterface* observation = Observation();
+
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1) {
+
+        return false;
+    }
+
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
+
+        return false;
+    }
+    return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
+}
+
+void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
+    if (unit->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) {
+        if (TryScouting(*unit)) {
+            return;
+        }
+    }
 }
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
@@ -117,7 +112,6 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             }
         }
         this->enemy_starting_location = &closest_base_position;
-        std::cout << "FOUND ENEMY BASE" << std::endl;
     }
 }
 
@@ -131,7 +125,6 @@ bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
         // we already have a scout, don't need another one
         return false;
     }
-    std::cout << "PICKING SCOUT" << std::endl;
 
     // make unit_to_scout the current scout
     this->scout = &unit_to_scout;
@@ -149,6 +142,7 @@ bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
 }
 
 void BasicSc2Bot::CheckScoutStatus() {
+    const sc2::ObservationInterface *observation = Observation();
     if (this->scout == nullptr) {
         return;
     }
@@ -163,7 +157,6 @@ void BasicSc2Bot::CheckScoutStatus() {
         for (const sc2::Point2D starting_position : unexplored_enemy_starting_locations) {
             if (sc2::DistanceSquared2D(starting_position, this->scout->pos) < 25) {
                 unexplored_enemy_starting_locations.pop_back();
-                std::cout << "NEAR POTENTIAL BASE AT" << starting_position.x << "," << starting_position.y << std::endl;
                 // move to the next base position
                 if (!this->unexplored_enemy_starting_locations.empty()) {
                     Actions()->UnitCommand(this->scout, sc2::ABILITY_ID::ATTACK_ATTACK, unexplored_enemy_starting_locations.back());
@@ -191,16 +184,6 @@ bool BasicSc2Bot::TryBuildSupplyDepot()
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
 }
 
-bool BasicSc2Bot::TryBuildSupplyDepot() {
-    const sc2::ObservationInterface* observation = Observation();
-
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) > 0) {
-        return false;
-    }
-
-    return TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
-}
-
 
 bool BasicSc2Bot::TryBuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
@@ -213,10 +196,6 @@ bool BasicSc2Bot::TryBuildRefinery() {
 }
 
 bool BasicSc2Bot::BuildRefinery() {
-}
-
-bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type)
-{
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Unit* unit_to_build = nullptr;
     sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self);
@@ -231,14 +210,14 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
             unit_to_build = unit;
         }
     }
-    
+
     const sc2::Unit* target;
-    if(unit_to_build != nullptr) {
+    if (unit_to_build != nullptr) {
         const sc2::Unit* target = FindNearestVespeneGeyser(unit_to_build->pos);
         Actions()->UnitCommand(unit_to_build, sc2::ABILITY_ID::BUILD_REFINERY,
             target);
     }
-    
+
     return true;
 }
 
@@ -287,6 +266,9 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
     }
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
+        if (TryScouting(*unit)) {
+            return;
+        }
         const sc2::ObservationInterface* observation = Observation();
         const sc2::Unit* mineral_target; 
         const sc2::Units refineries = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));

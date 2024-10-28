@@ -12,6 +12,7 @@ public:
 	virtual void OnGameStart();
 	virtual void OnStep();
 	virtual void OnUnitIdle(const sc2::Unit* unit) final;
+	virtual void OnUnitCreated(const sc2::Unit* unit);
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
 	virtual bool TryBuildSeigeTank();
@@ -36,9 +37,6 @@ private:
 	const sc2::Unit *scout;
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
 	sc2::Point2D *enemy_starting_location;
-	bool TryBuildSupplyDepot();
-	bool TryBuildRefinery();
-	bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
 	bool TryScouting(const sc2::Unit&);
 	void CheckScoutStatus();
 };
