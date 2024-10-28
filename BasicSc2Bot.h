@@ -39,6 +39,7 @@ private:
 	sc2::Point2D *enemy_starting_location;
 	bool TryScouting(const sc2::Unit&);
 	void CheckScoutStatus();
+	const sc2::Unit *GetGatheringScv();
 };
 
 #endif

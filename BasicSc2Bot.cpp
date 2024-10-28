@@ -36,6 +36,30 @@ size_t BasicSc2Bot::CountUnitType(sc2::UNIT_TYPEID unit_type) {
     return Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unit_type)).size();
 }
 
+/*
+ * Gets an SCV that is currently gathering, or return nullptr if there are none.
+ * Useful to call when you need to assign an SCV to do a task but you don't want to
+ * interrupt other important tasks.
+ */
+const sc2::Unit *BasicSc2Bot::GetGatheringScv() {
+    const sc2::Units &gathering_scv_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {
+        if (unit.unit_type.ToType() != sc2::UNIT_TYPEID::TERRAN_SCV) {
+            return false;
+        }
+        for (const sc2::UnitOrder& order : unit.orders) {
+            if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
+                return true;
+            }
+        }
+        return false;
+    });
+
+    if (gathering_scv_units.empty()) {
+        return nullptr;
+    }
+    
+    return gathering_scv_units[0];
+}
 
 bool BasicSc2Bot::TryBuildFactory() {
     const sc2::ObservationInterface* observation = Observation();
@@ -173,12 +197,12 @@ bool BasicSc2Bot::TryBuildSupplyDepot()
 
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1) {
 
-        return false;
+       // return false;
     }
 
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
 
-        return false;
+        //return false;
     }
 
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
@@ -197,19 +221,7 @@ bool BasicSc2Bot::TryBuildRefinery() {
 
 bool BasicSc2Bot::BuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
-    const sc2::Unit* unit_to_build = nullptr;
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self);
-    for (const auto& unit : units) {
-        for (const auto& order : unit->orders) {
-            if (order.ability_id == sc2::ABILITY_ID::BUILD_REFINERY) {
-                return false;
-            }
-        }
-
-        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
-            unit_to_build = unit;
-        }
-    }
+    const sc2::Unit* unit_to_build = GetGatheringScv();
 
     const sc2::Unit* target;
     if (unit_to_build != nullptr) {
