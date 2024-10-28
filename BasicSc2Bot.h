@@ -9,6 +9,7 @@
  
 class BasicSc2Bot : public sc2::Agent {
 public:
+	virtual void OnGameFullStart();
 	virtual void OnGameStart();
 	virtual void OnStep();
 	virtual void OnUnitIdle(const sc2::Unit* unit) final;

@@ -1,10 +1,23 @@
 #include "BasicSc2Bot.h"
+#include "Utilities.h"
+#include "Betweenness.h"
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <iostream>
+#include <cmath>
+
+void BasicSc2Bot::OnGameFullStart() {
+    sc2::GameInfo obs = Observation()->GetGameInfo();
+    sc2::Point3D start_3d = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
+    sc2::Point2DI start = sc2::Point2DI(round(start_3d.x), round(start_3d.y));
+
+	sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
+	PrintMap(obs.pathing_grid, pinchpoint);
+	return;
+}
 
 void BasicSc2Bot::OnGameStart() { 
     std::cout << "Hello, World!" << std::endl;
@@ -25,12 +38,6 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     return;
 }
-
-struct IsUnit {
-    IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
-    sc2::UNIT_TYPEID type_;
-    bool operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
-};
 
 size_t BasicSc2Bot::CountUnitType(sc2::UNIT_TYPEID unit_type) {
     return Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unit_type)).size();
@@ -386,6 +393,4 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
-
-
 }
