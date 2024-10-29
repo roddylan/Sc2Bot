@@ -148,10 +148,9 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
 
 /*
  * Tries to send out the unit provided to scout out the enemy's base
+ * Returns true if the unit was assigned the task, false otherwise
  */
 bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
-    // to start with, we do not know where the enemy base is but we have a list of candidates
-    static std::vector<sc2::Point2D> unexplored_base_locations = Observation()->GetGameInfo().enemy_start_locations;
     if (this->scout != nullptr) {
         // we already have a scout, don't need another one
         return false;
@@ -166,7 +165,7 @@ bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
         
         const sc2::GameInfo& info = Observation()->GetGameInfo();
         // start from the back so we can .pop_back() (no pop_front equivalent)
-        Actions()->UnitCommand(&unit_to_scout, sc2::ABILITY_ID::ATTACK_ATTACK, unexplored_base_locations.back());
+        Actions()->UnitCommand(&unit_to_scout, sc2::ABILITY_ID::ATTACK_ATTACK, this->unexplored_enemy_starting_locations.back());
         return true;
     }
     return false;
