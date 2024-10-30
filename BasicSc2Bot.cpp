@@ -26,8 +26,8 @@ void BasicSc2Bot::OnGameFullStart() {
     sc2::Point3D start_3d = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
     sc2::Point2DI start = sc2::Point2DI(round(start_3d.x), round(start_3d.y));
 
-	sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
-	PrintMap(obs.pathing_grid, pinchpoint);
+	//sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
+	//PrintMap(obs.pathing_grid, pinchpoint);
 	return;
 }
 
@@ -178,10 +178,20 @@ bool BasicSc2Bot::TryBuildBarracks() {
 }
 
 void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
-    if (unit->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_SCV) {
-        if (TryScouting(*unit)) {
-            return;
-        }
+    switch (unit->unit_type.ToType()) {
+    case sc2::UNIT_TYPEID::TERRAN_SCV: {
+        TryScouting(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: {
+        /*
+         * For now, lower all supply depots by default
+         * In the future, maybe we can take advantage of raising/lowering them to control movement
+         */
+        std::cout << "supply depot created!" << std::endl;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        break;
+    }
     }
 }
 
@@ -253,11 +263,16 @@ void BasicSc2Bot::CheckScoutStatus() {
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
     
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) > 2) {
+    // make a new supply depot if we are at 2/3 unit capacity
+    uint32_t current_supply_use = observation->GetFoodUsed();
+    uint32_t max_supply = observation->GetFoodCap();
+
+    if (3 * current_supply_use < 2 * max_supply) {
+        // do not build if current_supply_use/max_suply < 2/3
         return false;
     }
 
-    return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
+    return TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
 }
 
 
@@ -362,8 +377,13 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignWorkers(unit);
         break;
     }
+    case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: {
+        std::cout << "SUPPLY DEPOT IDLE" << std::endl;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        break;
+    }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_MARINE);
+        StartTrainingUnit(*unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MARINE: {
@@ -519,6 +539,23 @@ void BasicSc2Bot::BuildWorkers() {
             }
         }
     }
+}
+
+/*
+ * Picks unit for the barrack to train and instructs it to train it
+ */
+void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
+    const sc2::ObservationInterface* observation = Observation();
+    const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    size_t marine_count = marines.size();
+    if (marine_count < 8) {
+        Actions()->UnitCommand(&barrack_to_train, sc2::ABILITY_ID::TRAIN_MARINE);
+        return;
+    }
+    const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    size_t marauder_count = marauders.size();
+
+    
 }
 
 void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
