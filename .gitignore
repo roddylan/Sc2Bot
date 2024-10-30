@@ -355,3 +355,9 @@ MigrationBackup/
 build/
 
 .DS_STORE
+
+.vscode/
+
+compile_commands.json
+
+.comp

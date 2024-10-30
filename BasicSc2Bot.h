@@ -6,14 +6,20 @@
 #include "sc2lib/sc2_lib.h"
 #include "sc2utils/sc2_manage_process.h"
 #include "sc2utils/sc2_arg_parser.h"
+#include <sc2api/sc2_common.h>
+#include <sc2api/sc2_typeenums.h>
+#include <sc2api/sc2_unit.h>
  
 class BasicSc2Bot : public sc2::Agent {
 public:
 	virtual void OnGameFullStart();
 	virtual void OnGameStart();
 	virtual void OnStep();
+	virtual bool AttackIntruders();
+	virtual bool LoadBunker(const sc2::Unit* marine);
 	virtual void OnUnitIdle(const sc2::Unit* unit) final;
 	virtual void OnUnitCreated(const sc2::Unit* unit);
+	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
 	virtual bool TryBuildSeigeTank();
@@ -23,18 +29,27 @@ public:
 	virtual bool TryBuildBarracks();
 	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
+	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, bool isExpansion=true); // generalized; for expansions
 	virtual size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
 	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
 	virtual void HandleUpgrades();
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
+	virtual void AssignWorkers(const sc2::Unit *);
+	virtual void BuildWorkers();
+	virtual bool HandleExpansion();
 
 	virtual void OnUnitDestroyed(const sc2::Unit* unit);
 private:
 	const size_t n_tanks = 8;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
-	const size_t n_workers = 22; // workers per base goal amnt
+	// TODO: increase to 22
+	const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
+	const size_t n_mules = 3; // goal no. mules per base
+	const size_t n_marines = 6;
+	std::vector<sc2::Point3D> expansion_locations;
+	sc2::Point3D start_location;
 	const sc2::Unit *scout;
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
 	sc2::Point2D *enemy_starting_location;
