@@ -4,6 +4,7 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
+#include <_types/_uint32_t.h>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
@@ -19,12 +20,18 @@ void BasicSc2Bot::OnGameStart() {
 }
 
 void BasicSc2Bot::OnGameFullStart() {
-    sc2::GameInfo obs = Observation()->GetGameInfo();
-    sc2::Point3D start_3d = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::GameInfo gin = obs->GetGameInfo();
+    sc2::Point3D start_3d = obs->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
     sc2::Point2DI start = sc2::Point2DI(round(start_3d.x), round(start_3d.y));
 
-	sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
-	PrintMap(obs.pathing_grid, pinchpoint);
+    // TODO: uncomment
+	// sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
+	// sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(gin.pathing_grid, start);
+	// PrintMap(gin.pathing_grid, pinchpoint);
+
+    std::cout << "width=" << gin.width << "\nheight=" << gin.height << std::endl;
+
 	return;
 }
 
@@ -34,11 +41,11 @@ void BasicSc2Bot::OnStep() {
     
     BuildWorkers();
     
-    TryBuildSupplyDepot();
-    TryBuildBarracks();
-    TryBuildRefinery();
-    TryBuildBunker();
-    TryBuildFactory();
+    // TryBuildSupplyDepot();
+    // TryBuildBarracks();
+    // TryBuildRefinery();
+    // TryBuildBunker();
+    // TryBuildFactory();
     TryBuildSeigeTank();
     AttackIntruders();
     return;
@@ -223,7 +230,8 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     // TODO: fix placement so far enough away enough from obstructions so tech lab can be built on it
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
-            sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
+            sc2::Point2D(start_location.x + rx * 15.0F, start_location.y + ry * 15.0F));
+            // sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
         return true;
     }
     default: {
@@ -231,7 +239,9 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     }
     }
     Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
-        sc2::Point2D(unit_to_build->pos.x + rx * sc2::GetRandomScalar(), unit_to_build->pos.y + ry * sc2::GetRandomScalar()));
+        sc2::Point2D(start_location.x + rx * 15.0F, start_location.y + ry * 15.0F));
+        // sc2::Point2D(unit_to_build->pos.x + rx * sc2::GetRandomScalar(), unit_to_build->pos.y + ry * sc2::GetRandomScalar()));
+        // sc2::Point2D(unit_to_build->pos.x + rx * 30.0F, unit_to_build->pos.y + ry * 30.0F));
     
 
     return true;
@@ -342,7 +352,17 @@ void BasicSc2Bot::HandleUpgrades() {
  * 
  */
 void BasicSc2Bot::HandleBuild() {
-    const uint32_t ORBITAL_COMMAND_COST = 150;
+    // mineral costs
+    static const uint32_t SUPPLY_DEPOT_COST = 100;
+    static const uint32_t REFINERY_COST = 75;
+    static const uint32_t FACTORY_MINERAL_COST = 150;
+    static const uint32_t BUNKER_COST = 100;
+    static const uint32_t BARRACKS_COST = 150;
+    static const uint32_t ORBITAL_COMMAND_COST = 150;
+
+    // vespene gas costs
+    static const uint32_t FACTORY_GAS_COST = 100;
+    
     const sc2::ObservationInterface *obs = Observation();
 
     // track each type of unit
@@ -357,30 +377,50 @@ void BasicSc2Bot::HandleBuild() {
     // TODO: handle other building
 
 
+    // current counts
+    uint32_t n_minerals = obs->GetMinerals();
+    uint32_t n_gas = obs->GetMinerals();
+
+    // goal amnts
+    const size_t n_barracks_target = 1;
+    const size_t n_factory_target = 1;
+    const size_t n_armory_target = 1;
+    const size_t n_engg_target = 1;
+
     // Handle Orbital Command
 
     if (!barracks.empty()) {
         for (const auto &base : bases) {
-            if (obs->GetMinerals() > 150) {
+            if (n_minerals > 150) {
                 Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
             }
         }
     }
 
-    for (const auto &barrack : barracks) {
-        // check if busy or building
-        if (!barrack->orders.empty() || barrack->build_progress != 1) {
-            return;
-        }
-        // techlab
-        // TODO: reactor
-        // Actions()->UnitCommand(barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
-    }
+    // for (const auto &barrack : barracks) {
+    //     // check if busy or building
+    //     if (!barrack->orders.empty() || barrack->build_progress != 1) {
+    //         return;
+    //     }
+    //     // techlab
+    //     // TODO: reactor
+    //     // Actions()->UnitCommand(barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
+    // }
+
+    /*
+    TryBuildSupplyDepot();
+    TryBuildBarracks();
+    TryBuildRefinery();
+    TryBuildBunker();
+    TryBuildFactory();
+    */
+
+    // if (!barracks.empty() && factory.size() < n_factory_target)
 
     // build engg bay for missile turret
     // TODO: improve count
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY) < bases.size() * 2) {
-        if (obs->GetMinerals() > 150 && obs->GetVespene() > 100) {
+        if (n_minerals > 150 && n_gas > 100) {
             std::cout << "building engg bay\n\n";
             TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
         }
@@ -494,7 +534,7 @@ bool BasicSc2Bot::HandleExpansion() {
     }
 
     if (TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER, closest_expansion)) {
-
+        std::cout << "EXPANSION TIME BABY\n\n";
     }
 
 
