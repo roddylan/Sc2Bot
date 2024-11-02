@@ -36,6 +36,7 @@ public:
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
 	virtual bool HandleExpansion();
+	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start);
 
 private:
 	const size_t n_tanks = 8;

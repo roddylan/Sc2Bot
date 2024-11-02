@@ -522,7 +522,17 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         
         unit_to_build = worker;
     }
+    // todo: this as possible fix?
+    float rx = sc2::GetRandomScalar();
+    float ry = sc2::GetRandomScalar();
+    sc2::Point2D nearestCommandCenter = FindNearestCommandCenter(unit_to_build->pos);
+    sc2::Point2D point(nearestCommandCenter.x + rx, nearestCommandCenter.y + ry);
 
+    while (!Query()->Placement(ability_type_for_structure, point, unit_to_build)) {
+        point.x += 10;
+        point.y += 10;
+    }
+    Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
     // check if scv can get there
     // todo: fix
     if (Query()->PathingDistance(unit_to_build, location) < 0.1F) {
@@ -535,3 +545,18 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     }
     return false;
 }
+
+const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& start) {
+    sc2::Units units = Observation()->GetUnits(sc2::Unit::Alliance::Neutral);
+    float distance = std::numeric_limits<float>::max();
+    const sc2::Unit* target = nullptr;
+    for (const auto& u : units) {
+        if (u->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND || u->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER) {
+            float d = sc2::DistanceSquared2D(u->pos, start);
+            if (d < distance) {
+                distance = d;
+                target = u;
+            }
+        }
+    }
+    return target->pos;
