@@ -386,6 +386,7 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
     sc2::Units factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_FACTORY, sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING, sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR, sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB}));
     sc2::Units starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_STARPORT, sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING, sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR, sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB}));
+    sc2::Units engg_bays = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY));
 
     sc2::Units techlab_factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
@@ -399,8 +400,8 @@ void BasicSc2Bot::HandleBuild() {
     // goal amnts
     // TODO: change target amounts
     const size_t n_barracks_target = 2;
-    const size_t n_factory_target = 1;
-    const size_t n_armory_target = 1;
+    const size_t n_factory_target = 2;
+    const size_t n_armory_target = 2;
     const size_t n_engg_target = 1;
 
     // Handle Orbital Command
@@ -434,8 +435,10 @@ void BasicSc2Bot::HandleBuild() {
     // build supply depot
 
     // build barracks
+    std::cout << "n_workers=" << obs->GetFoodWorkers() << std::endl;
     if (barracks.size() < n_barracks_target * bases.size()) {
-        if (obs->GetFoodWorkers() >= n_workers * bases.size()) {
+        if (obs->GetFoodWorkers() >= n_workers_init * bases.size()) {
+            std::cout << "building barracks\n\n";
             TryBuildBarracks();
         }
     }
@@ -443,6 +446,7 @@ void BasicSc2Bot::HandleBuild() {
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
+            std::cout << "building factory\n\n";
             TryBuildFactory();
         }
     }
@@ -450,7 +454,7 @@ void BasicSc2Bot::HandleBuild() {
 
     // build engg bay for missile turret
     // TODO: improve count
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY) < bases.size() * 2) {
+    if (engg_bays.size() < bases.size() * n_engg_target) {
         if (n_minerals > 150 && n_gas > 100) {
             std::cout << "building engg bay\n\n";
             TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
@@ -485,7 +489,8 @@ void BasicSc2Bot::BuildWorkers() {
     for (const auto &base : bases) {
         // build SCV
         // TODO: maybe just use ideal_harvesters (max)
-        if (base->assigned_harvesters < base->ideal_harvesters && base->build_progress == 1 && base->orders.empty()) {
+        // if (base->assigned_harvesters < base->ideal_harvesters && base->build_progress == 1 && base->orders.empty()) {
+        if (obs->GetFoodWorkers() < n_workers) {
             if (obs->GetMinerals() >= 50) {
                 sc2::Agent::Actions()->UnitCommand(base, sc2::ABILITY_ID::TRAIN_SCV);
             }
