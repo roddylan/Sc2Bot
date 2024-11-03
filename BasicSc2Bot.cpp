@@ -41,9 +41,14 @@ void BasicSc2Bot::OnStep() {
     
     BuildWorkers();
     
-    // TryBuildSupplyDepot();
+
+    if (TryBuildSupplyDepot()) {
+        return;
+    }
+    if (TryBuildRefinery()) {
+        return;
+    }
     // TryBuildBarracks();
-    // TryBuildRefinery();
     // TryBuildBunker();
     // TryBuildFactory();
     TryBuildSeigeTank();
@@ -157,7 +162,17 @@ bool BasicSc2Bot::TryBuildBarracks() {
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
 
+    // supply cap
+    // TODO: change
+    if (observation->GetFoodUsed() < observation->GetFoodCap() - 6) {
+        return false;
+    }
+
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) > 2) {
+        return false;
+    }
+
+    if (observation->GetMinerals() < 100) {
         return false;
     }
 
@@ -382,7 +397,8 @@ void BasicSc2Bot::HandleBuild() {
     uint32_t n_gas = obs->GetMinerals();
 
     // goal amnts
-    const size_t n_barracks_target = 1;
+    // TODO: change target amounts
+    const size_t n_barracks_target = 2;
     const size_t n_factory_target = 1;
     const size_t n_armory_target = 1;
     const size_t n_engg_target = 1;
@@ -414,8 +430,23 @@ void BasicSc2Bot::HandleBuild() {
     TryBuildBunker();
     TryBuildFactory();
     */
+    
+    // build supply depot
 
-    // if (!barracks.empty() && factory.size() < n_factory_target)
+    // build barracks
+    if (barracks.size() < n_barracks_target * bases.size()) {
+        if (obs->GetFoodWorkers() >= n_workers * bases.size()) {
+            TryBuildBarracks();
+        }
+    }
+
+    // build factory
+    if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
+        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
+            TryBuildFactory();
+        }
+    }
+
 
     // build engg bay for missile turret
     // TODO: improve count
