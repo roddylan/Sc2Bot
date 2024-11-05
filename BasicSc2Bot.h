@@ -43,6 +43,7 @@ private:
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
 	// TODO: increase to 22
+	const size_t n_workers_init = 15; // workers per base building split point (build rest of stuff)
 	const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 3; // goal no. mules per base
