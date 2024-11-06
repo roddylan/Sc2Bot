@@ -4,13 +4,14 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
-#include <_types/_uint32_t.h>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
 #include <iostream>
 #include <cmath>
+
+
 
 void BasicSc2Bot::OnGameStart() {
     const sc2::ObservationInterface *obs = Observation();
@@ -59,19 +60,36 @@ sc2::Filter isEnemy = [](const sc2::Unit& unit) {
     return unit.alliance != sc2::Unit::Alliance::Self; 
     };
 
-
+bool InBunker (sc2::Units myUnits, const sc2::Unit* marine) {
+    for (auto& bunker : myUnits) {
+        for (const auto& passenger : bunker->passengers) {
+            // check if already in bunker
+            if (passenger.tag == marine->tag) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 bool BasicSc2Bot::LoadBunker(const sc2::Unit* marine) {
     sc2::Units myUnits = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     bool bunkerLoaded = false;
+
+    if (InBunker(myUnits, marine)) return true;
+
     for (auto target : myUnits) {
-        if (target->passengers.size() == 4) {
-            continue;
+        if (target->passengers.size() < 4) {
+            Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, target);
+            if (!InBunker(myUnits, marine)) {
+                continue;
+            }
         }
-        Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, target);
-        bunkerLoaded = true;
     }
+
     return bunkerLoaded;
 }
+
+
 bool BasicSc2Bot::AttackIntruders() {
     const sc2::ObservationInterface* observation = Observation();
     sc2::Units units = observation->GetUnits();
@@ -132,14 +150,16 @@ bool BasicSc2Bot::TryBuildBunker() {
 
     const sc2::ObservationInterface* observation = Observation();
 
+
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) < 1) {
         return false;
     }
+    /*
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BUNKER) > 2) {
         
         return false;
     }
-
+    */
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BUNKER);
 }
 
@@ -147,15 +167,17 @@ bool BasicSc2Bot::TryBuildBarracks() {
     const sc2::ObservationInterface* observation = Observation();
 
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1) {
+       // std::cout << "supply dept < 1" << std::endl;
 
         return false;
     }
 
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
+    //if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
+       // std::cout << "barracks > 0" << std::endl;
 
-        return false;
-    }
-
+       // return false;
+   // }
+   // std::cout << "actually builkding barracks" << std::endl;
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
 }
 
@@ -240,6 +262,8 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     switch (unit_type) {
     case sc2::UNIT_TYPEID::TERRAN_BUNKER: {
         Actions()->ToggleAutocast(unit_to_build->tag, sc2::ABILITY_ID::BUNKERATTACK);
+
+
         break;
     }
     // TODO: fix placement so far enough away enough from obstructions so tech lab can be built on it
@@ -387,7 +411,7 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_FACTORY, sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING, sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR, sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB}));
     sc2::Units starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_STARPORT, sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING, sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR, sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB}));
     sc2::Units engg_bays = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY));
-
+    sc2::Units bunkers = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     sc2::Units techlab_factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
     // TODO: handle other building
@@ -403,6 +427,7 @@ void BasicSc2Bot::HandleBuild() {
     const size_t n_factory_target = 2;
     const size_t n_armory_target = 2;
     const size_t n_engg_target = 1;
+    const size_t n_bunkers_target = 8;
 
     // Handle Orbital Command
 
@@ -435,22 +460,48 @@ void BasicSc2Bot::HandleBuild() {
     // build supply depot
 
     // build barracks
-    std::cout << "n_workers=" << obs->GetFoodWorkers() << std::endl;
+    //std::cout << "n_workers=" << obs->GetFoodWorkers() << std::endl;
     if (barracks.size() < n_barracks_target * bases.size()) {
         if (obs->GetFoodWorkers() >= n_workers_init * bases.size()) {
-            std::cout << "building barracks\n\n";
+           // std::cout << "building barracks\n\n";
             TryBuildBarracks();
         }
+    }
+    if (bunkers.size() < n_bunkers_target && n_minerals >= BUNKER_COST) {
+       
+        sc2::Units scvs = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+        bool bunkerBuilt = false;
+
+        for (auto& scv : scvs) {
+            bool isBuildingSCV = false;
+            for (const auto& order : scv->orders) {
+                if (order.ability_id == sc2::ABILITY_ID::TRAIN_SCV) {
+                    isBuildingSCV = true;
+                    break;
+                }
+            }
+
+            if (scv->orders.empty() && !isBuildingSCV) {
+                TryBuildBunker();
+                bunkerBuilt = true;
+                break;
+            }
+        }
+
+        if (bunkerBuilt) {
+            std::cout << "SCV assigned to build bunker\n";
+        }
+       
     }
 
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
-            std::cout << "building factory\n\n";
+            //std::cout << "building factory\n\n";
             TryBuildFactory();
         }
     }
-
+    
 
     // build engg bay for missile turret
     // TODO: improve count
@@ -601,14 +652,51 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     // todo: this as possible fix?
     float rx = sc2::GetRandomScalar();
     float ry = sc2::GetRandomScalar();
+
     sc2::Point2D nearestCommandCenter = FindNearestCommandCenter(unit_to_build->pos);
     sc2::Point2D point(nearestCommandCenter.x + rx, nearestCommandCenter.y + ry);
 
+
+    if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_BUNKER) {
+        int map_height = obs->GetGameInfo().height;
+        int map_width = obs->GetGameInfo().width;
+        const size_t bunker_cost = 100;
+        if (obs->GetMinerals() < 4 * bunker_cost) {
+            return false;
+        }
+        bool all_bunkers_placed = true;
+
+        sc2::Point2D direction = sc2::Point2D(0, 1); 
+        float distance_between_bunkers = 10.0f;
+
+        for (int i = 0; i < 4; i++) {
+            sc2::Point2D placement_point = nearestCommandCenter + direction * (i * distance_between_bunkers);
+            bool found_valid_placement = false;
+
+            // Check if the placement point is valid
+            if (Query()->Placement(ability_type_for_structure, placement_point, unit_to_build)) {
+                point = placement_point;
+                found_valid_placement = true;
+            }
+            if (found_valid_placement) {
+                Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
+            }
+            else {
+                all_bunkers_placed = false;
+                break;
+            }
+        }
+
+        return all_bunkers_placed;
+    }
+   
+    
     while (!Query()->Placement(ability_type_for_structure, point, unit_to_build)) {
         point.x += 10;
         point.y += 10;
     }
     Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
+
     // check if scv can get there
     // todo: fix
     if (Query()->PathingDistance(unit_to_build, location) < 0.1F) {
@@ -627,7 +715,7 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
     float distance = std::numeric_limits<float>::max();
     const sc2::Unit* target = nullptr;
     for (const auto& u : units) {
-        if (u->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND || u->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER) {
+        if (u->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND || u->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER || u->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING) {
             float d = sc2::DistanceSquared2D(u->pos, start);
             if (d < distance) {
                 distance = d;
@@ -636,3 +724,4 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
         }
     }
     return target->pos;
+}

@@ -12,6 +12,7 @@
  
 class BasicSc2Bot : public sc2::Agent {
 public:
+
 	virtual void OnGameFullStart();
 	virtual void OnGameStart();
 	virtual void OnStep();
@@ -48,6 +49,7 @@ private:
 	const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 3; // goal no. mules per base
 	const size_t n_marines = 6;
+	const size_t n_bunkers = 6;
 	std::vector<sc2::Point3D> expansion_locations;
 	sc2::Point3D start_location;
 };
