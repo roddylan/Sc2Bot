@@ -19,6 +19,7 @@ public:
 	virtual bool AttackIntruders();
 	virtual bool LoadBunker(const sc2::Unit* marine);
 	virtual void OnUnitIdle(const sc2::Unit* unit) final;
+	virtual void OnUnitCreated(const sc2::Unit* unit);
 	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
@@ -41,6 +42,7 @@ public:
 	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
 	virtual bool TryBuildMissileTurret();
 
+	virtual void OnUnitDestroyed(const sc2::Unit* unit);
 private:
 	const size_t n_tanks = 8;
 	const size_t n_bases = 3;
@@ -55,6 +57,13 @@ private:
 	std::vector<sc2::Point3D> expansion_locations;
 
 	sc2::Point3D start_location;
+	const sc2::Unit *scout;
+	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
+	sc2::Point2D *enemy_starting_location;
+	bool TryScouting(const sc2::Unit&);
+	void CheckScoutStatus();
+	const sc2::Unit *GetGatheringScv();
+	void StartTrainingUnit(const sc2::Unit& barrack_to_train);
 };
 
 

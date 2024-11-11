@@ -125,3 +125,27 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
     }
 }
 
+/*
+ * Gets an SCV that is currently gathering, or return nullptr if there are none.
+ * Useful to call when you need to assign an SCV to do a task but you don't want to
+ * interrupt other important tasks.
+ */
+const sc2::Unit *BasicSc2Bot::GetGatheringScv() {
+    const sc2::Units &gathering_scv_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {
+        if (unit.unit_type.ToType() != sc2::UNIT_TYPEID::TERRAN_SCV) {
+            return false;
+        }
+        for (const sc2::UnitOrder& order : unit.orders) {
+            if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
+                return true;
+            }
+        }
+        return false;
+    });
+
+    if (gathering_scv_units.empty()) {
+        return nullptr;
+    }
+    
+    return gathering_scv_units[0];
+}

@@ -82,25 +82,27 @@ bool BasicSc2Bot::TryBuildBarracks() {
         return false;
     }
 
-    //if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
-       // std::cout << "barracks > 0" << std::endl;
-
-       // return false;
-   // }
-   // std::cout << "actually builkding barracks" << std::endl;
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
+        return false;
+    }
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
 }
 
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
 
-    // supply cap
-    // TODO: change
-    if (observation->GetFoodUsed() < observation->GetFoodCap() - 6) {
+
+    size_t n_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)).size();
+    size_t n_bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
+    // make a new supply depot if we are at 2/3 unit capacity
+    uint32_t current_supply_use = observation->GetFoodUsed();
+    uint32_t max_supply = observation->GetFoodCap();
+
+    if (3 * current_supply_use < 2 * max_supply) {
+        // do not build if current_supply_use/max_suply < 2/3
         return false;
     }
-
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) > 2) {
+    if (n_supply_depots >= 2 * n_bases) {
         return false;
     }
 
@@ -125,27 +127,15 @@ bool BasicSc2Bot::TryBuildRefinery() {
 
 bool BasicSc2Bot::BuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
-    const sc2::Unit* unit_to_build = nullptr;
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self);
-    for (const auto& unit : units) {
-        for (const auto& order : unit->orders) {
-            if (order.ability_id == sc2::ABILITY_ID::BUILD_REFINERY) {
-                return false;
-            }
-        }
+    const sc2::Unit* unit_to_build = GetGatheringScv();
 
-        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
-            unit_to_build = unit;
-        }
-    }
-    
     const sc2::Unit* target;
-    if(unit_to_build != nullptr) {
+    if (unit_to_build != nullptr) {
         const sc2::Unit* target = FindNearestVespeneGeyser(unit_to_build->pos);
         Actions()->UnitCommand(unit_to_build, sc2::ABILITY_ID::BUILD_REFINERY,
             target);
     }
-    
+
     return true;
 }
 
@@ -301,7 +291,7 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     if (observation->GetMinerals() < 75) {
         return false;
     }
-    size_t max_turrets_per_base = 3;
+    size_t max_turrets_per_base = 1;
     size_t base_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
     size_t turret_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MISSILETURRET)).size();
     if (max_turrets_per_base * base_count < turret_count) {
@@ -367,9 +357,7 @@ void BasicSc2Bot::HandleBuild() {
     const size_t n_armory_target = 2;
     const size_t n_engg_target = 1;
     const size_t n_bunkers_target = 8;
-    if (n_minerals >= 400) {
-        HandleExpansion();
-    }
+    
     // Handle Orbital Command
 
     if (!barracks.empty()) {
@@ -381,6 +369,9 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
     
+    if (n_minerals >= 400) {
+        HandleExpansion();
+    }
 
     // for (const auto &barrack : barracks) {
     //     // check if busy or building
@@ -391,14 +382,6 @@ void BasicSc2Bot::HandleBuild() {
     //     // TODO: reactor
     //     // Actions()->UnitCommand(barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
     // }
-
-    /*
-    TryBuildSupplyDepot();
-    TryBuildBarracks();
-    TryBuildRefinery();
-    TryBuildBunker();
-    TryBuildFactory();
-    */
     
     // build supply depot
 

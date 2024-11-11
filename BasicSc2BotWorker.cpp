@@ -41,7 +41,7 @@ void BasicSc2Bot::BuildWorkers() {
         // TODO: maybe just use ideal_harvesters (max)
         // if (base->assigned_harvesters < base->ideal_harvesters && base->build_progress == 1 && base->orders.empty()) {
         if (obs->GetFoodWorkers() < n_workers) {
-            if (obs->GetMinerals() >= 50) {
+            if (obs->GetMinerals() >= 50 && base->orders.empty()) {
                 sc2::Agent::Actions()->UnitCommand(base, sc2::ABILITY_ID::TRAIN_SCV);
             }
         }
