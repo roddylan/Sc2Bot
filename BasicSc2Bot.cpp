@@ -46,13 +46,13 @@ void BasicSc2Bot::OnStep() {
     
     BuildWorkers();
     
-    TryBuildSupplyDepot();
     TryBuildBarracks();
     TryBuildRefinery();
     TryBuildBunker();
     TryBuildFactory();
     TryBuildSeigeTank();
     CheckScoutStatus();
+    TryBuildSupplyDepot();
 
     /*
     if (TryBuildSupplyDepot()) {
