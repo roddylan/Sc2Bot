@@ -9,7 +9,7 @@
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
- 
+
 class BasicSc2Bot : public sc2::Agent {
 public:
 
@@ -29,7 +29,7 @@ public:
 	virtual bool TryBuildBarracks();
 	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
-	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, bool isExpansion=true); // generalized; for expansions
+	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)); // generalized; for expansions
 	virtual size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
 	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
 	virtual void HandleUpgrades();
@@ -37,7 +37,9 @@ public:
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
 	virtual bool HandleExpansion();
-	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start);
+	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
+	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
+	virtual bool TryBuildMissileTurret();
 
 private:
 	const size_t n_tanks = 8;
@@ -51,7 +53,10 @@ private:
 	const size_t n_marines = 6;
 	const size_t n_bunkers = 6;
 	std::vector<sc2::Point3D> expansion_locations;
+
 	sc2::Point3D start_location;
 };
+
+
 
 #endif
