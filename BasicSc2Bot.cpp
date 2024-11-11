@@ -18,6 +18,9 @@ void BasicSc2Bot::OnGameStart() {
     sc2::QueryInterface *query = Query();
     expansion_locations = sc2::search::CalculateExpansionLocations(obs, query);
     start_location = obs->GetStartLocation();
+    scout = nullptr; // no scout initially
+    unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
+    enemy_starting_location = nullptr;  // we use a scout to find this
 }
 
 void BasicSc2Bot::OnGameFullStart() {
@@ -26,13 +29,8 @@ void BasicSc2Bot::OnGameFullStart() {
     sc2::Point3D start_3d = obs->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
     sc2::Point2DI start = sc2::Point2DI(round(start_3d.x), round(start_3d.y));
 
-    // TODO: uncomment
-	// sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
-	// sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(gin.pathing_grid, start);
-	// PrintMap(gin.pathing_grid, pinchpoint);
-
-    std::cout << "width=" << gin.width << "\nheight=" << gin.height << std::endl;
-
+	//sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
+	//PrintMap(obs.pathing_grid, pinchpoint);
 	return;
 }
 
@@ -46,8 +44,15 @@ void BasicSc2Bot::OnStep() {
     
     BuildWorkers();
     
+    TryBuildSupplyDepot();
+    TryBuildBarracks();
+    TryBuildRefinery();
+    TryBuildBunker();
+    TryBuildFactory();
+    TryBuildSeigeTank();
+    CheckScoutStatus();
 
-
+    /*
     if (TryBuildSupplyDepot()) {
         return;
     }
@@ -57,11 +62,12 @@ void BasicSc2Bot::OnStep() {
     // TryBuildBarracks();
     // TryBuildBunker();
     // TryBuildFactory();
-
+    */
     
     AttackIntruders();
     return;
 }
+
 sc2::Filter isEnemy = [](const sc2::Unit& unit) {
     return unit.alliance != sc2::Unit::Alliance::Self; 
     };
@@ -113,6 +119,32 @@ bool BasicSc2Bot::AttackIntruders() {
 size_t BasicSc2Bot::CountUnitType(sc2::UNIT_TYPEID unit_type) {
     return Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unit_type)).size();
 }
+
+/*
+ * Gets an SCV that is currently gathering, or return nullptr if there are none.
+ * Useful to call when you need to assign an SCV to do a task but you don't want to
+ * interrupt other important tasks.
+ */
+const sc2::Unit *BasicSc2Bot::GetGatheringScv() {
+    const sc2::Units &gathering_scv_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {
+        if (unit.unit_type.ToType() != sc2::UNIT_TYPEID::TERRAN_SCV) {
+            return false;
+        }
+        for (const sc2::UnitOrder& order : unit.orders) {
+            if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
+                return true;
+            }
+        }
+        return false;
+    });
+
+    if (gathering_scv_units.empty()) {
+        return nullptr;
+    }
+    
+    return gathering_scv_units[0];
+}
+
 bool BasicSc2Bot::UpgradeFactoryTechLab(const sc2::Unit* factory) {
         
     Actions()->UnitCommand(factory, sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY);
@@ -190,25 +222,111 @@ bool BasicSc2Bot::TryBuildBarracks() {
         return false;
     }
 
-    //if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
-       // std::cout << "barracks > 0" << std::endl;
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
 
-       // return false;
-   // }
-   // std::cout << "actually builkding barracks" << std::endl;
+        return false;
+    }
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
+}
+
+void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
+    switch (unit->unit_type.ToType()) {
+    case sc2::UNIT_TYPEID::TERRAN_SCV: {
+        TryScouting(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: {
+        /*
+         * For now, lower all supply depots by default
+         * In the future, maybe we can take advantage of raising/lowering them to control movement
+         */
+        std::cout << "supply depot created!" << std::endl;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        break;
+    }
+    }
+}
+
+void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
+    if (unit == this->scout) {
+        // the scout was destroyed, so we found the base!
+        const sc2::GameInfo& info = Observation()->GetGameInfo();
+        sc2::Point2D closest_base_position = info.enemy_start_locations[0];
+        for (const sc2::Point2D& position : info.enemy_start_locations) {
+            if (sc2::DistanceSquared2D(unit->pos, position) < sc2::DistanceSquared2D(unit->pos, closest_base_position)) {
+                closest_base_position = position;
+            }
+        }
+        this->enemy_starting_location = &closest_base_position;
+    }
+}
+
+/*
+ * Tries to send out the unit provided to scout out the enemy's base
+ * Returns true if the unit was assigned the task, false otherwise
+ */
+bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
+    if (this->scout != nullptr) {
+        // we already have a scout, don't need another one
+        return false;
+    }
+
+    // make unit_to_scout the current scout
+    this->scout = &unit_to_scout;
+
+    // if we haven't discovered the enemy's base location, try and find it
+    if (!this->unexplored_enemy_starting_locations.empty()) {
+
+        
+        const sc2::GameInfo& info = Observation()->GetGameInfo();
+        // start from the back so we can .pop_back() (no pop_front equivalent)
+        Actions()->UnitCommand(&unit_to_scout, sc2::ABILITY_ID::ATTACK_ATTACK, this->unexplored_enemy_starting_locations.back());
+        return true;
+    }
+    return false;
+}
+
+void BasicSc2Bot::CheckScoutStatus() {
+    const sc2::ObservationInterface *observation = Observation();
+    if (this->scout == nullptr) {
+        return;
+    }
+
+    if (!this->unexplored_enemy_starting_locations.empty()) {
+        // get all known enemy bases
+        sc2::Units enemy_bases = Observation()->GetUnits(sc2::Unit::Enemy, [](const sc2::Unit& unit) {
+            return unit.unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
+                || unit.unit_type == sc2::UNIT_TYPEID::ZERG_HATCHERY
+                || unit.unit_type == sc2::UNIT_TYPEID::PROTOSS_NEXUS;
+            });
+        for (const sc2::Point2D starting_position : unexplored_enemy_starting_locations) {
+            if (sc2::DistanceSquared2D(starting_position, this->scout->pos) < 25) {
+                unexplored_enemy_starting_locations.pop_back();
+                // move to the next base position
+                if (!this->unexplored_enemy_starting_locations.empty()) {
+                    Actions()->UnitCommand(this->scout, sc2::ABILITY_ID::ATTACK_ATTACK, unexplored_enemy_starting_locations.back());
+                }
+            }
+        }
+
+    }
 }
 
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
 
-    // supply cap
-    // TODO: change
-    if (observation->GetFoodUsed() < observation->GetFoodCap() - 6) {
+
+    size_t n_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)).size();
+    size_t n_bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
+    // make a new supply depot if we are at 2/3 unit capacity
+    uint32_t current_supply_use = observation->GetFoodUsed();
+    uint32_t max_supply = observation->GetFoodCap();
+
+    if (3 * current_supply_use < 2 * max_supply) {
+        // do not build if current_supply_use/max_suply < 2/3
         return false;
     }
-
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) > 2) {
+    if (n_supply_depots >= 2 * n_bases) {
         return false;
     }
 
@@ -233,27 +351,15 @@ bool BasicSc2Bot::TryBuildRefinery() {
 
 bool BasicSc2Bot::BuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
-    const sc2::Unit* unit_to_build = nullptr;
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self);
-    for (const auto& unit : units) {
-        for (const auto& order : unit->orders) {
-            if (order.ability_id == sc2::ABILITY_ID::BUILD_REFINERY) {
-                return false;
-            }
-        }
+    const sc2::Unit* unit_to_build = GetGatheringScv();
 
-        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
-            unit_to_build = unit;
-        }
-    }
-    
     const sc2::Unit* target;
-    if(unit_to_build != nullptr) {
+    if (unit_to_build != nullptr) {
         const sc2::Unit* target = FindNearestVespeneGeyser(unit_to_build->pos);
         Actions()->UnitCommand(unit_to_build, sc2::ABILITY_ID::BUILD_REFINERY,
             target);
     }
-    
+
     return true;
 }
 
@@ -311,48 +417,60 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
 void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     // TODO: refactor
-    sc2::Units barracks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
+    sc2::Units barracks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING }));
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
 
     switch (unit->unit_type.ToType()) {
-    // case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
-    //     if (Observation()->GetFoodWorkers() > (n_workers * bases.size()) && !barracks.empty()){
-    //         // std::cout << n_workers * bases.size() << std::endl;
-    //         // TODO: refactor and move
-    //     } else {
-    //         sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-    //     }
-    //     break;
-    // }
-    // case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
-    //     // std::cout << "ORBITAL COMMAND\n";
-    //     sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-    // }
+        // case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
+        //     if (Observation()->GetFoodWorkers() > (n_workers * bases.size()) && !barracks.empty()){
+        //         // std::cout << n_workers * bases.size() << std::endl;
+        //         // TODO: refactor and move
+        //     } else {
+        //         sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+        //     }
+        //     break;
+        // }
+        // case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
+        //     // std::cout << "ORBITAL COMMAND\n";
+        //     sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+        // }
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
+        if (TryScouting(*unit)) {
+            break;
+        }
         AssignWorkers(unit);
         break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
+        // std::cout << "ORBITAL COMMAND\n";
+        sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
     }
     case sc2::UNIT_TYPEID::TERRAN_MULE: {
         AssignWorkers(unit);
         break;
     }
+    case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: {
+       // std::cout << "SUPPLY DEPOT IDLE" << std::endl;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        break;
+    }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_MARINE);
+        StartTrainingUnit(*unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MARINE: {
         // if the bunkers are full
-        
+
         if (!LoadBunker(unit)) {
             const sc2::GameInfo& game_info = Observation()->GetGameInfo();
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
-            , game_info.enemy_start_locations.front(), true);
+                , game_info.enemy_start_locations.front(), true);
             // std::cout << "sent";
         }
-        
+
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_FACTORY:{
+    case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         UpgradeFactoryTechLab(unit);
     }
     default: {
@@ -372,7 +490,7 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     if (observation->GetMinerals() < 75) {
         return false;
     }
-    size_t max_turrets_per_base = 3;
+    size_t max_turrets_per_base = 1;
     size_t base_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
     size_t turret_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MISSILETURRET)).size();
     if (max_turrets_per_base * base_count < turret_count) {
@@ -401,6 +519,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestMineralPatch(const sc2::Point2D& start)
     }
     return target;
 }
+
 const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start) {
     sc2::Units units = Observation()->GetUnits(sc2::Unit::Alliance::Neutral);
     float distance = std::numeric_limits<float>::max();
@@ -595,6 +714,23 @@ void BasicSc2Bot::BuildWorkers() {
             }
         }
     }
+}
+
+/*
+ * Picks unit for the barrack to train and instructs it to train it
+ */
+void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
+    const sc2::ObservationInterface* observation = Observation();
+    const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    size_t marine_count = marines.size();
+    if (marine_count < 8) {
+        Actions()->UnitCommand(&barrack_to_train, sc2::ABILITY_ID::TRAIN_MARINE);
+        return;
+    }
+    const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    size_t marauder_count = marauders.size();
+
+    
 }
 
 void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
