@@ -44,13 +44,14 @@ void BasicSc2Bot::OnStep() {
     
     BuildWorkers();
     
-    TryBuildSupplyDepot();
+    
     TryBuildBarracks();
     TryBuildRefinery();
     TryBuildBunker();
     TryBuildFactory();
     TryBuildSeigeTank();
     CheckScoutStatus();
+    TryBuildSupplyDepot();
 
     /*
     if (TryBuildSupplyDepot()) {
@@ -314,10 +315,12 @@ void BasicSc2Bot::CheckScoutStatus() {
 
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
-
-
+    // Lower + normal supply depots = total # of depots
     size_t n_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)).size();
+    size_t n_lower_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED)).size();
+    std::cout << "n suppply depots " << n_supply_depots << std::endl;
     size_t n_bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
+    std::cout << "n basess " << n_bases << std::endl;
     // make a new supply depot if we are at 2/3 unit capacity
     uint32_t current_supply_use = observation->GetFoodUsed();
     uint32_t max_supply = observation->GetFoodCap();
@@ -326,7 +329,8 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
         // do not build if current_supply_use/max_suply < 2/3
         return false;
     }
-    if (n_supply_depots >= 2 * n_bases) {
+    // do not build if theres more than 2 per base
+    if ((n_supply_depots + n_lower_supply_depots) >= 2 * n_bases) {
         return false;
     }
 
