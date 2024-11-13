@@ -63,7 +63,8 @@ private:
 	bool TryScouting(const sc2::Unit&);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
-	void StartTrainingUnit(const sc2::Unit& barrack_to_train);
+	void AssignBarrackAction(const sc2::Unit& barrack);
+	void AssignBarrackTechLabAction(const sc2::Unit& barrack_tech_lab);
 };
 
 

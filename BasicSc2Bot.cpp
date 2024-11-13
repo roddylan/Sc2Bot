@@ -142,8 +142,11 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
-        StartTrainingUnit(*unit);
+        AssignBarrackAction(*unit);
         break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
+        AssignBarrackTechLabAction(*unit);
     }
     case sc2::UNIT_TYPEID::TERRAN_MARINE: {
         // if the bunkers are full
@@ -165,20 +168,109 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     }
 }
+#include "BasicSc2Bot.h"
+#include "sc2api/sc2_api.h"
 
 /*
  * Picks unit for the barrack to train and instructs it to train it
  */
-void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
+void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
+    /*
+    * What should a barrack train?
+    * - if we have very few troops, train marines
+    */
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    const uint32_t& mineral_count = observation->GetMinerals();
+    const uint32_t& gas_count = observation->GetVespene();
     size_t marine_count = marines.size();
     if (marine_count < 8) {
-        Actions()->UnitCommand(&barrack_to_train, sc2::ABILITY_ID::TRAIN_MARINE);
+        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
         return;
     }
-    const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
-    size_t marauder_count = marauders.size();
 
+    /*
+    * The addon for the barrack, either a tech lab or a reactor or none
+    * - if there is no addon, we should make one
+    */
+    const sc2::Unit* barrack_addon = observation->GetUnit(barrack.add_on_tag);
+    if (barrack_addon == nullptr) {
+        // get ALL the barrack tech labs (not just for this one)
+        // - only have 1 tech lab
+        const auto& barrack_tech_labs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+        /*
+        * If we don't have a tech lab yet, make one
+        * - tech labs can research buffs for marines & marauders
+        *   - marines can get +10 hp and stimpacks
+        *     - stimpacks let you sacrifice 10hp for bonus combat stats, pairs well with medivacs
+        * Costs 50 mineral, 25 gas
+        */
+        if (barrack_tech_labs.size() < 1 && mineral_count >= 50 && gas_count >= 25) {
+            Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
+            return;
+        }
+
+        // have a tech lab already, so build a reactor (costs 50 mineral, 50 gas)
+        if (mineral_count >= 50 && gas_count >= 50) {
+            Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
+            return;
+        }
+        return;
+    }
+
+    // now we know that this barrack has an addon, but is it a reactor or a tech lab?
+    const bool has_tech_lab = barrack_addon->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB;
+
+    // if it has a tech lab, train marauders constantly
+    if (has_tech_lab) {
+        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARAUDER);
+        return;
+    }
+
+    // if you have a reactor, you can build things twice as fast so you should spam train marines
+    Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
+}
+
+/*
+* Make sure the barrack tech lab is researching things
+*/
+void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
+    const sc2::ObservationInterface *observation = Observation();
+    const std::vector<sc2::UpgradeID>& upgrades = observation->GetUpgrades();
+    const std::vector<sc2::UpgradeData>& upgrade_data = observation->GetUpgradeData();
+    const uint32_t& mineral_count = observation->GetMinerals();
+    const uint32_t& gas_count = observation->GetVespene();
     
+    /*
+    * Upgrades in order of best->worst are combat shield, stimpack, concussive shells
+    * - combat shield: marines gain 10hp
+    * - stimpack: marines can sacrifice 10hp for +50% hp & firing rate for 11 seconds
+    * - concussive shells: marauder's attack slow
+    */
+    /*
+    * Combat shield costs 100 mineral, 100 gas
+    */
+    const bool has_combat_shield = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::COMBATSHIELD) != upgrades.end();
+    if (mineral_count >= 100 && gas_count >= 100 && !has_combat_shield) {
+        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_COMBATSHIELD);
+        return;
+    }
+    /*
+    * Stimpack costs 100 mineral, 100 gas
+    */
+    const bool has_stimpack = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::MARINESTIMPACK) != upgrades.end();
+    if (mineral_count >= 100 && gas_count >= 100 && !has_stimpack) {
+        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_STIMPACK);
+        return;
+    }
+
+    /*
+    * Concussive shells costs 50 mineral, 50 gas
+    */
+    const bool has_concussive_shells = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::COMBATSHIELD) != upgrades.end();
+    if (mineral_count >= 50 && gas_count >= 50 && !has_concussive_shells) {
+        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_CONCUSSIVESHELLS);
+        return;
+    }
+    return;
 }
