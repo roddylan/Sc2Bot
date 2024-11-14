@@ -169,19 +169,3 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
 }
 
-/*
- * Picks unit for the barrack to train and instructs it to train it
- */
-void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
-    const sc2::ObservationInterface* observation = Observation();
-    const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-    size_t marine_count = marines.size();
-    if (marine_count < 8) {
-        Actions()->UnitCommand(&barrack_to_train, sc2::ABILITY_ID::TRAIN_MARINE);
-        return;
-    }
-    const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
-    size_t marauder_count = marauders.size();
-
-    
-}
