@@ -441,4 +441,5 @@ void BasicSc2Bot::HandleBuild() {
 
 bool BasicSc2Bot::TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure) {
     // TODO: finish
+    return false;
 }
