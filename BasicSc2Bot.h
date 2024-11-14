@@ -65,6 +65,7 @@ private:
 	const sc2::Unit *GetGatheringScv();
 	void AssignBarrackAction(const sc2::Unit& barrack);
 	void AssignBarrackTechLabAction(const sc2::Unit& barrack_tech_lab);
+	void AssignStarportAction(const sc2::Unit& starport);
 };
 
 

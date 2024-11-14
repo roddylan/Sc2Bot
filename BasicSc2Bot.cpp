@@ -128,6 +128,10 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignWorkers(unit);
         break;
     }
+    case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
+        AssignStarportAction(*unit);
+        break;
+    }
     case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
         // std::cout << "ORBITAL COMMAND\n";
         sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
@@ -168,16 +172,16 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     }
 }
-#include "BasicSc2Bot.h"
-#include "sc2api/sc2_api.h"
 
 /*
  * Picks unit for the barrack to train and instructs it to train it
  */
 void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     /*
-    * What should a barrack train?
-    * - if we have very few troops, train marines
+    * What should a barrack do?
+    * - if we have very few marines, train marines
+    * - otherwise, if it doesnt have an addon, build an addon
+    * - if it does have an addon, train marines if it has a reactor; train marauders if it has a tech lab
     */
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
@@ -197,7 +201,7 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     if (barrack_addon == nullptr) {
         // get ALL the barrack tech labs (not just for this one)
         // - only have 1 tech lab
-        const auto& barrack_tech_labs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+        const sc2::Units& barrack_tech_labs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
         /*
         * If we don't have a tech lab yet, make one
         * - tech labs can research buffs for marines & marauders
@@ -219,7 +223,7 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     }
 
     // now we know that this barrack has an addon, but is it a reactor or a tech lab?
-    const bool has_tech_lab = barrack_addon->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB;
+    const bool &has_tech_lab = barrack_addon->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB;
 
     // if it has a tech lab, train marauders constantly
     if (has_tech_lab) {
@@ -272,5 +276,33 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
         Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_CONCUSSIVESHELLS);
         return;
     }
+    return;
+}
+
+
+/*
+* Gives the Starport an action
+* - builds a reactor if it does not have it
+* - otherwise, train a medivac (air unit that heals other units)
+*/
+void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
+    const sc2::ObservationInterface* observation = Observation();
+    const uint32_t& minerals = observation->GetMinerals();
+    const uint32_t& gas = observation->GetVespene();
+
+    // currently the strategy is to spam medivacs, I'm not sure about the other air units & how good they are
+    // if you don't have an addon, build a reactor
+    const sc2::Unit *starport_addon = observation->GetUnit(starport.add_on_tag);
+    if (starport_addon == nullptr && minerals >= 50 && gas >= 50) {
+        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+        return;
+    }
+
+    // build a medivac!
+    if (minerals >= 100 && gas >= 75) {
+        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
+        return;
+    }
+
     return;
 }
