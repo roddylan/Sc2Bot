@@ -51,7 +51,7 @@ private:
 	const size_t n_workers_init = 15; // workers per base building split point (build rest of stuff)
 	const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
-	const size_t n_mules = 3; // goal no. mules per base
+	const size_t n_mules = 2; // goal no. mules per base
 	const size_t n_marines = 6;
 	const size_t n_bunkers = 6;
 	std::vector<sc2::Point3D> expansion_locations;

@@ -108,19 +108,6 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
 
     switch (unit->unit_type.ToType()) {
-        // case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
-        //     if (Observation()->GetFoodWorkers() > (n_workers * bases.size()) && !barracks.empty()){
-        //         // std::cout << n_workers * bases.size() << std::endl;
-        //         // TODO: refactor and move
-        //     } else {
-        //         sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-        //     }
-        //     break;
-        // }
-        // case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
-        //     // std::cout << "ORBITAL COMMAND\n";
-        //     sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-        // }
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
         if (TryScouting(*unit)) {
             break;
@@ -128,10 +115,10 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignWorkers(unit);
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
-        // std::cout << "ORBITAL COMMAND\n";
-        sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
+    //     // std::cout << "ORBITAL COMMAND\n";
+    //     sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+    // }
     case sc2::UNIT_TYPEID::TERRAN_MULE: {
         AssignWorkers(unit);
         break;

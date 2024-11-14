@@ -95,9 +95,9 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
 
     size_t n_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)).size();
     size_t n_lower_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED)).size();
-    std::cout << "n suppply depots " << n_supply_depots << std::endl;
+    // std::cout << "n suppply depots " << n_supply_depots << std::endl;
     size_t n_bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
-    std::cout << "n basess " << n_bases << std::endl;
+    // std::cout << "n basess " << n_bases << std::endl;
     // make a new supply depot if we are at 2/3 unit capacity
     uint32_t current_supply_use = observation->GetFoodUsed();
     uint32_t max_supply = observation->GetFoodCap();
