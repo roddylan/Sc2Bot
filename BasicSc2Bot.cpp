@@ -20,6 +20,7 @@ void BasicSc2Bot::OnGameStart() {
     sc2::QueryInterface *query = Query();
     expansion_locations = sc2::search::CalculateExpansionLocations(obs, query);
     start_location = obs->GetStartLocation();
+    base_location = start_location;
     scout = nullptr; // no scout initially
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     enemy_starting_location = nullptr;  // we use a scout to find this
@@ -38,29 +39,44 @@ void BasicSc2Bot::OnGameFullStart() {
 
 void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    // skip a few frames for speed; avoid duplicate commands
+    int skip_frame = 5;
 
-    // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are improtant to have at each expansion 
+    if (obs->GetGameLoop() % skip_frame) {
+        return;
+    }
+
+    // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     HandleBuild();
-    TryBuildSeigeTank();
-    TryBuildMissileTurret();
     
     BuildWorkers();
-    
-    TryBuildBarracks();
-    TryBuildRefinery();
-    TryBuildBunker();
-    TryBuildFactory();
-    TryBuildSeigeTank();
-    CheckScoutStatus();
-    TryBuildSupplyDepot();
 
-    /*
+    
     if (TryBuildSupplyDepot()) {
         return;
     }
     if (TryBuildRefinery()) {
         return;
     }
+    if (TryBuildSeigeTank()) {
+        return;
+    }
+    if (TryBuildMissileTurret()) {
+        return;
+    }
+    
+    // TryBuildBarracks();
+    // TryBuildRefinery();
+    // TryBuildBunker();
+    // TryBuildFactory();
+    // TryBuildSeigeTank();
+    CheckScoutStatus();
+    // TryBuildSupplyDepot();
+    /*
+    
+    
     // TryBuildBarracks();
     // TryBuildBunker();
     // TryBuildFactory();
@@ -108,19 +124,6 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
 
     switch (unit->unit_type.ToType()) {
-        // case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER: {
-        //     if (Observation()->GetFoodWorkers() > (n_workers * bases.size()) && !barracks.empty()){
-        //         // std::cout << n_workers * bases.size() << std::endl;
-        //         // TODO: refactor and move
-        //     } else {
-        //         sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-        //     }
-        //     break;
-        // }
-        // case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
-        //     // std::cout << "ORBITAL COMMAND\n";
-        //     sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-        // }
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
         if (TryScouting(*unit)) {
             break;
@@ -128,10 +131,10 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignWorkers(unit);
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
-        // std::cout << "ORBITAL COMMAND\n";
-        sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
+    //     // std::cout << "ORBITAL COMMAND\n";
+    //     sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+    // }
     case sc2::UNIT_TYPEID::TERRAN_MULE: {
         AssignWorkers(unit);
         break;
@@ -166,19 +169,3 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
 }
 
-/*
- * Picks unit for the barrack to train and instructs it to train it
- */
-void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
-    const sc2::ObservationInterface* observation = Observation();
-    const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-    size_t marine_count = marines.size();
-    if (marine_count < 8) {
-        Actions()->UnitCommand(&barrack_to_train, sc2::ABILITY_ID::TRAIN_MARINE);
-        return;
-    }
-    const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
-    size_t marauder_count = marauders.size();
-
-    
-}
