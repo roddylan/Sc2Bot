@@ -121,11 +121,6 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
 
 bool BasicSc2Bot::TryBuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
-    // if we already have 2 refineries -> dont build refinery...this will have to change for later in the game
-
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_REFINERY) > 1) {
-        return false;
-    }
 
     return BuildRefinery();
 }
@@ -167,7 +162,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     float rx = sc2::GetRandomScalar();
     float ry = sc2::GetRandomScalar();
     sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);
-    sc2::Point2D start_location = bases.size() > 1 && nearest_command_center != sc2::Point2D(0, 0) ? nearest_command_center : sc2::Point2D(this->start_location.x, this->start_location.y);
+    // sc2::Point2D start_location = bases.size() > 1 && nearest_command_center != sc2::Point2D(0, 0) ? nearest_command_center : sc2::Point2D(this->start_location.x, this->start_location.y);
     switch (unit_type) {
     case sc2::UNIT_TYPEID::TERRAN_BUNKER: {
         Actions()->ToggleAutocast(unit_to_build->tag, sc2::ABILITY_ID::BUNKERATTACK);
@@ -178,7 +173,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
         
         Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
-            sc2::Point2D(start_location.x + rx * 15.0F, start_location.y + ry * 15.0F));
+            sc2::Point2D(base_location.x + rx * 15.0F, base_location.y + ry * 15.0F));
             // sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
         return true;
     }
@@ -188,7 +183,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     }
 
     Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
-        sc2::Point2D(start_location.x + rx * 15.0F, start_location.y + ry * 15.0F));
+        sc2::Point2D(base_location.x + rx * 15.0F, base_location.y + ry * 15.0F));
         // sc2::Point2D(unit_to_build->pos.x + rx * sc2::GetRandomScalar(), unit_to_build->pos.y + ry * sc2::GetRandomScalar()));
         // sc2::Point2D(unit_to_build->pos.x + rx * 30.0F, unit_to_build->pos.y + ry * 30.0F));
     
@@ -219,7 +214,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     float rx = sc2::GetRandomScalar();
     float ry = sc2::GetRandomScalar();
   
-    sc2::Point2D nearestCommandCenter = unit_to_build != nullptr ? FindNearestCommandCenter(unit_to_build->pos) : start_location;
+    sc2::Point2D nearestCommandCenter = (unit_to_build != nullptr) ? FindNearestCommandCenter(unit_to_build->pos) : start_location;
     sc2::Point2D point(nearestCommandCenter.x + rx, nearestCommandCenter.y + ry);
     if (expansion_starting_point != sc2::Point2D(0, 0)) {
         point = expansion_starting_point;
@@ -367,6 +362,9 @@ void BasicSc2Bot::HandleBuild() {
 
     if (!barracks.empty()) {
         for (const auto &base : bases) {
+            if (base->build_progress != 1) {
+                continue;
+            }
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (n_minerals > 150) {
                 Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
@@ -379,26 +377,14 @@ void BasicSc2Bot::HandleBuild() {
         HandleExpansion();
     }
 
-    // for (const auto &barrack : barracks) {
-    //     // check if busy or building
-    //     if (!barrack->orders.empty() || barrack->build_progress != 1) {
-    //         return;
-    //     }
-    //     // techlab
-    //     // TODO: reactor
-    //     // Actions()->UnitCommand(barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
-    // }
-    
-    // build supply depot
-
     // build barracks
-    //std::cout << "n_workers=" << obs->GetFoodWorkers() << std::endl;
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
-            if (base->assigned_harvesters >= n_workers_init) {
-                // std::cout << "building barracks\n\n";
-                TryBuildBarracks();
-            }
+            TryBuildBarracks();
+            // if (base->assigned_harvesters >= n_workers_init) {
+            //     // std::cout << "building barracks\n\n";
+            //     TryBuildBarracks();
+            // }
         }
     }
     if (bunkers.size() < n_bunkers_target * bases.size() && n_minerals >= BUNKER_COST) {
@@ -435,6 +421,8 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
+
+    // build refinery
     
 
     // build engg bay for missile turret

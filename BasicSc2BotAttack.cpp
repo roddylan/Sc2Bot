@@ -40,8 +40,11 @@ bool BasicSc2Bot::HandleExpansion() {
         return false;
     }
     */
-
+    
     if (bases.size() > 4) {
+        return false;
+    }
+    if (obs->GetMinerals() < std::min<size_t>(bases.size() * 400, 1200)) {
         return false;
     }
 
@@ -57,7 +60,7 @@ bool BasicSc2Bot::HandleExpansion() {
             }
 
             float dist_to_base = sc2::Distance2D(nearest_command_center, sc2::Point2D(exp.x, exp.y));
-            std::cout << "distance to base: " << dist_to_base << std::endl;
+            // std::cout << "distance to base: " << dist_to_base << std::endl;
 
             if (Query()->Placement(sc2::ABILITY_ID::BUILD_COMMANDCENTER, exp) && dist_to_base > 1.0f) {
                 min_dist = cur_dist;
@@ -71,6 +74,7 @@ bool BasicSc2Bot::HandleExpansion() {
         sc2::Point2D p(0, 0);
 
         if (TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER, p, expansion_location)) {
+            base_location = closest_expansion; // set base to closest expansion
             std::cout << "EXPANSION TIME BABY\n\n";
         }
     }

@@ -39,36 +39,45 @@ void BasicSc2Bot::OnGameFullStart() {
 
 void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
     
     // skip a few frames for speed; avoid duplicate commands
     int skip_frame = 5;
 
-    if (Observation()->GetGameLoop() % skip_frame) {
+    if (obs->GetGameLoop() % skip_frame) {
         return;
     }
 
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     HandleBuild();
-    TryBuildSeigeTank();
-    TryBuildMissileTurret();
     
     BuildWorkers();
-    
-    TryBuildBarracks();
-    TryBuildRefinery();
-    TryBuildBunker();
-    TryBuildFactory();
-    TryBuildSeigeTank();
-    CheckScoutStatus();
-    TryBuildSupplyDepot();
 
-    /*
+    
     if (TryBuildSupplyDepot()) {
         return;
     }
     if (TryBuildRefinery()) {
         return;
     }
+    if (TryBuildSeigeTank()) {
+        return;
+    }
+    if (TryBuildMissileTurret()) {
+        return;
+    }
+    
+    // TryBuildBarracks();
+    // TryBuildRefinery();
+    // TryBuildBunker();
+    // TryBuildFactory();
+    // TryBuildSeigeTank();
+    CheckScoutStatus();
+    // TryBuildSupplyDepot();
+    /*
+    
+    
     // TryBuildBarracks();
     // TryBuildBunker();
     // TryBuildFactory();
