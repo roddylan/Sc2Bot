@@ -380,7 +380,7 @@ void BasicSc2Bot::HandleBuild() {
     // build barracks
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
-            
+
             TryBuildBarracks();
             // if (base->assigned_harvesters >= n_workers_init) {
             //     // std::cout << "building barracks\n\n";
@@ -389,10 +389,10 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
     if (bunkers.size() < n_bunkers_target * bases.size() && n_minerals >= BUNKER_COST) {
-       
+        TryBuildBunker();
+        /*
         sc2::Units scvs = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
         bool bunker_built = false;
-
         for (auto& scv : scvs) {
             bool is_building_scv = false;
             for (const auto& order : scv->orders) {
@@ -403,7 +403,7 @@ void BasicSc2Bot::HandleBuild() {
             }
 
             if (scv->orders.empty() && !is_building_scv) {
-                TryBuildBunker();
+                
                 bunker_built = true;
                 break;
             }
@@ -412,7 +412,7 @@ void BasicSc2Bot::HandleBuild() {
         if (bunker_built) {
             // SCV already assigned to build bunker
         }
-       
+        */
     }
 
     // build factory
@@ -436,4 +436,9 @@ void BasicSc2Bot::HandleBuild() {
     }
 
 
+}
+
+
+bool BasicSc2Bot::TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure) {
+    // TODO: finish
 }

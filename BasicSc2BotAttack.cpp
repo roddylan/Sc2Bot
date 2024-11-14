@@ -96,3 +96,17 @@ void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
     const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     size_t marauder_count = marauders.size();
 }
+
+
+void BasicSc2Bot::BuildArmy() {
+    const sc2::ObservationInterface *obs = Observation();
+
+    const sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
+
+    if (!barracks.empty()) {
+        for (const auto &barrack : barracks) {
+            // if (barrack->add_on_tag)
+            // TODO: finish
+        }
+    }
+}

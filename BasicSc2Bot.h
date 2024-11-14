@@ -37,10 +37,12 @@ public:
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
+	virtual void BuildArmy();
 	virtual bool HandleExpansion();
 	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
 	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
 	virtual bool TryBuildMissileTurret();
+	virtual bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
 
 	virtual void OnUnitDestroyed(const sc2::Unit* unit);
 private:
