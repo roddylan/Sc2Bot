@@ -95,6 +95,4 @@ void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
     }
     const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     size_t marauder_count = marauders.size();
-
-    
 }
