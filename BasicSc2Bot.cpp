@@ -41,7 +41,6 @@ void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
     const sc2::ObservationInterface *obs = Observation();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
-    
     // skip a few frames for speed; avoid duplicate commands
     int skip_frame = 5;
 

@@ -380,6 +380,7 @@ void BasicSc2Bot::HandleBuild() {
     // build barracks
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
+            
             TryBuildBarracks();
             // if (base->assigned_harvesters >= n_workers_init) {
             //     // std::cout << "building barracks\n\n";

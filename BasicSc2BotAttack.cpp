@@ -44,7 +44,7 @@ bool BasicSc2Bot::HandleExpansion() {
     if (bases.size() > 4) {
         return false;
     }
-    if (obs->GetMinerals() < std::min<size_t>(bases.size() * 400, 1200)) {
+    if (obs->GetMinerals() < std::min<size_t>(bases.size() * 600, 1800)) {
         return false;
     }
 
