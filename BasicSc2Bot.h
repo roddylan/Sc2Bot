@@ -48,7 +48,7 @@ private:
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
 	// TODO: increase to 22
-	const size_t n_workers_init = 15; // workers per base building split point (build rest of stuff)
+	const size_t n_workers_init = 13; // workers per base building split point (build rest of stuff)
 	const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 2; // goal no. mules per base
@@ -57,6 +57,7 @@ private:
 	std::vector<sc2::Point3D> expansion_locations;
 
 	sc2::Point3D start_location;
+	sc2::Point3D base_location;
 	const sc2::Unit *scout;
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
 	sc2::Point2D *enemy_starting_location;

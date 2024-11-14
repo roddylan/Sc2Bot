@@ -78,13 +78,13 @@ bool BasicSc2Bot::TryBuildBarracks() {
 
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1) {
        // std::cout << "supply dept < 1" << std::endl;
-
         return false;
     }
 
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
-        return false;
-    }
+    // if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_BARRACKS) > 0) {
+    //     return false;
+    // }
+    
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
 }
 
@@ -370,6 +370,7 @@ void BasicSc2Bot::HandleBuild() {
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (n_minerals > 150) {
                 Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+                std::cout << "\nORBITAL COMMAND\n\n";
             }
         }
     }
@@ -393,9 +394,11 @@ void BasicSc2Bot::HandleBuild() {
     // build barracks
     //std::cout << "n_workers=" << obs->GetFoodWorkers() << std::endl;
     if (barracks.size() < n_barracks_target * bases.size()) {
-        if (obs->GetFoodWorkers() >= n_workers_init * bases.size()) {
-           // std::cout << "building barracks\n\n";
-            TryBuildBarracks();
+        for (const auto &base : bases) {
+            if (base->assigned_harvesters >= n_workers_init) {
+                // std::cout << "building barracks\n\n";
+                TryBuildBarracks();
+            }
         }
     }
     if (bunkers.size() < n_bunkers_target * bases.size() && n_minerals >= BUNKER_COST) {

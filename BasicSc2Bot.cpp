@@ -20,6 +20,7 @@ void BasicSc2Bot::OnGameStart() {
     sc2::QueryInterface *query = Query();
     expansion_locations = sc2::search::CalculateExpansionLocations(obs, query);
     start_location = obs->GetStartLocation();
+    base_location = start_location;
     scout = nullptr; // no scout initially
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     enemy_starting_location = nullptr;  // we use a scout to find this
@@ -38,8 +39,15 @@ void BasicSc2Bot::OnGameFullStart() {
 
 void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
+    
+    // skip a few frames for speed; avoid duplicate commands
+    int skip_frame = 5;
 
-    // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are improtant to have at each expansion 
+    if (Observation()->GetGameLoop() % skip_frame) {
+        return;
+    }
+
+    // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     HandleBuild();
     TryBuildSeigeTank();
     TryBuildMissileTurret();
