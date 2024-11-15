@@ -22,7 +22,7 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     const uint32_t& mineral_count = observation->GetMinerals();
     const uint32_t& gas_count = observation->GetVespene();
     size_t marine_count = marines.size();
-    if (marine_count < 8) {
+    if (marine_count < 4) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
         return;
     }
