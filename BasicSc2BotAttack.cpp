@@ -32,6 +32,11 @@ bool BasicSc2Bot::AttackIntruders() {
 bool BasicSc2Bot::HandleExpansion() {
     const sc2::ObservationInterface* obs = Observation();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
+    sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, 
+        sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+
+    size_t n_bases = bases.size();
+    size_t n_siege_tanks = siege_tanks.size();
 
     /*
     if (!(obs->GetFoodWorkers() >= n_workers * bases.size() &&
@@ -40,7 +45,12 @@ bool BasicSc2Bot::HandleExpansion() {
         return false;
     }
     */
-    
+    // TODO: change siege tank req
+    if (n_bases > 1 && n_siege_tanks < (n_bases * 1 + 1)) {
+        // only expand when enough units to defend base + protect expansion
+        return false;
+    }
+
     if (bases.size() > 4) {
         return false;
     }
