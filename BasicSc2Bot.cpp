@@ -54,6 +54,8 @@ void BasicSc2Bot::OnStep() {
     BuildWorkers();
     RecheckUnitIdle();
 
+    CheckScoutStatus();
+    AttackIntruders();
     
     if (TryBuildSupplyDepot()) {
         return;
@@ -67,8 +69,6 @@ void BasicSc2Bot::OnStep() {
     if (TryBuildMissileTurret()) {
         return;
     }
-    CheckScoutStatus();
-    AttackIntruders();
     return;
 }
 

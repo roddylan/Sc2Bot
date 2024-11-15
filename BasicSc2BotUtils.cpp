@@ -199,6 +199,8 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     * Use a cache to not repeatedly query positions we know don't work
     */
     std::set<sc2::Point2D, Point2DLt> searched_points = {};
+
+    size_t loop_count = 0;
     while (!found_pos_to_place_at) {
         for (int x = x_lo; x <= x_hi; x += 3) {
             for (int y = y_lo; y <= y_hi; y += 3) {
@@ -237,6 +239,13 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         x_hi += x_step;
         y_lo -= y_step;
         x_hi += y_step;
+
+        if (loop_count++ > 10) {
+            std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
+            float rand_x = sc2::GetRandomScalar() * 5.0f;
+            float rand_y = sc2::GetRandomScalar() * 5.0f;
+            return this->FindPlaceablePositionNear(starting_point + sc2::Point2D(rand_x, rand_y), ability_to_place_building);
+        }
     }
     return pos_to_place_at;
 }
