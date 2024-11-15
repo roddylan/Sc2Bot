@@ -106,8 +106,8 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
         // do not build if current_supply_use/max_suply < 2/3
         return false;
     }
-    // do not build if theres more than 2 per base
-    if ((n_supply_depots + n_lower_supply_depots) >= 2 * n_bases) {
+    // do not build if theres more than 4 per base
+    if ((n_supply_depots + n_lower_supply_depots) >= 4 * n_bases) {
         return false;
     }
 
@@ -237,7 +237,9 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
             bool found_valid_placement = false;
 
             // Check if the placement point is valid
-            if (Query()->Placement(ability_type_for_structure, placement_point, unit_to_build)) {
+            if (Query()->Placement(ability_type_for_structure, placement_point, unit_to_build)
+                && Query()->Placement(ability_type_for_structure, sc2::Point2D(placement_point.x + 2, placement_point.y), unit_to_build)
+                && Query()->Placement(ability_type_for_structure, sc2::Point2D(placement_point.x - 2, placement_point.y), unit_to_build)) {
                 point = placement_point;
                 found_valid_placement = true;
             }
@@ -253,10 +255,24 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         return all_bunkers_placed;
     }
    
-    
-    while (!Query()->Placement(ability_type_for_structure, point, unit_to_build)) {
-        point.x += 10;
-        point.y += 10;
+    /*
+    * Check that placement at point is okay AND that you can wiggle the x by +/- 2 units, because 2 units is the size
+    * of addons, and you wnat to make sure that there is room to build addons for barracks, factories, starports, etc.
+    */
+    sc2::Point2D tweaked_point = point;
+    size_t loop_count = 0;
+    while (!Query()->Placement(ability_type_for_structure, tweaked_point, unit_to_build) 
+        || !Query()->Placement(ability_type_for_structure, sc2::Point2D(tweaked_point.x+2, tweaked_point.y), unit_to_build)
+        || !Query()->Placement(ability_type_for_structure, sc2::Point2D(tweaked_point.x-2, tweaked_point.y), unit_to_build)) {
+        tweaked_point.x += 10;
+        tweaked_point.y += 10;
+        ++loop_count;
+        if (loop_count > 100) {
+            float rand_x = sc2::GetRandomScalar() * 10;
+            float rand_y = sc2::GetRandomScalar() * 10;
+            tweaked_point = point + sc2::Point2D(rand_x, rand_y);
+            loop_count = 0;
+        }
     }
     if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_COMMANDCENTER) {
         sc2::Point3D expansion_point(point.x, point.y, 0);
@@ -368,7 +384,7 @@ void BasicSc2Bot::HandleBuild() {
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (n_minerals > 150) {
                 Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
-                std::cout << "\nORBITAL COMMAND\n\n";
+                //std::cout << "\nORBITAL COMMAND\n\n";
             }
         }
     }

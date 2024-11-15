@@ -66,22 +66,7 @@ void BasicSc2Bot::OnStep() {
     if (TryBuildMissileTurret()) {
         return;
     }
-    
-    // TryBuildBarracks();
-    // TryBuildRefinery();
-    // TryBuildBunker();
-    // TryBuildFactory();
-    // TryBuildSeigeTank();
     CheckScoutStatus();
-    // TryBuildSupplyDepot();
-    /*
-    
-    
-    // TryBuildBarracks();
-    // TryBuildBunker();
-    // TryBuildFactory();
-    */
-    
     AttackIntruders();
     return;
 }
@@ -161,8 +146,8 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
         if (!LoadBunker(unit)) {
             const sc2::GameInfo& game_info = Observation()->GetGameInfo();
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
-                , game_info.enemy_start_locations.front(), true);
+            /*Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
+                , game_info.enemy_start_locations.front(), true);*/
             // std::cout << "sent";
         }
 

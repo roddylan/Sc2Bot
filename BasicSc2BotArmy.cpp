@@ -60,13 +60,19 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     const bool& has_tech_lab = barrack_addon->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB;
 
     // if it has a tech lab, train marauders constantly
-    if (has_tech_lab) {
+    if (has_tech_lab && mineral_count >= 100 && gas_count >= 25) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARAUDER);
         return;
     }
 
     // if you have a reactor, you can build things twice as fast so you should spam train marines
-    Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
+    if (mineral_count >= 50) {
+        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
+    }
+    // train a second one, if you can afford it (reactors build at double speed)
+    if (mineral_count >= 100) {
+        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
+    }
 }
 
 /*
