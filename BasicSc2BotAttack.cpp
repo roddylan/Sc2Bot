@@ -40,8 +40,11 @@ bool BasicSc2Bot::HandleExpansion() {
         return false;
     }
     */
-
+    
     if (bases.size() > 4) {
+        return false;
+    }
+    if (obs->GetMinerals() < std::min<size_t>(bases.size() * 600, 1800)) {
         return false;
     }
 
@@ -57,7 +60,7 @@ bool BasicSc2Bot::HandleExpansion() {
             }
 
             float dist_to_base = sc2::Distance2D(nearest_command_center, sc2::Point2D(exp.x, exp.y));
-            std::cout << "distance to base: " << dist_to_base << std::endl;
+            // std::cout << "distance to base: " << dist_to_base << std::endl;
 
             if (Query()->Placement(sc2::ABILITY_ID::BUILD_COMMANDCENTER, exp) && dist_to_base > 1.0f) {
                 min_dist = cur_dist;
@@ -71,9 +74,39 @@ bool BasicSc2Bot::HandleExpansion() {
         sc2::Point2D p(0, 0);
 
         if (TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER, p, expansion_location)) {
+            base_location = closest_expansion; // set base to closest expansion
             std::cout << "EXPANSION TIME BABY\n\n";
         }
     }
 
     return true;
+}
+
+/*
+ * Picks unit for the barrack to train and instructs it to train it
+ */
+void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
+    const sc2::ObservationInterface* observation = Observation();
+    const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    size_t marine_count = marines.size();
+    if (marine_count < 8) {
+        Actions()->UnitCommand(&barrack_to_train, sc2::ABILITY_ID::TRAIN_MARINE);
+        return;
+    }
+    const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    size_t marauder_count = marauders.size();
+}
+
+
+void BasicSc2Bot::BuildArmy() {
+    const sc2::ObservationInterface *obs = Observation();
+
+    const sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
+
+    if (!barracks.empty()) {
+        for (const auto &barrack : barracks) {
+            // if (barrack->add_on_tag)
+            // TODO: finish
+        }
+    }
 }

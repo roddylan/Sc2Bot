@@ -21,26 +21,30 @@ void BasicSc2Bot::BuildWorkers() {
     // build MULEs
     for (const auto &base : bases) {
         if (base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND || base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING) {
-            // if we havent reached goal amnt
-            if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) < bases.size() * n_mules && base->energy > 50) {
+            // if we havent reached goal amnt or larger energy req met
+            if ((CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) < bases.size() * n_mules && base->energy > 50) || base->energy > 75) {
+                // find mineral target
+                const sc2::Unit *mineral_target = FindNearestMineralPatch(base->pos);
                 // if we find a nearby mineral patch
-                if (FindNearestMineralPatch(base->pos)) {
-                    Actions()->UnitCommand(base, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE);
+                if (mineral_target) {
+                    Actions()->UnitCommand(base, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE, mineral_target);
+                    std::cout << "n_mules =" << CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) << std::endl;
                 }
-            } else if (base->energy > 75) {
-                // still create mules, but larger energy req
-                if (FindNearestMineralPatch(base->pos)) {
-                    Actions()->UnitCommand(base, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE);
-                }
-            }
+            } 
+            // else if (base->energy > 75) {
+            //     // still create mules, but larger energy req
+            //     if (FindNearestMineralPatch(base->pos)) {
+            //         Actions()->UnitCommand(base, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE);
+            //     }
+            // }
         }
     }
 
     for (const auto &base : bases) {
         // build SCV
         // TODO: maybe just use ideal_harvesters (max)
-        // if (base->assigned_harvesters < base->ideal_harvesters && base->build_progress == 1 && base->orders.empty()) {
-        if (obs->GetFoodWorkers() < n_workers) {
+        if (base->assigned_harvesters < base->ideal_harvesters && base->build_progress == 1 && base->orders.empty()) {
+        // if (obs->GetFoodWorkers() < n_workers) {
             if (obs->GetMinerals() >= 50 && base->orders.empty()) {
                 sc2::Agent::Actions()->UnitCommand(base, sc2::ABILITY_ID::TRAIN_SCV);
             }
