@@ -26,6 +26,28 @@ bool BasicSc2Bot::AttackIntruders() {
             }
         }
     }
+
+    /*
+    * Attack enemy units that are near the base
+    */
+
+    sc2::Units bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER));
+    
+    bool is_under_attack = false;
+    for (const sc2::Unit* base : bases) {
+        sc2::Units enemies_near_base = observation->GetUnits(sc2::Unit::Alliance::Enemy, [base](const sc2::Unit& enemy_unit) {
+            return sc2::DistanceSquared2D(enemy_unit.pos, base->pos) < 225;
+        });
+        if (enemies_near_base.empty()) {
+            continue;
+        }
+
+        sc2::Units& defending_units = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_MARINE, sc2::UNIT_TYPEID::TERRAN_MARAUDER, sc2::UNIT_TYPEID::TERRAN_MEDIVAC }));
+        for (const sc2::Unit* defending_unit : defending_units) {
+            const sc2::Unit* enemy_to_attack = enemies_near_base.front();
+            Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_to_attack);
+        }
+    }
     return true;
 }
 

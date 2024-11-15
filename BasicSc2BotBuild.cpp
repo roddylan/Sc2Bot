@@ -159,9 +159,13 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     }
 
 
-    float rx = sc2::GetRandomScalar();
-    float ry = sc2::GetRandomScalar();
+    float rx = sc2::GetRandomScalar() * 15.0f;
+    float ry = sc2::GetRandomScalar() * 15.0f;
     sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);
+    sc2::Point2D starting_point = sc2::Point2D(base_location.x + rx, base_location.y + ry);
+    
+    sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(starting_point, ability_type_for_structure);
+
     // sc2::Point2D start_location = bases.size() > 1 && nearest_command_center != sc2::Point2D(0, 0) ? nearest_command_center : sc2::Point2D(this->start_location.x, this->start_location.y);
     switch (unit_type) {
     case sc2::UNIT_TYPEID::TERRAN_BUNKER: {
@@ -172,8 +176,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
 
         
-        Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
-            sc2::Point2D(base_location.x + rx * 15.0F, base_location.y + ry * 15.0F));
+        Actions()->UnitCommand(unit_to_build, ability_type_for_structure, pos_to_place_at);
             // sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
         return true;
     }
@@ -182,10 +185,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     }
     }
 
-    Actions()->UnitCommand(unit_to_build, ability_type_for_structure,
-        sc2::Point2D(base_location.x + rx * 15.0F, base_location.y + ry * 15.0F));
-        // sc2::Point2D(unit_to_build->pos.x + rx * sc2::GetRandomScalar(), unit_to_build->pos.y + ry * sc2::GetRandomScalar()));
-        // sc2::Point2D(unit_to_build->pos.x + rx * 30.0F, unit_to_build->pos.y + ry * 30.0F));
+    Actions()->UnitCommand(unit_to_build, ability_type_for_structure, pos_to_place_at);
     
 
     return true;
@@ -275,10 +275,10 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         }
     }
     if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_COMMANDCENTER) {
-        sc2::Point3D expansion_point(point.x, point.y, 0);
+        sc2::Point3D expansion_point(tweaked_point.x, tweaked_point.y, 0);
 
     }
-    Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
+    Actions()->UnitCommand(unit_to_build, ability_type_for_structure, tweaked_point);
 
     // check if scv can get there
     // todo: fix
@@ -343,9 +343,11 @@ void BasicSc2Bot::HandleBuild() {
     static const uint32_t BUNKER_COST = 100;
     static const uint32_t BARRACKS_COST = 150;
     static const uint32_t ORBITAL_COMMAND_COST = 150;
+    static const uint32_t STARPORT_COST = 150;
 
     // vespene gas costs
     static const uint32_t FACTORY_GAS_COST = 100;
+    static const uint32_t STARPORT_GAS_COST = 100;
     
     const sc2::ObservationInterface *obs = Observation();
 
@@ -368,11 +370,12 @@ void BasicSc2Bot::HandleBuild() {
 
     // goal amnts
     // TODO: change target amounts
-    const size_t n_barracks_target = 2;
+    const size_t n_barracks_target = 3;
     const size_t n_factory_target = 2;
     const size_t n_armory_target = 2;
     const size_t n_engg_target = 1;
     const size_t n_bunkers_target = 8;
+    const size_t n_starports_target = 2;
     
     // Handle Orbital Command
 
@@ -451,7 +454,12 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
 
-
+    // build a starport
+    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
+        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
+        }
+    }
 }
 
 

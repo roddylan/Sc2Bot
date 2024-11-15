@@ -52,6 +52,7 @@ void BasicSc2Bot::OnStep() {
     HandleBuild();
     
     BuildWorkers();
+    RecheckUnitIdle();
 
     
     if (TryBuildSupplyDepot()) {
@@ -69,6 +70,19 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
     return;
+}
+
+/*
+* The OnUnitIdle hook that's automatically called by the game is only called ONCE when the unit starts idling.
+* This is an issue for barracks or starports because 
+*/
+void BasicSc2Bot::RecheckUnitIdle() {
+    const sc2::Units& idle_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {
+        return unit.orders.empty();
+    });
+    for (const sc2::Unit* unit : idle_units) {
+        OnUnitIdle(unit);
+    }
 }
 
 void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
@@ -140,6 +154,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
         AssignBarrackTechLabAction(*unit);
+        break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MARINE: {
         // if the bunkers are full

@@ -13,19 +13,14 @@
 void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     /*
     * What should a barrack do?
-    * - if we have very few marines, train marines
-    * - otherwise, if it doesnt have an addon, build an addon
+    * - if it doesnt have an addon, build an addon
     * - if it does have an addon, train marines if it has a reactor; train marauders if it has a tech lab
     */
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
     const uint32_t& mineral_count = observation->GetMinerals();
     const uint32_t& gas_count = observation->GetVespene();
-    size_t marine_count = marines.size();
-    if (marine_count < 4) {
-        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
-        return;
-    }
+   
 
     /*
     * The addon for the barrack, either a tech lab or a reactor or none
@@ -60,7 +55,8 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     const bool& has_tech_lab = barrack_addon->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB;
 
     // if it has a tech lab, train marauders constantly
-    if (has_tech_lab && mineral_count >= 100 && gas_count >= 25) {
+    // marauders only cost 25 gas, use >= 100 so that there's a bit of a buffer for other things
+    if (has_tech_lab && mineral_count >= 100 && gas_count >= 100) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARAUDER);
         return;
     }
