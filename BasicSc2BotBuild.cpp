@@ -229,7 +229,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         }
         bool all_bunkers_placed = true;
 
-        sc2::Point2D direction = sc2::Point2D(0, 1); 
+        sc2::Point2D direction = sc2::Point2D(0, 1);
         float distance_between_bunkers = 10.0f;
 
         for (int i = 0; i < 4; i++) {
@@ -237,9 +237,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
             bool found_valid_placement = false;
 
             // Check if the placement point is valid
-            if (Query()->Placement(ability_type_for_structure, placement_point, unit_to_build)
-                && Query()->Placement(ability_type_for_structure, sc2::Point2D(placement_point.x + 2, placement_point.y), unit_to_build)
-                && Query()->Placement(ability_type_for_structure, sc2::Point2D(placement_point.x - 2, placement_point.y), unit_to_build)) {
+            if (Query()->Placement(ability_type_for_structure, placement_point, unit_to_build)) {
                 point = placement_point;
                 found_valid_placement = true;
             }
@@ -255,30 +253,15 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         return all_bunkers_placed;
     }
    
-    /*
-    * Check that placement at point is okay AND that you can wiggle the x by +/- 2 units, because 2 units is the size
-    * of addons, and you wnat to make sure that there is room to build addons for barracks, factories, starports, etc.
-    */
-    sc2::Point2D tweaked_point = point;
-    size_t loop_count = 0;
-    while (!Query()->Placement(ability_type_for_structure, tweaked_point, unit_to_build) 
-        || !Query()->Placement(ability_type_for_structure, sc2::Point2D(tweaked_point.x+2, tweaked_point.y), unit_to_build)
-        || !Query()->Placement(ability_type_for_structure, sc2::Point2D(tweaked_point.x-2, tweaked_point.y), unit_to_build)) {
-        tweaked_point.x += 10;
-        tweaked_point.y += 10;
-        ++loop_count;
-        if (loop_count > 100) {
-            float rand_x = sc2::GetRandomScalar() * 10;
-            float rand_y = sc2::GetRandomScalar() * 10;
-            tweaked_point = point + sc2::Point2D(rand_x, rand_y);
-            loop_count = 0;
-        }
+    while (!Query()->Placement(ability_type_for_structure, point, unit_to_build)) {
+        point.x += 10;
+        point.y += 10;
     }
     if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_COMMANDCENTER) {
-        sc2::Point3D expansion_point(tweaked_point.x, tweaked_point.y, 0);
+        sc2::Point3D expansion_point(point.x, point.y, 0);
 
     }
-    Actions()->UnitCommand(unit_to_build, ability_type_for_structure, tweaked_point);
+    Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
 
     // check if scv can get there
     // todo: fix

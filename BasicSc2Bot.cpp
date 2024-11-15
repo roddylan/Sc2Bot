@@ -74,7 +74,9 @@ void BasicSc2Bot::OnStep() {
 
 /*
 * The OnUnitIdle hook that's automatically called by the game is only called ONCE when the unit starts idling.
-* This is an issue for barracks or starports because 
+* This is an issue for barracks because when OnUnitIdle is called for them but they don't have the resources to
+* train a unit, they won't take an action and OnUnitIdle is never called on them again so they never get a kick to
+* start training when resources are available.
 */
 void BasicSc2Bot::RecheckUnitIdle() {
     const sc2::Units& idle_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {
@@ -154,6 +156,10 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
         AssignBarrackTechLabAction(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY: {
+        AssignEngineeringBayAction(*unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MARINE: {

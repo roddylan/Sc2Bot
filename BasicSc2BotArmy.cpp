@@ -72,6 +72,25 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
 }
 
 /*
+* Assigns an action to the engineering bay
+*/
+void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
+    const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
+    const uint32_t& minerals = Observation()->GetMinerals();
+    const uint32_t& gas = Observation()->GetVespene();
+    const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
+    if (minerals >= 100 && gas >= 100 && !has_infantry_weapons_1) {
+        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1);
+        return;
+    }
+    const bool has_infantry_armor_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYARMORSLEVEL1) != upgrades.end();
+    if (minerals >= 100 && gas >= 100 && !has_infantry_armor_1) {
+        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1);
+        return;
+    }
+}
+
+/*
 * Make sure the barrack tech lab is researching things
 */
 void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {

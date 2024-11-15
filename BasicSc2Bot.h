@@ -68,6 +68,7 @@ private:
 	void AssignBarrackAction(const sc2::Unit& barrack);
 	void AssignBarrackTechLabAction(const sc2::Unit& barrack_tech_lab);
 	void AssignStarportAction(const sc2::Unit& starport);
+	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
 	void RecheckUnitIdle();
 	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
 };

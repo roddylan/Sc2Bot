@@ -41,7 +41,7 @@ bool BasicSc2Bot::AttackIntruders() {
         if (enemies_near_base.empty()) {
             continue;
         }
-
+        std::cout << "INTRUDER ALERT" << std::endl;
         sc2::Units& defending_units = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_MARINE, sc2::UNIT_TYPEID::TERRAN_MARAUDER, sc2::UNIT_TYPEID::TERRAN_MEDIVAC }));
         for (const sc2::Unit* defending_unit : defending_units) {
             const sc2::Unit* enemy_to_attack = enemies_near_base.front();
