@@ -49,11 +49,20 @@ void BasicSc2Bot::OnStep() {
     }
 
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
-    HandleBuild();
+    int n_battle_cruisers = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER)).size();
+    if (n_battle_cruisers > 0 || bases.size() == 0) {
+        HandleExpansion();  
+    }
     
+    HandleBuild();
     BuildWorkers();
 
-    
+    if (TryBuildStarPort()) {
+        return;
+    }
+    if (TryBuildFusionCore()) {
+        return;
+    }
     if (TryBuildSupplyDepot()) {
         return;
     }
@@ -99,6 +108,15 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
          */
         std::cout << "supply depot created!" << std::endl;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
+        /*
+         * For now, lower all supply depots by default
+         * In the future, maybe we can take advantage of raising/lowering them to control movement
+         */
+        std::cout << "starport created!" << std::endl;
+        UpgradeStarportTechLab(unit);
         break;
     }
     }
@@ -162,6 +180,9 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         UpgradeFactoryTechLab(unit);
+    }
+    case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
+        UpgradeStarportTechLab(unit);
     }
     default: {
         break;

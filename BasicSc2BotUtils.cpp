@@ -100,6 +100,26 @@ const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start
     return target;
 }
 
+const sc2::Point2D BasicSc2Bot::FindNearestExpansionLocation(const sc2::Point2D& start) {
+
+
+    float distance = std::numeric_limits<float>::max();
+    sc2::Point3D target(0, 0, 0);
+
+    for (sc2::Point3D &base : expansion_locations) {
+        float d = sc2::DistanceSquared2D(sc2::Point2D(base.x, base.y), start);
+        if (d < distance) {
+            distance = d;
+            target = base;
+        }
+       
+    }
+    if (target != sc2::Point3D(0, 0, 0)) return sc2::Point2D(target.x, target.y);
+
+    return sc2::Point2D(0, 0);
+
+}
+
 const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location) {
 
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
