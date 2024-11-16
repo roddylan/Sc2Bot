@@ -249,3 +249,23 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     }
     return pos_to_place_at;
 }
+
+/**
+ * @brief Check if enemy near base
+ * 
+ * @param base 
+ * @return true if enemy in range
+ * @return false if not
+ */
+bool BasicSc2Bot::EnemyNearBase(const sc2::Unit *base) {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    const float base_rad = base->radius + 30.0F;
+
+    for (const auto *enemy : enemies) {
+        if (sc2::Distance2D(enemy->pos, base->pos) < base_rad) {
+            return true;
+        }
+    }
+    return false;
+}
