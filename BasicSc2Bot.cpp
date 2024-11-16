@@ -141,10 +141,10 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         //sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_MULE: {
-        AssignWorkers(unit);
-        break;
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_MULE: {
+    //     AssignWorkers(unit);
+    //     break;
+    // }
     case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: {
        // std::cout << "SUPPLY DEPOT IDLE" << std::endl;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
