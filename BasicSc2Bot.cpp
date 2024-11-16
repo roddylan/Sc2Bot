@@ -102,7 +102,13 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         break;
     }
+    case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
+        sc2::Point2D nearest_marine_cluster = FindLargestMarineCluster(unit->pos);
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, nearest_marine_cluster);
+
     }
+    }
+    
 }
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
@@ -135,6 +141,16 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
         AssignStarportAction(*unit);
         break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
+        int skip_frame = 12000;
+
+        if (Observation()->GetGameLoop() % skip_frame) {
+            return;
+        }
+        sc2::Point2D nearest_marine_cluster = FindLargestMarineCluster(unit->pos);
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, nearest_marine_cluster);
+
     }
     case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
         // std::cout << "ORBITAL COMMAND\n";

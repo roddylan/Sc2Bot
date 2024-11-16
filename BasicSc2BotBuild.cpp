@@ -356,7 +356,7 @@ void BasicSc2Bot::HandleBuild() {
     const size_t n_armory_target = 2;
     const size_t n_engg_target = 1;
     const size_t n_bunkers_target = 8;
-    const size_t n_starports_target = 2;
+    const size_t n_starports_target = 1;
     
     // Handle Orbital Command
 
@@ -388,9 +388,10 @@ void BasicSc2Bot::HandleBuild() {
             // }
         }
     }
+    /*
     if (bunkers.size() < n_bunkers_target * bases.size() && n_minerals >= BUNKER_COST) {
         TryBuildBunker();
-        /*
+        
         sc2::Units scvs = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
         bool bunker_built = false;
         for (auto& scv : scvs) {
@@ -412,9 +413,9 @@ void BasicSc2Bot::HandleBuild() {
         if (bunker_built) {
             // SCV already assigned to build bunker
         }
-        */
+        
     }
-
+    */
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
