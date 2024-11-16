@@ -149,3 +149,103 @@ const sc2::Unit *BasicSc2Bot::GetGatheringScv() {
     
     return gathering_scv_units[0];
 }
+
+/*
+* Functor that implements < for a Point2D so that we can holds points in a std::set in FindPlaceablePositionNear
+*/
+struct Point2DLt {
+    bool operator()(const sc2::Point2D& lhs, const sc2::Point2D& rhs) const {
+        if (lhs.x == rhs.x) {
+            return lhs.y < rhs.y;
+        }
+        return lhs.x < rhs.x;
+    }
+};
+
+/*
+* Finds a location to place a building at that is near a given starting position
+*/
+sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building) {
+    /*
+    * We want to find a position that is near starting_point that works to fit the building
+    * Idea: search in a square around the starting point for the first available position. If no where
+    * is found, increase the size of the square and search again.
+    * - so you still build relatively close to the starting point and increase the search space gradually
+    * - though this does seem to be a bit slow sometimes
+    */
+
+    /*
+    * Starting lower & upper bounds for x
+    */
+    int x_lo = -5, x_hi = 5;
+    /*
+    * Starting lower & upper bounds for y
+    */
+    int y_lo = -5, y_hi = 5;
+
+    /*
+    * How much to change the lower & upper bounds if you don't find a suitable spot in the current search square
+    */
+    int x_step = 5;
+    int y_step = 5;
+    bool found_pos_to_place_at = false;
+
+    /*
+    * When leaving the loop, pos_to_place should be set
+    */
+    sc2::Point2D pos_to_place_at;
+
+    /*
+    * Use a cache to not repeatedly query positions we know don't work
+    */
+    std::set<sc2::Point2D, Point2DLt> searched_points = {};
+
+    size_t loop_count = 0;
+    while (!found_pos_to_place_at) {
+        for (int x = x_lo; x <= x_hi; x += 3) {
+            for (int y = y_lo; y <= y_hi; y += 3) {
+                const sc2::Point2D current_pos = starting_point + sc2::Point2D(x, y);
+                sc2::QueryInterface* query = Query();
+                if (searched_points.find(current_pos) != searched_points.end()) {
+                    continue;
+                }
+
+                const bool can_place_here = query->Placement(ability_to_place_building, current_pos);
+                if (!can_place_here) {
+                    searched_points.insert(current_pos);
+                    continue;
+                }
+
+                /*
+                * We need wiggle room left & right so that the buildings aren't packed and they have room to build addons
+                */
+                const bool can_wiggle_left = query->Placement(ability_to_place_building, sc2::Point2D(current_pos.x - 2, current_pos.y));
+                if (!can_wiggle_left) {
+                    searched_points.insert(current_pos);
+                    continue;
+                }
+                const bool can_wiggle_right = query->Placement(ability_to_place_building, sc2::Point2D(current_pos.x + 2, current_pos.y));
+                if (!can_wiggle_right) {
+                    searched_points.insert(current_pos);
+                    continue;
+                }
+                // we found a valid position to place at, don't iterate again
+                found_pos_to_place_at = true;
+                pos_to_place_at = current_pos;
+            }
+        }
+        // increase the search space
+        x_lo -= x_step;
+        x_hi += x_step;
+        y_lo -= y_step;
+        x_hi += y_step;
+
+        if (loop_count++ > 10) {
+            std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
+            float rand_x = sc2::GetRandomScalar() * 5.0f;
+            float rand_y = sc2::GetRandomScalar() * 5.0f;
+            return this->FindPlaceablePositionNear(starting_point + sc2::Point2D(rand_x, rand_y), ability_to_place_building);
+        }
+    }
+    return pos_to_place_at;
+}

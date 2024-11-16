@@ -15,19 +15,65 @@
 #include <cmath>
 
 bool BasicSc2Bot::AttackIntruders() {
+    /*
+    * This method does too much work to be called every frame. Call it every few hundred frames instead
+    */
+    static size_t last_frame_checked = 0;
     const sc2::ObservationInterface* observation = Observation();
-    sc2::Units units = observation->GetUnits();
+    const uint32_t& current_frame = observation->GetGameLoop();
+    if (current_frame - last_frame_checked < 400) {
+        return false;
+    }
+    last_frame_checked = current_frame;
+    const sc2::Units &enemy_units = observation->GetUnits(sc2::Unit::Alliance::Enemy);
     
-    for (auto target : units) {
-        if (target->alliance != sc2::Unit::Alliance::Self) {
-            sc2::Units myUnits = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
-            for (auto myUnit : myUnits) {
-                Actions()->UnitCommand(myUnit, sc2::ABILITY_ID::BUNKERATTACK, target);
-            }
+    for (const sc2::Unit *target : enemy_units) {
+        sc2::Units myUnits = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+        for (auto myUnit : myUnits) {
+            Actions()->UnitCommand(myUnit, sc2::ABILITY_ID::BUNKERATTACK, target);
         }
     }
+
+    /*
+    * Attack enemy units that are near the base
+    */
+    
+    const sc2::Units &bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER));
+
+
+    for (const sc2::Unit* base : bases) {
+        const sc2::Unit* enemy_near_base = nullptr;
+        for (const sc2::Unit* enemy_unit : enemy_units) {
+            if (sc2::DistanceSquared2D(base->pos, enemy_unit->pos) < 40 * 40) {
+                enemy_near_base = enemy_unit;
+                break;
+            }
+        }
+        // we didn't find a nearby enemy to attack
+        if (enemy_near_base == nullptr) {
+            continue;
+        }
+
+        const sc2::Units& defending_units = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_MARINE, sc2::UNIT_TYPEID::TERRAN_MARAUDER }));
+        for (const sc2::Unit* defending_unit : defending_units) {
+            Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_near_base);
+        }
+
+        // move the medivacs to the battle so that they heal the units
+        if (!defending_units.empty()) {
+            const sc2::Units& medivacs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+            for (const sc2::Unit* medivac : medivacs) {
+                const sc2::Point2D& pos_to_move_to = defending_units.front()->pos;
+                Actions()->UnitCommand(medivac, sc2::ABILITY_ID::MOVE_MOVE, pos_to_move_to);
+            }
+        }
+
+        break;
+    }
+
     return true;
 }
+
 
 bool BasicSc2Bot::HandleExpansion() {
     const sc2::ObservationInterface* obs = Observation();
@@ -90,33 +136,4 @@ bool BasicSc2Bot::HandleExpansion() {
     }
 
     return true;
-}
-
-/*
- * Picks unit for the barrack to train and instructs it to train it
- */
-void BasicSc2Bot::StartTrainingUnit(const sc2::Unit& barrack_to_train) {
-    const sc2::ObservationInterface* observation = Observation();
-    const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-    size_t marine_count = marines.size();
-    if (marine_count < 8) {
-        Actions()->UnitCommand(&barrack_to_train, sc2::ABILITY_ID::TRAIN_MARINE);
-        return;
-    }
-    const sc2::Units marauders = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
-    size_t marauder_count = marauders.size();
-}
-
-
-void BasicSc2Bot::BuildArmy() {
-    const sc2::ObservationInterface *obs = Observation();
-
-    const sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING}));
-
-    if (!barracks.empty()) {
-        for (const auto &barrack : barracks) {
-            // if (barrack->add_on_tag)
-            // TODO: finish
-        }
-    }
 }

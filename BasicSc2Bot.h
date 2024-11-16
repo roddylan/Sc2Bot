@@ -37,7 +37,6 @@ public:
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
-	virtual void BuildArmy();
 	virtual bool HandleExpansion();
 	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
 	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
@@ -66,7 +65,12 @@ private:
 	bool TryScouting(const sc2::Unit&);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
-	void StartTrainingUnit(const sc2::Unit& barrack_to_train);
+	void AssignBarrackAction(const sc2::Unit& barrack);
+	void AssignBarrackTechLabAction(const sc2::Unit& barrack_tech_lab);
+	void AssignStarportAction(const sc2::Unit& starport);
+	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
+	void RecheckUnitIdle();
+	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
 };
 
 

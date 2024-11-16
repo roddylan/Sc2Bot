@@ -52,7 +52,10 @@ void BasicSc2Bot::OnStep() {
     HandleBuild();
     
     BuildWorkers();
+    RecheckUnitIdle();
 
+    CheckScoutStatus();
+    AttackIntruders();
     
     if (TryBuildSupplyDepot()) {
         return;
@@ -66,24 +69,22 @@ void BasicSc2Bot::OnStep() {
     if (TryBuildMissileTurret()) {
         return;
     }
-    
-    // TryBuildBarracks();
-    // TryBuildRefinery();
-    // TryBuildBunker();
-    // TryBuildFactory();
-    // TryBuildSeigeTank();
-    CheckScoutStatus();
-    // TryBuildSupplyDepot();
-    /*
-    
-    
-    // TryBuildBarracks();
-    // TryBuildBunker();
-    // TryBuildFactory();
-    */
-    
-    AttackIntruders();
     return;
+}
+
+/*
+* The OnUnitIdle hook that's automatically called by the game is only called ONCE when the unit starts idling.
+* This is an issue for barracks because when OnUnitIdle is called for them but they don't have the resources to
+* train a unit, they won't take an action and OnUnitIdle is never called on them again so they never get a kick to
+* start training when resources are available.
+*/
+void BasicSc2Bot::RecheckUnitIdle() {
+    const sc2::Units& idle_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {
+        return unit.orders.empty();
+    });
+    for (const sc2::Unit* unit : idle_units) {
+        OnUnitIdle(unit);
+    }
 }
 
 void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
@@ -131,10 +132,15 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignWorkers(unit);
         break;
     }
-    // case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
-    //     // std::cout << "ORBITAL COMMAND\n";
-    //     sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-    // }
+    case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
+        AssignStarportAction(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
+        // std::cout << "ORBITAL COMMAND\n";
+        //sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
+        break;
+    }
     case sc2::UNIT_TYPEID::TERRAN_MULE: {
         AssignWorkers(unit);
         break;
@@ -145,7 +151,15 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
-        StartTrainingUnit(*unit);
+        AssignBarrackAction(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
+        AssignBarrackTechLabAction(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY: {
+        AssignEngineeringBayAction(*unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MARINE: {
@@ -153,8 +167,8 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
         if (!LoadBunker(unit)) {
             const sc2::GameInfo& game_info = Observation()->GetGameInfo();
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
-                , game_info.enemy_start_locations.front(), true);
+            /*Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
+                , game_info.enemy_start_locations.front(), true);*/
             // std::cout << "sent";
         }
 
@@ -168,4 +182,3 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     }
 }
-
