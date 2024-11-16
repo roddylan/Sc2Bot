@@ -262,7 +262,7 @@ bool BasicSc2Bot::EnemyNearBase(const sc2::Unit *base) {
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
     const float base_rad = base->radius + 30.0F;
 
-    for (const auto *enemy : enemies) {
+    for (const auto &enemy : enemies) {
         if (sc2::Distance2D(enemy->pos, base->pos) < base_rad) {
             return true;
         }
