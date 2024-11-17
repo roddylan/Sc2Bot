@@ -12,7 +12,7 @@
 
 class BasicSc2Bot : public sc2::Agent {
 public:
-
+	virtual const sc2::Point2D FindNearestExpansionLocation(const sc2::Point2D& start);
 	virtual void OnGameFullStart();
 	virtual void OnGameStart();
 	virtual void OnStep();
@@ -23,11 +23,15 @@ public:
 	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
+	virtual bool BasicSc2Bot::TryBuildBattleCruiser();
 	virtual bool TryBuildSeigeTank();
 	virtual bool BuildRefinery();
 	virtual bool TryBuildFactory();
 	virtual bool TryBuildBunker();
 	virtual bool TryBuildBarracks();
+	virtual bool TryBuildStarPort();
+	virtual bool BasicSc2Bot::UpgradeStarportTechLab(const sc2::Unit* starport);
+	virtual bool BasicSc2Bot::TryBuildFusionCore();
 	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)); // generalized; for expansions
@@ -35,7 +39,7 @@ public:
 	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
 	virtual void HandleUpgrades();
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
-	virtual void AssignWorkers(const sc2::Unit *);
+	virtual void AssignWorkers(const sc2::Unit*);
 	virtual void BuildWorkers();
 	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start);
 	virtual int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
@@ -46,6 +50,7 @@ public:
 	virtual bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
 
 	virtual void OnUnitDestroyed(const sc2::Unit* unit);
+
 private:
 	const size_t n_tanks = 8;
 	const size_t n_bases = 3;
@@ -61,12 +66,12 @@ private:
 
 	sc2::Point3D start_location;
 	sc2::Point3D base_location;
-	const sc2::Unit *scout;
+	const sc2::Unit* scout;
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
-	sc2::Point2D *enemy_starting_location;
+	sc2::Point2D* enemy_starting_location;
 	bool TryScouting(const sc2::Unit&);
 	void CheckScoutStatus();
-	const sc2::Unit *GetGatheringScv();
+
 	void AssignBarrackAction(const sc2::Unit& barrack);
 	void AssignBarrackTechLabAction(const sc2::Unit& barrack_tech_lab);
 	void AssignStarportAction(const sc2::Unit& starport);
@@ -74,8 +79,11 @@ private:
 	void RecheckUnitIdle();
 	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
 	bool EnemyNearBase(const sc2::Unit *base);
-};
 
+	const sc2::Unit* GetGatheringScv();
+	void StartTrainingUnit(const sc2::Unit& barrack_to_train);
+
+};
 
 
 #endif
