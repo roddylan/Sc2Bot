@@ -174,8 +174,6 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     }
     // TODO: fix placement so far enough away enough from obstructions so tech lab can be built on it
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
-
-        
         Actions()->UnitCommand(unit_to_build, ability_type_for_structure, pos_to_place_at);
             // sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
         return true;
