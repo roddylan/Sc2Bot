@@ -37,12 +37,17 @@ public:
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
+	virtual bool BasicSc2Bot::TryBuildThor();
+	virtual const sc2::Unit* FindInjuredMarine();
+	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
+	virtual const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
+	virtual int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
 	virtual bool HandleExpansion();
 	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
 	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
 	virtual bool TryBuildMissileTurret();
 	virtual bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
-
+	virtual bool BasicSc2Bot::TryBuildArmory();
 	virtual void OnUnitDestroyed(const sc2::Unit* unit);
 private:
 	const size_t n_tanks = 8;
