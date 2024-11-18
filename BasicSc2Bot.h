@@ -37,33 +37,46 @@ public:
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
+	virtual bool BasicSc2Bot::TryBuildThor();
+	virtual const sc2::Unit* FindInjuredMarine();
+	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
+	virtual const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
+	virtual int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
 	virtual bool HandleExpansion();
 	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
 	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
 	virtual bool TryBuildMissileTurret();
-
+	virtual bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
+	virtual bool BasicSc2Bot::TryBuildArmory();
 	virtual void OnUnitDestroyed(const sc2::Unit* unit);
 private:
 	const size_t n_tanks = 8;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
 	// TODO: increase to 22
-	const size_t n_workers_init = 15; // workers per base building split point (build rest of stuff)
+	const size_t n_workers_init = 13; // workers per base building split point (build rest of stuff)
 	const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
-	const size_t n_mules = 3; // goal no. mules per base
+	const size_t n_mules = 2; // goal no. mules per base
 	const size_t n_marines = 6;
 	const size_t n_bunkers = 6;
 	std::vector<sc2::Point3D> expansion_locations;
 
 	sc2::Point3D start_location;
+	sc2::Point3D base_location;
 	const sc2::Unit *scout;
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
 	sc2::Point2D *enemy_starting_location;
 	bool TryScouting(const sc2::Unit&);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
-	void StartTrainingUnit(const sc2::Unit& barrack_to_train);
+	void AssignBarrackAction(const sc2::Unit& barrack);
+	void AssignBarrackTechLabAction(const sc2::Unit& barrack_tech_lab);
+	void AssignStarportAction(const sc2::Unit& starport);
+	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
+	void RecheckUnitIdle();
+	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
+	bool EnemyNearBase(const sc2::Unit *base);
 };
 
 
