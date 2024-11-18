@@ -73,7 +73,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestMineralPatch(const sc2::Point2D& start)
     float distance = std::numeric_limits<float>::max();
     const sc2::Unit* target = nullptr;
     for (const auto& u : units) {
-        if (u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_MINERALFIELD) {
+        if (u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_MINERALFIELD || u->unit_type == sc2::UNIT_TYPEID::NATURALMINERALS || u->unit_type == sc2::UNIT_TYPEID::MINERALCRYSTAL || u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_RICHMINERALFIELD  ) {
             float d = sc2::DistanceSquared2D(u->pos, start);
             if (d < distance) {
                 distance = d;

@@ -56,6 +56,27 @@ bool BasicSc2Bot::TryBuildSeigeTank() {
     return true;
 }
 
+bool BasicSc2Bot::TryBuildThor() {
+    const sc2::ObservationInterface* observation = Observation();
+
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1) {
+        return false;
+    }
+    if (observation->GetVespene() < 125) {
+        return false;
+    }
+    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    size_t marines_size = CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
+    // TODO: Handle logic for Thor creation as in creating a speicifed amount to cover an area or something
+    sc2::Units thors = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+    if (thors.size() >= (marines_size / 5)) return false;
+    for (auto unit : units) {
+        
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
+    }
+    return true;
+}
+
 bool BasicSc2Bot::TryBuildBunker() {
 
     const sc2::ObservationInterface* observation = Observation();
@@ -370,7 +391,7 @@ void BasicSc2Bot::HandleBuild() {
   //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
     // Handle Orbital Command
-
+    
     if (!barracks.empty()) {
         for (const auto &base : bases) {
             if (base->build_progress != 1) {
@@ -386,6 +407,7 @@ void BasicSc2Bot::HandleBuild() {
     if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
+
     //if (!has_infantry_weapons_1) return;
     if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion();
@@ -437,7 +459,7 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
-
+    TryBuildThor();
     // build refinery
     
 

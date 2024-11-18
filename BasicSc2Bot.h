@@ -37,6 +37,7 @@ public:
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
+	virtual bool BasicSc2Bot::TryBuildThor();
 	virtual const sc2::Unit* FindInjuredMarine();
 	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
 	virtual const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);

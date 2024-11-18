@@ -114,6 +114,20 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         break;
 
     }
+    case sc2::UNIT_TYPEID::TERRAN_THOR: {
+        // TODO: thor should go to choke point when created?
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_MARINE: {
+        // TODO: marine should go to choke point when created
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
+    }
     }
     
 }
@@ -139,6 +153,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
+        AssignWorkers(unit);
         if (TryScouting(*unit)) {
             break;
         }
