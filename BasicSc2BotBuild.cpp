@@ -106,11 +106,13 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
         // do not build if current_supply_use/max_suply < 2/3
         return false;
     }
+    // commenting this out because our logic for making supply depots should just be based on our food used
+    /*
     // do not build if theres more than 4 per base
     if ((n_supply_depots + n_lower_supply_depots) >= 4 * n_bases) {
         return false;
     }
-
+    */
     if (observation->GetMinerals() < 100) {
         return false;
     }
@@ -298,7 +300,9 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_MISSILETURRET);
 
 }
-
+bool BasicSc2Bot::TryBuildArmory() {
+    return TryBuildStructure(sc2::ABILITY_ID::BUILD_ARMORY);
+}
 
 /**
  * @brief Handle unit upgrades
@@ -326,8 +330,10 @@ void BasicSc2Bot::HandleBuild() {
     static const uint32_t BARRACKS_COST = 150;
     static const uint32_t ORBITAL_COMMAND_COST = 150;
     static const uint32_t STARPORT_COST = 150;
-
+    static const uint32_t ARMORY_MINERAL_COST = 150;
+    
     // vespene gas costs
+    static const uint32_t ARMORY_GAS_COST = 100;
     static const uint32_t FACTORY_GAS_COST = 100;
     static const uint32_t STARPORT_GAS_COST = 100;
     
@@ -343,6 +349,8 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units bunkers = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     sc2::Units techlab_factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+    sc2::Units armorys = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit( sc2::UNIT_TYPEID::TERRAN_ARMORY));
+
     // TODO: handle other building
 
 
@@ -352,12 +360,14 @@ void BasicSc2Bot::HandleBuild() {
 
     // goal amnts
     // TODO: change target amounts
-    const size_t n_barracks_target = 3;
-    const size_t n_factory_target = 2;
-    const size_t n_armory_target = 2;
+    const size_t n_barracks_target = 2;
+    const size_t n_factory_target = 1;
+    const size_t n_armory_target = 1;
     const size_t n_engg_target = 1;
     const size_t n_bunkers_target = 8;
     const size_t n_starports_target = 1;
+   // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
+  //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
     // Handle Orbital Command
 
@@ -373,8 +383,11 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
-    
-    if (n_minerals >= 400) {
+    if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
+        TryBuildArmory();
+    }
+    //if (!has_infantry_weapons_1) return;
+    if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion();
     }
 

@@ -82,40 +82,40 @@ void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
     const bool has_infantry_weapons_3 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL3) != upgrades.end();
     if (minerals >= 100 && gas >= 100 && !has_infantry_weapons_3) {
 
-        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL3);
+        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONS);
         return;
     }
 
     const bool has_infantry_armor_3 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYARMORSLEVEL3) != upgrades.end();
     if (minerals >= 100 && gas >= 100 && !has_infantry_armor_3) {
 
-        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL3);
+        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMOR);
         return;
     }
 
     const bool has_infantry_weapons_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL2) != upgrades.end();
     if (minerals >= 100 && gas >= 100 && !has_infantry_weapons_2) {
-
-        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL2);
+        
+        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONS);
         return;
     }
 
     const bool has_infantry_armor_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYARMORSLEVEL2) != upgrades.end();
     if (minerals >= 100 && gas >= 100 && !has_infantry_armor_2) {
 
-        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL2);
+        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMOR);
         return;
     }
 
     const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     if (minerals >= 100 && gas >= 100 && !has_infantry_weapons_1) {
-        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONSLEVEL1);
+        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONS);
         return;
     }
 
     const bool has_infantry_armor_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYARMORSLEVEL1) != upgrades.end();
     if (minerals >= 100 && gas >= 100 && !has_infantry_armor_1) {
-        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMORLEVEL1);
+        Actions()->UnitCommand(&engineering_bay, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMOR);
         return;
     }
 }
