@@ -125,35 +125,43 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
     }
 }
 // checks that marine is nearby atleast size other marines
-int BasicSc2Bot::MarineClusterSize(const sc2::Unit *marine, const sc2::Units &marines) {
-    size_t num_marines_in_cluster = marines.size();
-
+int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines) {
     int num_nearby_marines = 0;
-    float distance_apart = 5.0f;
+    const float distance_threshold_sq = 25.0f;
     // first find closest marine
     for (const auto& other_marine : marines) {
-        float dist_to_marine = Query()->PathingDistance(marine->pos, other_marine->pos);
-        if (dist_to_marine < distance_apart) {
-            ++num_marines_in_cluster;
+        if (marine == other_marine) continue;
+
+        float dx = marine->pos.x - other_marine->pos.x;
+        float dy = marine->pos.y - other_marine->pos.y;
+        float dist_to_marine_sq = dx * dx + dy * dy;
+
+        if (dist_to_marine_sq < distance_threshold_sq) {
+            ++num_nearby_marines;
         }
     }
-    return num_marines_in_cluster;
+
+    return num_nearby_marines;
 }
+
 const sc2::Point2D BasicSc2Bot::FindLargestMarineCluster(const sc2::Point2D& start) {
-    sc2::Point2D nearest(0, 0);
     const sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-    size_t num_current_marines = marines.size();
-    float marine_cluster_size = std::numeric_limits<float>::min();
-    const sc2::Unit* target_marine;
-    // first find closest marine
+
+    const sc2::Unit* target_marine = nullptr;
+    int largest_cluster_size = 0;
+
     for (const auto& marine : marines) {
-      //  float dist_to_marine = Query()->PathingDistance(marine->pos, start);
-        if (MarineClusterSize(marine, marines) > marine_cluster_size) {
+        int cluster_size = MarineClusterSize(marine, marines);
+        if (cluster_size > largest_cluster_size) {
+            largest_cluster_size = cluster_size;
             target_marine = marine;
         }
     }
-    return target_marine->pos;
+
+    return target_marine ? target_marine->pos : sc2::Point2D(0, 0);
 }
+
+
 /*
  * Gets an SCV that is currently gathering, or return nullptr if there are none.
  * Useful to call when you need to assign an SCV to do a task but you don't want to

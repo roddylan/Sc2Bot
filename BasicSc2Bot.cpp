@@ -143,7 +143,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
-        int skip_frame = 12000;
+        int skip_frame = 10;
 
         if (Observation()->GetGameLoop() % skip_frame) {
             return;
