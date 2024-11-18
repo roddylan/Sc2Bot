@@ -103,8 +103,15 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
-        sc2::Point2D nearest_marine_cluster = FindLargestMarineCluster(unit->pos);
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, nearest_marine_cluster);
+        const sc2::Unit* injured_marine = FindInjuredMarine();
+        if (injured_marine) {
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
+            return;
+        }
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
 
     }
     }
@@ -148,8 +155,15 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         if (Observation()->GetGameLoop() % skip_frame) {
             return;
         }
-        sc2::Point2D nearest_marine_cluster = FindLargestMarineCluster(unit->pos);
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, nearest_marine_cluster);
+        const sc2::Unit* injured_marine = FindInjuredMarine();
+        if (injured_marine) {
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
+            return;
+        }
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
 
     }
     case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {

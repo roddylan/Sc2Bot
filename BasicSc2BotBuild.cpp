@@ -165,6 +165,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     sc2::Point2D starting_point = sc2::Point2D(base_location.x + rx, base_location.y + ry);
     
     sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(starting_point, ability_type_for_structure);
+    if (pos_to_place_at == sc2::Point2D(0, 0)) return false;
 
     // sc2::Point2D start_location = bases.size() > 1 && nearest_command_center != sc2::Point2D(0, 0) ? nearest_command_center : sc2::Point2D(this->start_location.x, this->start_location.y);
     switch (unit_type) {

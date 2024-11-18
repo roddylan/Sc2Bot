@@ -68,7 +68,7 @@ void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
         for (const auto &refinery : refineries) {
             if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-                // std::cout << "refinery\n";
+                 std::cout << "refinery assignmenty\n";
                 Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
             }
             std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
