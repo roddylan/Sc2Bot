@@ -203,7 +203,6 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         return true;
     }
     case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
-        // TODO: implement
         // place missile turret around base
         // within 14 of other missile turret
             // query check; selecting missile turret to build next to:
