@@ -239,3 +239,29 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     }
 }
+
+/**
+ * @brief Called when the unit in the current observation has lower health or shields than in the previous observation.
+ * 
+ * @param unit The damaged unit.
+ * @param health The change in health (damage is positive)
+ * @param shields The change in shields (damage is positive)
+ */
+void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shields) {
+    const sc2::ObservationInterface *obs = Observation();
+    const sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_MARINE,
+        sc2::UNIT_TYPEID::TERRAN_MARAUDER,
+        sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
+        sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED,
+        sc2::UNIT_TYPEID::TERRAN_THOR,
+        sc2::UNIT_TYPEID::TERRAN_CYCLONE,
+        sc2::UNIT_TYPEID::TERRAN_CYCLONE,
+    }));
+    const sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+    const sc2::Point2D base_pos = FindNearestCommandCenter(unit->pos);
+    
+    // area around base
+    const float rad = 20;
+
+}

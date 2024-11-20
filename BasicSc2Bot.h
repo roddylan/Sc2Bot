@@ -17,6 +17,13 @@ public:
 	virtual void OnGameFullStart();
 	virtual void OnGameStart();
 	virtual void OnStep();
+
+	//! Called when the unit in the current observation has lower health or shields than in the previous observation.
+    //!< \param unit The damaged unit.
+    //!< \param health The change in health (damage is positive)
+    //!< \param shields The change in shields (damage is positive)
+    virtual void OnUnitDamaged(const sc2::Unit*, float /*health*/, float /*shields*/);
+
 	virtual bool AttackIntruders();
 	virtual bool LoadBunker(const sc2::Unit* marine);
 	virtual void OnUnitIdle(const sc2::Unit* unit) final;
@@ -52,6 +59,7 @@ public:
 	virtual void OnUnitDestroyed(const sc2::Unit* unit);
 	virtual void TankAttack(const sc2::Units &squad);
 	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos);
 private:
 	const size_t n_tanks = 8;
 	const size_t n_bases = 3;
