@@ -58,18 +58,18 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
     
-    // if (TryBuildSeigeTank()) {
-    //     return;
-    // }
-    // if (TryBuildMissileTurret()) {
-    //     return;
-    // }
-    // if (TryBuildSupplyDepot()) {
-    //     return;
-    // }
-    // if (TryBuildRefinery()) {
-    //     return;
-    // }
+    if (TryBuildSeigeTank()) {
+        return;
+    }
+    if (TryBuildMissileTurret()) {
+        return;
+    }
+    if (TryBuildSupplyDepot()) {
+        return;
+    }
+    if (TryBuildRefinery()) {
+        return;
+    }
     return;
 }
 
