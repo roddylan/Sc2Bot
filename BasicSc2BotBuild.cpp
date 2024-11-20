@@ -241,58 +241,18 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         }
         
         unit_to_build = worker;
+        break;
     }
     // todo: this as possible fix?
     float rx = sc2::GetRandomScalar();
     float ry = sc2::GetRandomScalar();
   
-    sc2::Point2D nearestCommandCenter = (unit_to_build != nullptr) ? FindNearestCommandCenter(unit_to_build->pos) : start_location;
-    sc2::Point2D point(nearestCommandCenter.x + rx, nearestCommandCenter.y + ry);
-    if (expansion_starting_point != sc2::Point2D(0, 0)) {
-        point = expansion_starting_point;
-    }
-
-    if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_BUNKER) {
-        int map_height = obs->GetGameInfo().height;
-        int map_width = obs->GetGameInfo().width;
-        const size_t bunker_cost = 100;
-        if (obs->GetMinerals() < 4 * bunker_cost) {
-            return false;
-        }
-        bool all_bunkers_placed = true;
-
-        sc2::Point2D direction = sc2::Point2D(0, 1);
-        float distance_between_bunkers = 10.0f;
-
-        for (int i = 0; i < 4; i++) {
-            sc2::Point2D placement_point = nearestCommandCenter + direction * (i * distance_between_bunkers);
-            bool found_valid_placement = false;
-
-            // Check if the placement point is valid
-            if (Query()->Placement(ability_type_for_structure, placement_point, unit_to_build)) {
-                point = placement_point;
-                found_valid_placement = true;
-            }
-            if (found_valid_placement) {
-                Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
-            }
-            else {
-                all_bunkers_placed = false;
-                break;
-            }
-        }
-
-        return all_bunkers_placed;
-    }
+    sc2::Point2D point = expansion_starting_point;
    
-    while (!Query()->Placement(ability_type_for_structure, point, unit_to_build)) {
-        point.x += 10;
-        point.y += 10;
-    }
-    if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_COMMANDCENTER) {
-        sc2::Point3D expansion_point(point.x, point.y, 0);
+    // sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(point, ability_type_for_structure);
 
-    }
+    // sc2::Point3D expansion_point(point.x, point.y, 0);
+
     Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
 
     // check if scv can get there
