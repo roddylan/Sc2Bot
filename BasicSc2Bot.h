@@ -23,7 +23,7 @@ public:
 	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
-	virtual bool TryBuildSeigeTank();
+	virtual bool TryBuildSiegeTank();
 	virtual bool BuildRefinery();
 	virtual bool TryBuildFactory();
 	virtual bool TryBuildBunker();

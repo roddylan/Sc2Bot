@@ -39,7 +39,7 @@ bool BasicSc2Bot::TryBuildFactory() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY);
 }
 
-bool BasicSc2Bot::TryBuildSeigeTank() {
+bool BasicSc2Bot::TryBuildSiegeTank() {
     const sc2::ObservationInterface* observation = Observation();
 
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1) {
@@ -432,7 +432,7 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
 
-    TryBuildSeigeTank();
+    TryBuildSiegeTank();
 
     TryBuildMissileTurret();
     
