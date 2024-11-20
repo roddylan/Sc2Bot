@@ -50,6 +50,8 @@ void BasicSc2Bot::OnStep() {
     }
 
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
+    TryBuildSupplyDepot();
+    
     HandleBuild();
     
     BuildWorkers();

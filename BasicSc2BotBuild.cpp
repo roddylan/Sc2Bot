@@ -151,6 +151,10 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
         return false;
     }
 
+    // bool check;
+    // check = TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
+    // std::cout << "built supply depot: " << check << std::endl;
+    // return check;
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
 }
 
