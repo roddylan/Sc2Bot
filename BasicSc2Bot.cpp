@@ -224,6 +224,9 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignBarrackAction(*unit);
         break;
     }
+    case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR: {
+        AssignBarrackAction(*unit);
+    }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
         AssignBarrackTechLabAction(*unit);
         break;
