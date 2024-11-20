@@ -62,6 +62,8 @@ public:
 	virtual void TankAttack(const sc2::Units &squad);
 	virtual void TankAttack(const sc2::Units &squad, const sc2::Units &enemies);
 	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
+	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
 	const size_t n_tanks = 3;

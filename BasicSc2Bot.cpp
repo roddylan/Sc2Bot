@@ -253,6 +253,9 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
         AssignFactoryAction(unit);
     }
+    case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
+        TurretDefend(unit);
+    }
     default: {
         break;
     }
