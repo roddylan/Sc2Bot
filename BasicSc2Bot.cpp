@@ -93,7 +93,7 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
          * For now, lower all supply depots by default
          * In the future, maybe we can take advantage of raising/lowering them to control movement
          */
-        std::cout << "supply depot created!" << std::endl;
+        //std::cout << "supply depot created!" << std::endl;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         break;
     }
@@ -128,6 +128,17 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 }
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
+    static int mineral_fields_destoryed;
+    if (unit->mineral_contents == 0) {
+        ++mineral_fields_destoryed;
+        std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+        if (mineral_fields_destoryed % 5) {
+            HandleExpansion(true);
+        }
+        std::cout << "Minerals destroyed" << std::endl;
+        
+
+    }
     if (unit == this->scout) {
         // the scout was destroyed, so we found the base!
         const sc2::GameInfo& info = Observation()->GetGameInfo();
