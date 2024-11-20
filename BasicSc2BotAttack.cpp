@@ -94,20 +94,18 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
         return false;
     }
     */
+    if (resources_depleted) {
+        goto expand;
+    }
     // TODO: change siege tank req
-    /*
     if (n_bases > 1 && n_siege_tanks < (n_bases * 1 + 1) && n_marines >= this->n_marines * n_bases) {
         // only expand when enough units to defend base + protect expansion
         return false;
     }
-    */
-    if (resources_depleted) {
-        goto expand;
-    }
-    if (n_bases > 1 && n_marines >= this->n_marines * n_bases) {
-        // only expand when enough units to defend base + protect expansion
-        return false;
-    }
+    // if (n_bases > 1 && n_marines >= this->n_marines * n_bases) {
+    //     // only expand when enough units to defend base + protect expansion
+    //     return false;
+    // }
 
     if (bases.size() > 4) {
         return false;
