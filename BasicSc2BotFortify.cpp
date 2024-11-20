@@ -51,7 +51,6 @@ void BasicSc2Bot::TurretDefend(const sc2::Unit *turret) {
             continue;
         }
 
-
         // danger ratio
         float ratio = (enemy_health + 1) / (distance + 1); // + 1 to prevent 0 division
 

@@ -102,6 +102,8 @@ private:
 	void RecheckUnitIdle();
 	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
 	bool EnemyNearBase(const sc2::Unit *base);
+	
+	const sc2::Unit* ChooseAttackTarget(const sc2::Unit *unit, const sc2::Units &enemies);
 };
 
 

@@ -323,3 +323,50 @@ void BasicSc2Bot::LaunchAttack() {
     }
     
 }
+
+
+
+/**
+ * @brief Select most dangerous target to attack
+ * 
+ * @param unit 
+ * @param enemies possible enemies to target
+ * @return sc2::Unit* 
+ */
+const sc2::Unit* BasicSc2Bot::ChooseAttackTarget(const sc2::Unit *unit, const sc2::Units &enemies) {
+    float max_ratio = 0; // danger ratio/score
+    const sc2::Unit *target = nullptr;
+
+    float range = unit->detect_range;
+
+    // TODO: finish differentiate from siege tanks
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+            range = 13;
+        }
+
+    // find most dangerous enemy (maximize health/distance)
+    for (const auto &enemy : enemies) {
+        // enemy already dead
+        if (!enemy->is_alive) {
+            continue;
+        }
+        float distance = sc2::Distance2D(enemy->pos, unit->pos);
+        float health = enemy->health + enemy->shield;
+
+        // out of attack range
+        if (distance > range) {
+            continue;
+        }
+
+        // danger ratio
+        float ratio = (health + 1) / (distance + 1); // + 1 to prevent 0 division
+
+        if (ratio > max_ratio) {
+            target = enemy;
+            max_ratio = ratio;
+        }
+    }
+
+    return target;
+}
