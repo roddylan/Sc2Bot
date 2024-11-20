@@ -28,6 +28,10 @@ void BasicSc2Bot::TurretDefend(const sc2::Unit *turret) {
         return is_vis && unit.is_flying;
     });
 
+    if (enemies.empty()) {
+        return;
+    }
+
     const float MISSILE_TURRET_ATTACK_RANGE = turret->detect_range;
 
     float max_danger = 0;
