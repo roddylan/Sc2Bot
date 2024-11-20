@@ -97,7 +97,7 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
     }
     */
     if (resources_depleted) {
-        goto expand;
+        // goto expand;
     }
     // TODO: change siege tank req
     if (n_bases > 1 && n_siege_tanks < (n_bases * 1 + 1) && n_marines >= this->n_marines * n_bases) {
@@ -222,6 +222,67 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
         }
         AttackWithUnit(tank, enemies_in_range);
+    }
+}
+
+/**
+ * @brief Handle attack for squad with tanks (with enemies)
+ * 
+ * @param squad 
+ * @param enemies 
+ */
+void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies) {
+    // TODO: maybe just pass in enemies_in_range
+    
+    // squad of up to 16
+    
+    // vector of tanks in squad
+    const sc2::ObservationInterface *obs = Observation();
+
+    sc2::Units tanks{};
+    if (enemies.empty() || squad.empty()) {
+        return;
+    }
+
+    // attack range
+    const float TANK_RANGE = 7;        // regular attack range
+    const float TANK_SIEGE_RANGE = 13; // siege attack range
+    const float THRESHOLD = (TANK_RANGE + TANK_SIEGE_RANGE) / 2; // threshold distance to choose b/w modes
+
+    
+    // get siege tanks in squad
+    for (const auto &unit : squad) {
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
+            unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+            tanks.push_back(unit);
+        }
+    }
+
+    if (tanks.empty()) {
+        return;
+    }
+
+    // if there is enemy in range
+    for (const auto &tank : tanks) {
+        // find closest
+        float min_dist = std::numeric_limits<float>::max();
+ 
+        for (const auto &enemy : enemies) {
+            float dist = sc2::Distance2D(tank->pos, enemy->pos);
+            if (dist < min_dist) {
+                min_dist = dist;
+            }
+        }
+        
+        // closest enemy detected within siege range -> move back and go siege mode
+        if (min_dist <= THRESHOLD) {
+            Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_SIEGEMODE);
+        } 
+        
+        if (min_dist > TANK_SIEGE_RANGE) {
+            Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
+        }
+        AttackWithUnit(tank, enemies);
     }
 }
 

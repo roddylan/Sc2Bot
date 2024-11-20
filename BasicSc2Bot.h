@@ -58,6 +58,7 @@ public:
 	virtual bool TryBuildArmory();
 	virtual void OnUnitDestroyed(const sc2::Unit* unit);
 	virtual void TankAttack(const sc2::Units &squad);
+	virtual void TankAttack(const sc2::Units &squad, const sc2::Units &enemies);
 	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
