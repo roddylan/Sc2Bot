@@ -109,6 +109,11 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     const uint32_t& mineral_count = observation->GetMinerals();
     const uint32_t& gas_count = observation->GetVespene();
 
+    if (mineral_count >= 100 && gas_count >= 100) {
+        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::TRAIN_MARAUDER);
+        return;
+    }
+
     /*
     * Upgrades in order of best->worst are combat shield, stimpack, concussive shells
     * - combat shield: marines gain 10hp
