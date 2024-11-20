@@ -61,6 +61,7 @@ private:
 	const size_t n_marines = 6;
 	const size_t n_bunkers = 6;
 	std::vector<sc2::Point3D> expansion_locations;
+	std::vector<sc2::Point2DI> pinchpoints;
 
 	sc2::Point3D start_location;
 	sc2::Point3D base_location;
