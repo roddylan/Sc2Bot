@@ -7,6 +7,8 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
+#include <cstddef>
+#include <limits>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
@@ -146,4 +148,94 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
     }
 
     return true;
+}
+
+/**
+ * @brief Handle attack for squad with tanks
+ * 
+ * @param squad 
+ */
+void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
+    // TODO: maybe just pass in enemies_in_range
+    
+    // squad of up to 16
+    
+    // vector of tanks in squad
+    const sc2::ObservationInterface *obs = Observation();
+
+    sc2::Units tanks{};
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    if (enemies.empty() || squad.empty()) {
+        return;
+    }
+    sc2::Units enemies_in_range{};
+
+    // attack range
+    const float TANK_RANGE = 7;        // regular attack range
+    const float TANK_SIEGE_RANGE = 13; // siege attack range
+    const float THRESHOLD = (TANK_RANGE + TANK_SIEGE_RANGE) / 2; // threshold distance to choose b/w modes
+
+    
+    // get siege tanks in squad
+    for (const auto &unit : squad) {
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
+            unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+            tanks.push_back(unit);
+        }
+    }
+
+    if (tanks.empty()) {
+        return;
+    }
+
+    // get enemies in range
+    for (const auto &enemy : enemies) {
+        for (const auto &unit : squad) {
+            if (sc2::Distance2D(unit->pos, enemy->pos) < unit->detect_range) {
+                enemies_in_range.push_back(enemy);
+                break;
+            }
+        }
+    }
+    if (enemies_in_range.empty()) {
+        return;
+    }
+
+    // if there is enemy in range
+    for (const auto &tank : tanks) {
+        // find closest
+        float min_dist = std::numeric_limits<float>::max();
+ 
+        for (const auto &enemy : enemies_in_range) {
+            float dist = sc2::Distance2D(tank->pos, enemy->pos);
+            if (dist < min_dist) {
+                min_dist = dist;
+            }
+        }
+        
+        // closest enemy detected within siege range -> move back and go siege mode
+        if (min_dist <= THRESHOLD) {
+            Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_SIEGEMODE);
+        } 
+        
+        if (min_dist > TANK_SIEGE_RANGE) {
+            Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
+        }
+        AttackWithUnit(tank, enemies_in_range);
+    }
+}
+
+/**
+ * @brief Attacking enemies with unit
+ * 
+ * @param unit 
+ * @param enemies in range
+ */
+void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies) {
+    if (enemies.empty()) {
+        return;
+    }
+
+    // attack enemy
+    Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
 }

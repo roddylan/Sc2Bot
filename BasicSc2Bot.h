@@ -7,6 +7,7 @@
 #include "sc2utils/sc2_manage_process.h"
 #include "sc2utils/sc2_arg_parser.h"
 #include <sc2api/sc2_common.h>
+#include <sc2api/sc2_interfaces.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
 
@@ -49,6 +50,8 @@ public:
 	virtual bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
 	virtual bool TryBuildArmory();
 	virtual void OnUnitDestroyed(const sc2::Unit* unit);
+	virtual void TankAttack(const sc2::Units &squad);
+	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 private:
 	const size_t n_tanks = 8;
 	const size_t n_bases = 3;
