@@ -75,7 +75,7 @@ bool BasicSc2Bot::AttackIntruders() {
 }
 
 
-bool BasicSc2Bot::HandleExpansion() {
+bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
     const sc2::ObservationInterface* obs = Observation();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, 
@@ -95,7 +95,16 @@ bool BasicSc2Bot::HandleExpansion() {
     }
     */
     // TODO: change siege tank req
+    /*
     if (n_bases > 1 && n_siege_tanks < (n_bases * 1 + 1) && n_marines >= this->n_marines * n_bases) {
+        // only expand when enough units to defend base + protect expansion
+        return false;
+    }
+    */
+    if (resources_depleted) {
+        goto expand;
+    }
+    if (n_bases > 1 && n_marines >= this->n_marines * n_bases) {
         // only expand when enough units to defend base + protect expansion
         return false;
     }
@@ -106,7 +115,7 @@ bool BasicSc2Bot::HandleExpansion() {
     if (obs->GetMinerals() < std::min<size_t>(bases.size() * 600, 1800)) {
         return false;
     }
-
+    expand:
     float min_dist = std::numeric_limits<float>::max();
     sc2::Point3D closest_expansion(0, 0, 0);
 

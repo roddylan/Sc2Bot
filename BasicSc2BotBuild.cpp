@@ -410,7 +410,7 @@ void BasicSc2Bot::HandleBuild() {
 
     //if (!has_infantry_weapons_1) return;
     if (n_minerals >= 400 && bases.size() <= 1) {
-        HandleExpansion();
+        HandleExpansion(false);
     }
 
     // build barracks
@@ -467,7 +467,7 @@ void BasicSc2Bot::HandleBuild() {
     // TODO: improve count
     if (engg_bays.size() < bases.size() * n_engg_target) {
         if (n_minerals > 150 && n_gas > 100) {
-            std::cout << "building engg bay\n\n";
+            //std::cout << "building engg bay\n\n";
             TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
         }
     }
