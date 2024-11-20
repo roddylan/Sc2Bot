@@ -126,6 +126,9 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
         return sc2::Point2D(0, 0);
     }
 }
+
+
+
 // checks that marine is nearby atleast size other marines
 int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines) {
     int num_nearby_marines = 0;
