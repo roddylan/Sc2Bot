@@ -275,7 +275,7 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
     }
 
 
-    const sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    const sc2::Units allies = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_MARINE,
         sc2::UNIT_TYPEID::TERRAN_MARAUDER,
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
@@ -310,13 +310,25 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
 
     const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
 
+    // count friendlies and enemies
     size_t n_friendly{};
     size_t n_enemy{};
-
-    for (const auto &ally : units){
+    
+    for (const auto &ally : allies){
         if (sc2::Distance2D(ally->pos, unit->pos) < rad) {
-            
+            ++n_friendly;
         }
+    }
+
+    for (const auto &enemy : enemies){
+        if (sc2::Distance2D(enemy->pos, unit->pos) < rad) {
+            ++n_enemy;
+        }
+    }
+
+    // no point in repairing, will probably die
+    if (n_friendly < N_REPAIR_RATIO * n_enemy) {
+        return;
     }
 
     // get nearby unit to repair

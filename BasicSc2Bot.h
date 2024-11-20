@@ -71,6 +71,9 @@ private:
 	const size_t n_mules = 2; // goal no. mules per base
 	const size_t n_marines = 6;
 	const size_t n_bunkers = 6;
+
+	// TODO: adjust
+	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
 
 	sc2::Point3D start_location;
