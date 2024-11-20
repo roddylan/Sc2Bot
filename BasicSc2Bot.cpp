@@ -27,13 +27,8 @@ void BasicSc2Bot::OnGameStart() {
 }
 
 void BasicSc2Bot::OnGameFullStart() {
-    const sc2::ObservationInterface *obs = Observation();
-    sc2::GameInfo gin = obs->GetGameInfo();
-    sc2::Point3D start_3d = obs->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
-    sc2::Point2DI start = sc2::Point2DI(round(start_3d.x), round(start_3d.y));
-
-	//sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs.pathing_grid, start);
-	//PrintMap(obs.pathing_grid, pinchpoint);
+	this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
+	//PrintMap(gin.pathing_grid, pinchpoints);
 	return;
 }
 
