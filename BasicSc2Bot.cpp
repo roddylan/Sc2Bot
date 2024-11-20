@@ -249,6 +249,31 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
  */
 void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shields) {
     const sc2::ObservationInterface *obs = Observation();
+
+    // filter for buildings
+    // TODO: add rest of buildings
+    if (!(unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ARMORY ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
+          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB
+        )) {
+            return;
+        }
+
+
     const sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_MARINE,
         sc2::UNIT_TYPEID::TERRAN_MARAUDER,
@@ -258,10 +283,40 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
         sc2::UNIT_TYPEID::TERRAN_CYCLONE,
         sc2::UNIT_TYPEID::TERRAN_CYCLONE,
     }));
-    const sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
-    const sc2::Point2D base_pos = FindNearestCommandCenter(unit->pos);
+
+    // orbital commands
+    const sc2::Units orbitals = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND,
+        sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING
+    }));
+
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) {
+            
+        }
+
+    // const sc2::Point2D base_pos = FindNearestCommandCenter(unit->pos);
     
-    // area around base
+    // radius around structure
     const float rad = 20;
+
+    const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+
+    size_t n_friendly{};
+    size_t n_enemy{};
+
+    for (const auto &ally : units){
+        if (sc2::Distance2D(ally->pos, unit->pos) < rad) {
+
+        }
+    }
+
+    // get nearby unit to repair
+    const sc2::Unit *scv = FindNearestWorker(unit->pos, true);
+    if (scv == nullptr) {
+        scv = FindNearestWorker(unit->pos, true, true);
+    }
+
+
 
 }

@@ -379,6 +379,9 @@ const sc2::Unit* BasicSc2Bot::FindNearestWorker(const sc2::Point2D& pos, bool is
     const sc2::ObservationInterface *obs = Observation();
     
     sc2::Units workers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+    if (workers.empty()) {
+        return nullptr;
+    }
 
     float min_dist = std::numeric_limits<float>::max();
 
@@ -400,7 +403,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestWorker(const sc2::Point2D& pos, bool is
                 break;
             } 
         }
-        
+
         if (carrying_mineral && !mineral) {
             continue;
         }
