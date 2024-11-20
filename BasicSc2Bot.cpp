@@ -31,9 +31,10 @@ void BasicSc2Bot::OnGameFullStart() {
     sc2::GameInfo gin = obs->GetGameInfo();
     sc2::Point3D start_3d = obs->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER))[0]->pos;
     sc2::Point2DI start = sc2::Point2DI(round(start_3d.x), round(start_3d.y));
-
+    /*
 	sc2::Point2DI pinchpoint = FindPinchPointAroundPoint(obs->GetGameInfo().pathing_grid, start, 3, 16);
 	PrintMap(obs->GetGameInfo().pathing_grid ,pinchpoint);
+    */
 	return;
 }
 
@@ -137,7 +138,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     if (unit->mineral_contents == 0) {
         ++mineral_fields_destoryed;
         std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-        if (mineral_fields_destoryed % 3) {
+        if (mineral_fields_destoryed % 5) {
             HandleExpansion(true);
         }
         std::cout << "Minerals destroyed" << std::endl;
