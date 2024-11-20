@@ -62,6 +62,7 @@ public:
 	virtual void TankAttack(const sc2::Units &squad);
 	virtual void TankAttack(const sc2::Units &squad, const sc2::Units &enemies);
 	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	void LaunchAttack();
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
@@ -70,13 +71,16 @@ private:
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
 	// TODO: increase to 22
-	const size_t n_workers_init = 13; // workers per base building split point (build rest of stuff)
-	const size_t n_workers = 20; // workers per base goal amnt
+	// const size_t n_workers_init = 13; // workers per base building split point (build rest of stuff)
+	// const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 2; // goal no. mules per base
 	const size_t n_marines = 8; // per base
 	const size_t n_marauders = 5; // per base
 	const size_t n_bunkers = 6;
+	
+	const size_t N_ARMY_THRESHOLD = 30; // 200 - workers - threshold -> attack; allow bot to keep making units while attacking
+	const size_t N_TOTAL_WORKERS = 70; // max no. of workers
 
 	// TODO: adjust
 	const float N_REPAIR_RATIO = 1.5;

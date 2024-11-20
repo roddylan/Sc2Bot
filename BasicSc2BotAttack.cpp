@@ -305,3 +305,21 @@ void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemie
     // attack enemy
     Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
 }
+
+
+/**
+ * @brief Initial logic for launching attack on enemy base
+ * 
+ */
+void BasicSc2Bot::LaunchAttack() {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::ActionInterface *act = Actions();
+
+    // TODO: army composition requirements
+
+    // dont attack if not ready
+    if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+        return;
+    }
+    
+}
