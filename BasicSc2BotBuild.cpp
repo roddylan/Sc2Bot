@@ -200,8 +200,15 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     // TODO: fix placement so far enough away enough from obstructions so tech lab can be built on it
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         Actions()->UnitCommand(unit_to_build, ability_type_for_structure, pos_to_place_at);
-            // sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
         return true;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
+        // place missile turret around base
+        // within 14 of other missile turret
+            // query check; selecting missile turret to build next to:
+                // grab nearest turret to command center
+                // <= 2 turrets within 14 of selected turret -> build 13 squares away
+                // 
     }
     default: {
         break;
@@ -313,7 +320,7 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     if (observation->GetMinerals() < 75) {
         return false;
     }
-    size_t max_turrets_per_base = 1;
+    size_t max_turrets_per_base = n_missile;
     size_t base_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
     size_t turret_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MISSILETURRET)).size();
     if (max_turrets_per_base * base_count < turret_count) {
