@@ -16,11 +16,17 @@
 
 void BasicSc2Bot::BuildWorkers() {
     const sc2::ObservationInterface *obs = Observation();
+    // const sc2::QueryInterface *query = Query();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     
-    // build MULEs
+    // build MULEs (unless being attacked (enemies in range))
     for (const auto &base : bases) {
         if (base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND || base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING) {
+            // if enemies in range
+            // if () {
+                
+            // }
+            
             // if we havent reached goal amnt or larger energy req met
             if ((CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) < bases.size() * n_mules && base->energy > 50) || base->energy > 75) {
                 // find mineral target
@@ -30,7 +36,7 @@ void BasicSc2Bot::BuildWorkers() {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE, mineral_target);
                     std::cout << "n_mules =" << CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) << std::endl;
                 }
-            } 
+            }
             // else if (base->energy > 75) {
             //     // still create mules, but larger energy req
             //     if (FindNearestMineralPatch(base->pos)) {
@@ -62,7 +68,7 @@ void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
         for (const auto &refinery : refineries) {
             if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-                // std::cout << "refinery\n";
+                 std::cout << "refinery assignmenty\n";
                 Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
             }
             std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;

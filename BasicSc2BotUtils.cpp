@@ -73,7 +73,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestMineralPatch(const sc2::Point2D& start)
     float distance = std::numeric_limits<float>::max();
     const sc2::Unit* target = nullptr;
     for (const auto& u : units) {
-        if (u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_MINERALFIELD) {
+        if (u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_MINERALFIELD || u->unit_type == sc2::UNIT_TYPEID::NATURALMINERALS || u->unit_type == sc2::UNIT_TYPEID::MINERALCRYSTAL || u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_RICHMINERALFIELD  ) {
             float d = sc2::DistanceSquared2D(u->pos, start);
             if (d < distance) {
                 distance = d;
@@ -107,7 +107,9 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
     const sc2::Unit* target = nullptr;
 
     for (const auto& base : bases) {
-        if (base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND || base->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER || base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING) {
+        if (base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 
+            || base->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
+            || base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING) {
             if (not_start_location && base->pos == start_location) continue;
             float d = sc2::DistanceSquared2D(base->pos, start);
             if (d < distance) {
@@ -124,6 +126,93 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
         return sc2::Point2D(0, 0);
     }
 }
+// checks that marine is nearby atleast size other marines
+int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines) {
+    int num_nearby_marines = 0;
+    const float distance_threshold_sq = 25.0f;
+    // first find closest marine
+    for (const auto& other_marine : marines) {
+        if (marine == other_marine) continue;
+
+        float dx = marine->pos.x - other_marine->pos.x;
+        float dy = marine->pos.y - other_marine->pos.y;
+        float dist_to_marine_sq = dx * dx + dy * dy;
+
+        if (dist_to_marine_sq < distance_threshold_sq) {
+            ++num_nearby_marines;
+        }
+    }
+
+    return num_nearby_marines;
+}
+const sc2::Unit* BasicSc2Bot::FindInjuredMarine() {
+    const sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    
+    for (const auto marine : marines) {
+        
+        if (marine->health < marine->health_max) {
+            sc2::Units medivacs = SortMedivacsAccordingToDistance(marine->pos);
+            // medivacs[0] because first element is closest
+            if (sc2::Distance2D(medivacs[0]->pos, marine->pos) < 5.0f) {
+                continue;
+            }
+            return marine;
+        }
+    }
+    return nullptr;
+}
+const sc2::Units BasicSc2Bot::SortMedivacsAccordingToDistance(const sc2::Point2D start) {
+    sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    std::sort(medivacs.begin(), medivacs.end(), [&start](const sc2::Unit* unit_a, const sc2::Unit* unit_b) {
+        float dx_a = unit_a->pos.x - start.x;
+        float dy_a = unit_a->pos.y - start.y;
+        float dist_a_sq = dx_a * dx_a + dy_a * dy_a;
+
+        float dx_b = unit_b->pos.x - start.x;
+        float dy_b = unit_b->pos.y - start.y;
+        float dist_b_sq = dx_b * dx_b + dy_b * dy_b;
+
+        return dist_a_sq < dist_b_sq;
+        });
+    return medivacs;
+}
+const sc2::Point2D BasicSc2Bot::FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit) {
+    const sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units medivacs = SortMedivacsAccordingToDistance(start);
+
+    if (medivacs.empty()) {
+        return sc2::Point2D(0, 0);
+    }
+
+    // Sort medivacs by distance to the starting point
+    
+    const sc2::Unit* closest_medivac = nullptr;
+    // Get closest medivac that isnt itself (unit)
+    if (medivacs.size() > 1) {
+        closest_medivac = medivacs[0] == &unit ? medivacs[1] : medivacs[0];
+    }
+    else {
+        return marines.size() > 0 ? marines[0]->pos : sc2::Point2D(0, 0);
+    }
+       
+    
+    // Marine to go to
+    const sc2::Unit* target_marine = nullptr;
+    int largest_cluster_size = 0;
+
+    for (const auto& marine : marines) {
+        int cluster_size = MarineClusterSize(marine, marines);
+
+        if (cluster_size > largest_cluster_size && sc2::Distance2D(closest_medivac->pos, marine->pos) > 15.0f) {
+            largest_cluster_size = cluster_size;
+            target_marine = marine;
+        }
+    }
+
+    return target_marine ? target_marine->pos : sc2::Point2D(0, 0);
+}
+
+
 
 /*
  * Gets an SCV that is currently gathering, or return nullptr if there are none.
@@ -239,13 +328,37 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         x_hi += x_step;
         y_lo -= y_step;
         x_hi += y_step;
-
+        
         if (loop_count++ > 10) {
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
+            return sc2::Point2D(0, 0);
+            /*
             float rand_x = sc2::GetRandomScalar() * 5.0f;
             float rand_y = sc2::GetRandomScalar() * 5.0f;
             return this->FindPlaceablePositionNear(starting_point + sc2::Point2D(rand_x, rand_y), ability_to_place_building);
+            */
         }
+        
     }
     return pos_to_place_at;
+}
+
+/**
+ * @brief Check if enemy near base
+ * 
+ * @param base 
+ * @return true if enemy in range
+ * @return false if not
+ */
+bool BasicSc2Bot::EnemyNearBase(const sc2::Unit *base) {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    const float base_rad = base->radius + 30.0F;
+
+    for (const auto &enemy : enemies) {
+        if (sc2::Distance2D(enemy->pos, base->pos) < base_rad) {
+            return true;
+        }
+    }
+    return false;
 }

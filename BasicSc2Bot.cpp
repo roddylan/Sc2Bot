@@ -97,7 +97,34 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         break;
     }
+    case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
+        const sc2::Unit* injured_marine = FindInjuredMarine();
+        if (injured_marine) {
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
+            return;
+        }
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
+
     }
+    case sc2::UNIT_TYPEID::TERRAN_THOR: {
+        // TODO: thor should go to choke point when created?
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_MARINE: {
+        // TODO: marine should go to choke point when created
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
+    }
+    }
+    
 }
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
@@ -121,6 +148,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
+        AssignWorkers(unit);
         if (TryScouting(*unit)) {
             break;
         }
@@ -131,15 +159,32 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignStarportAction(*unit);
         break;
     }
+    case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
+        int skip_frame = 10;
+
+        if (Observation()->GetGameLoop() % skip_frame) {
+            return;
+        }
+        const sc2::Unit* injured_marine = FindInjuredMarine();
+        if (injured_marine) {
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
+            return;
+        }
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
+
+    }
     case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
         // std::cout << "ORBITAL COMMAND\n";
         //sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_MULE: {
-        AssignWorkers(unit);
-        break;
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_MULE: {
+    //     AssignWorkers(unit);
+    //     break;
+    // }
     case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: {
        // std::cout << "SUPPLY DEPOT IDLE" << std::endl;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);

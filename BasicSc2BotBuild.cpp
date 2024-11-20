@@ -56,6 +56,27 @@ bool BasicSc2Bot::TryBuildSeigeTank() {
     return true;
 }
 
+bool BasicSc2Bot::TryBuildThor() {
+    const sc2::ObservationInterface* observation = Observation();
+
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1) {
+        return false;
+    }
+    if (observation->GetVespene() < 125) {
+        return false;
+    }
+    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    size_t marines_size = CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
+    // TODO: Handle logic for Thor creation as in creating a speicifed amount to cover an area or something
+    sc2::Units thors = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+    if (thors.size() >= (marines_size / 5)) return false;
+    for (auto unit : units) {
+        
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
+    }
+    return true;
+}
+
 bool BasicSc2Bot::TryBuildBunker() {
 
     const sc2::ObservationInterface* observation = Observation();
@@ -106,11 +127,13 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
         // do not build if current_supply_use/max_suply < 2/3
         return false;
     }
+    // commenting this out because our logic for making supply depots should just be based on our food used
+    /*
     // do not build if theres more than 4 per base
     if ((n_supply_depots + n_lower_supply_depots) >= 4 * n_bases) {
         return false;
     }
-
+    */
     if (observation->GetMinerals() < 100) {
         return false;
     }
@@ -165,6 +188,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     sc2::Point2D starting_point = sc2::Point2D(base_location.x + rx, base_location.y + ry);
     
     sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(starting_point, ability_type_for_structure);
+    if (pos_to_place_at == sc2::Point2D(0, 0)) return false;
 
     // sc2::Point2D start_location = bases.size() > 1 && nearest_command_center != sc2::Point2D(0, 0) ? nearest_command_center : sc2::Point2D(this->start_location.x, this->start_location.y);
     switch (unit_type) {
@@ -174,8 +198,6 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     }
     // TODO: fix placement so far enough away enough from obstructions so tech lab can be built on it
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
-
-        
         Actions()->UnitCommand(unit_to_build, ability_type_for_structure, pos_to_place_at);
             // sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
         return true;
@@ -299,7 +321,9 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_MISSILETURRET);
 
 }
-
+bool BasicSc2Bot::TryBuildArmory() {
+    return TryBuildStructure(sc2::ABILITY_ID::BUILD_ARMORY);
+}
 
 /**
  * @brief Handle unit upgrades
@@ -327,8 +351,10 @@ void BasicSc2Bot::HandleBuild() {
     static const uint32_t BARRACKS_COST = 150;
     static const uint32_t ORBITAL_COMMAND_COST = 150;
     static const uint32_t STARPORT_COST = 150;
-
+    static const uint32_t ARMORY_MINERAL_COST = 150;
+    
     // vespene gas costs
+    static const uint32_t ARMORY_GAS_COST = 100;
     static const uint32_t FACTORY_GAS_COST = 100;
     static const uint32_t STARPORT_GAS_COST = 100;
     
@@ -344,6 +370,8 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units bunkers = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     sc2::Units techlab_factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+    sc2::Units armorys = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit( sc2::UNIT_TYPEID::TERRAN_ARMORY));
+
     // TODO: handle other building
 
 
@@ -353,15 +381,17 @@ void BasicSc2Bot::HandleBuild() {
 
     // goal amnts
     // TODO: change target amounts
-    const size_t n_barracks_target = 3;
-    const size_t n_factory_target = 2;
-    const size_t n_armory_target = 2;
+    const size_t n_barracks_target = 2;
+    const size_t n_factory_target = 1;
+    const size_t n_armory_target = 1;
     const size_t n_engg_target = 1;
     const size_t n_bunkers_target = 8;
-    const size_t n_starports_target = 2;
+    const size_t n_starports_target = 1;
+   // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
+  //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
     // Handle Orbital Command
-
+    
     if (!barracks.empty()) {
         for (const auto &base : bases) {
             if (base->build_progress != 1) {
@@ -374,8 +404,12 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
-    
-    if (n_minerals >= 400) {
+    if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
+        TryBuildArmory();
+    }
+
+    //if (!has_infantry_weapons_1) return;
+    if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion();
     }
 
@@ -390,9 +424,10 @@ void BasicSc2Bot::HandleBuild() {
             // }
         }
     }
+    /*
     if (bunkers.size() < n_bunkers_target * bases.size() && n_minerals >= BUNKER_COST) {
         TryBuildBunker();
-        /*
+        
         sc2::Units scvs = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
         bool bunker_built = false;
         for (auto& scv : scvs) {
@@ -414,9 +449,9 @@ void BasicSc2Bot::HandleBuild() {
         if (bunker_built) {
             // SCV already assigned to build bunker
         }
-        */
+        
     }
-
+    */
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
@@ -424,7 +459,7 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
-
+    TryBuildThor();
     // build refinery
     
 

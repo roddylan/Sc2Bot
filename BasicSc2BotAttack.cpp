@@ -80,9 +80,12 @@ bool BasicSc2Bot::HandleExpansion() {
     sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, 
         sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, 
+        sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
 
     size_t n_bases = bases.size();
     size_t n_siege_tanks = siege_tanks.size();
+    size_t n_marines = marines.size();
 
     /*
     if (!(obs->GetFoodWorkers() >= n_workers * bases.size() &&
@@ -92,7 +95,7 @@ bool BasicSc2Bot::HandleExpansion() {
     }
     */
     // TODO: change siege tank req
-    if (n_bases > 1 && n_siege_tanks < (n_bases * 1 + 1)) {
+    if (n_bases > 1 && n_siege_tanks < (n_bases * 1 + 1) && n_marines >= this->n_marines * n_bases) {
         // only expand when enough units to defend base + protect expansion
         return false;
     }
