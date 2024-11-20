@@ -65,7 +65,9 @@ void BasicSc2Bot::OnStep() {
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
         sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
     }));
-    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit &unit){
+        return unit.display_type == sc2::Unit::DisplayType::Visible;
+    });
 
     if (!enemies.empty() && !tanks.empty()) {
         TankAttack(tanks, enemies);
