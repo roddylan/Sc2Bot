@@ -249,6 +249,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
  */
 void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shields) {
     const sc2::ObservationInterface *obs = Observation();
+    sc2::ActionInterface *acts = Actions();
 
     // filter for buildings
     // TODO: add rest of buildings
@@ -269,9 +270,9 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
           unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING ||
           unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
           unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB
-        )) {
-            return;
-        }
+    )) {
+        return;
+    }
 
 
     const sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
@@ -290,10 +291,17 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
         sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING
     }));
 
+    // supply depot -> try to do supplies calldown to heal depot
+    // TODO: add condition
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
         unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) {
-            
+        for (const auto &orbital : orbitals) {
+            // TODO: orbital command probably never has enough energy, handle this
+            if (orbital->energy >= 50) {
+                acts->UnitCommand(orbital, sc2::ABILITY_ID::EFFECT_SUPPLYDROP, unit, false);
+            }
         }
+    }
 
     // const sc2::Point2D base_pos = FindNearestCommandCenter(unit->pos);
     
@@ -307,7 +315,7 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
 
     for (const auto &ally : units){
         if (sc2::Distance2D(ally->pos, unit->pos) < rad) {
-
+            
         }
     }
 
