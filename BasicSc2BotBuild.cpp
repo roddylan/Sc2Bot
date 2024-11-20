@@ -50,9 +50,19 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
         return false;
     }
     sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    bool build = false;
     for (auto unit : units) {
         if (CountNearbySeigeTanks(unit) > 0 && units.size() > 1) continue;
+        build = true;
+        std::cout << "building siege tank\n";
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+    }
+    // TODO: get rid of couts here 
+    if (build){
+        sc2::Units tank = observation->GetUnits(
+            sc2::Unit::Alliance::Self, 
+            sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
+        std::cout << "n_siegetanks=" << tank.size();
     }
     return true;
 }
@@ -184,14 +194,19 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
     }
 
-
-    float rx = sc2::GetRandomScalar() * 15.0f;
-    float ry = sc2::GetRandomScalar() * 15.0f;
+    // TODO: bring back build logic
+    
+    // float ry = sc2::GetRandomScalar() * 15.0f;
+    // float rx = sc2::GetRandomScalar() * 15.0f;
+    float ry = sc2::GetRandomScalar() * 10.0f;
+    float rx = sc2::GetRandomScalar() * 10.0f;
     sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);
     sc2::Point2D starting_point = sc2::Point2D(base_location.x + rx, base_location.y + ry);
     
-    sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(starting_point, ability_type_for_structure);
-    if (pos_to_place_at == sc2::Point2D(0, 0)) return false;
+    // sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(starting_point, ability_type_for_structure);
+    // if (pos_to_place_at == sc2::Point2D(0, 0)) return false;
+    sc2::Point2D pos_to_place_at = starting_point;
+    
 
     // sc2::Point2D start_location = bases.size() > 1 && nearest_command_center != sc2::Point2D(0, 0) ? nearest_command_center : sc2::Point2D(this->start_location.x, this->start_location.y);
     switch (unit_type) {
