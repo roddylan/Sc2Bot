@@ -97,8 +97,10 @@ bool BasicSc2Bot::TryBuildBunker() {
 
 bool BasicSc2Bot::TryBuildBarracks() {
     const sc2::ObservationInterface* observation = Observation();
+    int n_depot = CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
+    int n_lower_depot = CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
 
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1) {
+    if ((n_depot + n_lower_depot) < 1) {
        // std::cout << "supply dept < 1" << std::endl;
         return false;
     }
@@ -384,8 +386,10 @@ void BasicSc2Bot::HandleBuild() {
     // build barracks
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
-
-            TryBuildBarracks();
+            
+            if (n_minerals > BARRACKS_COST) {
+                TryBuildBarracks();
+            }
             // if (base->assigned_harvesters >= n_workers_init) {
             //     // std::cout << "building barracks\n\n";
             //     TryBuildBarracks();
