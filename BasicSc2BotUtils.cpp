@@ -270,14 +270,18 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     * Starting lower & upper bounds for x
     */
     int x_lo = -5, x_hi = 5;
+    // int x_lo = -3, x_hi = 3;
     /*
     * Starting lower & upper bounds for y
     */
     int y_lo = -5, y_hi = 5;
+    // int y_lo = -3, y_hi = 3;
 
     /*
     * How much to change the lower & upper bounds if you don't find a suitable spot in the current search square
     */
+    // int x_step = 3;
+    // int y_step = 3;
     int x_step = 5;
     int y_step = 5;
     bool found_pos_to_place_at = false;
@@ -294,8 +298,8 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
 
     size_t loop_count = 0;
     while (!found_pos_to_place_at) {
-        for (int x = x_lo; x <= x_hi; x += 3) {
-            for (int y = y_lo; y <= y_hi; y += 3) {
+        for (int x = x_lo; x <= x_hi; x += 2) {
+            for (int y = y_lo; y <= y_hi; y += 2) {
                 const sc2::Point2D current_pos = starting_point + sc2::Point2D(x, y);
                 sc2::QueryInterface* query = Query();
                 if (searched_points.find(current_pos) != searched_points.end()) {

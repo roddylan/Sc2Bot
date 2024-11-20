@@ -149,3 +149,17 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
 
     return true;
 }
+
+
+/**
+ * @brief build base when friendly structure built on mineral patch with no base
+ * 
+ */
+void BasicSc2Bot::CatchupExpansion() {
+    const sc2::ObservationInterface *obs = Observation();
+    // const sc2::Units buildings = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+        
+    // }));
+
+    sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
+}
