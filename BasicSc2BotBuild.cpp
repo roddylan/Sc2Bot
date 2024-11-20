@@ -52,7 +52,7 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
     sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
     bool build = false;
     for (auto unit : units) {
-        if (CountNearbySeigeTanks(unit) > 0 && units.size() > 1) continue;
+        if (CountNearbySeigeTanks(unit) > n_tanks && units.size() > 1) continue;
         build = true;
         std::cout << "building siege tank\n";
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SIEGETANK);
@@ -195,7 +195,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     }
 
     // TODO: bring back build logic
-    
+
     // float ry = sc2::GetRandomScalar() * 15.0f;
     // float rx = sc2::GetRandomScalar() * 15.0f;
     float ry = sc2::GetRandomScalar() * 10.0f;

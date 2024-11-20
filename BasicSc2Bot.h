@@ -61,7 +61,7 @@ public:
 	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
-	const size_t n_tanks = 8;
+	const size_t n_tanks = 3;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
 	// TODO: increase to 22
