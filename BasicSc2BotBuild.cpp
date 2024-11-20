@@ -432,9 +432,9 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
 
-    // TryBuildSeigeTank();
+    TryBuildSeigeTank();
 
-    // TryBuildMissileTurret();
+    TryBuildMissileTurret();
     
     TryBuildThor();
     // build refinery
