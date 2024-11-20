@@ -182,3 +182,12 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
 
     return;
 }
+
+/**
+ * @brief Assign actions to factory
+ * 
+ * @param factory 
+ */
+void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
+    TryBuildSiegeTank(factory);
+}

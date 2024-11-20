@@ -42,20 +42,54 @@ bool BasicSc2Bot::TryBuildFactory() {
 bool BasicSc2Bot::TryBuildSiegeTank() {
     const sc2::ObservationInterface* observation = Observation();
 
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1) {
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) < 1) {
         return false;
     }
     if (observation->GetVespene() < 125 || observation->GetMinerals() < 150 ||
         observation->GetFoodUsed() < (observation->GetFoodCap() - 3)) {
         return false;
     }
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     bool build = false;
     for (auto unit : units) {
         if (CountNearbySeigeTanks(unit) > n_tanks && units.size() > 1) continue;
         build = true;
         std::cout << "building siege tank\n";
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+    }
+    // TODO: get rid of couts here 
+    if (build){
+        sc2::Units tank = observation->GetUnits(
+            sc2::Unit::Alliance::Self, 
+            sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
+        std::cout << "n_siegetanks=" << tank.size() << std::endl;
+    }
+    return true;
+}
+
+/**
+ * @brief Build siege tank on given techlab factory
+ * 
+ * @param factory 
+ * @return true 
+ * @return false 
+ */
+bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
+    const sc2::ObservationInterface* observation = Observation();
+    
+    // if cant build tank
+    if (factory->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
+    if (observation->GetVespene() < 125 || observation->GetMinerals() < 150 ||
+        observation->GetFoodUsed() < (observation->GetFoodCap() - 3)) {
+        return false;
+    }
+    // sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
+    bool build = false;
+    if (CountNearbySeigeTanks(factory) <= n_tanks) {
+        build = true;
+        Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
     }
     // TODO: get rid of couts here 
     if (build){

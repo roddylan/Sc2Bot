@@ -250,6 +250,9 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         UpgradeFactoryTechLab(unit);
     }
+    case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
+        AssignFactoryAction(unit);
+    }
     default: {
         break;
     }
