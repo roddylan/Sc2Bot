@@ -190,4 +190,5 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
  */
 void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
     TryBuildSiegeTank(factory);
+    TryBuildThor();
 }
