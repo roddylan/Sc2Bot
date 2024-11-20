@@ -45,7 +45,8 @@ bool BasicSc2Bot::TryBuildSeigeTank() {
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1) {
         return false;
     }
-    if (observation->GetVespene() < 125) {
+    if (observation->GetVespene() < 125 || observation->GetMinerals() < 150 ||
+        observation->GetFoodUsed() < (observation->GetFoodCap() - 3)) {
         return false;
     }
     sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
@@ -459,6 +460,11 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
+
+    TryBuildSeigeTank();
+
+    TryBuildMissileTurret();
+    
     TryBuildThor();
     // build refinery
     
