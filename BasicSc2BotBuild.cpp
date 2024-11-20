@@ -62,7 +62,7 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
         sc2::Units tank = observation->GetUnits(
             sc2::Unit::Alliance::Self, 
             sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
-        std::cout << "n_siegetanks=" << tank.size();
+        std::cout << "n_siegetanks=" << tank.size() << std::endl;
     }
     return true;
 }
