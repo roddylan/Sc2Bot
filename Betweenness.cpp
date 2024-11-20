@@ -67,6 +67,8 @@ vector<sc2::Point2DI> sampleNodes(int numSamples, int rows, int cols, sc2::Image
     return sampledNodes;
 }
 
+// Brandes' Algorithm For Betweenness Centrality:
+// https://snap.stanford.edu/class/cs224w-readings/brandes01centrality.pdf
 // Modified Brandes' algorithm using Monte Carlo approach
 void monteCarloBrandesBetweenness(sc2::ImageData data, vector<vector<double>>& betweenness, int numSamples) {
     int rows = data.height;
