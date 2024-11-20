@@ -333,7 +333,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         y_lo -= y_step;
         x_hi += y_step;
         
-        if (loop_count++ > 10) {
+        if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
             return sc2::Point2D(0, 0);
             /*
