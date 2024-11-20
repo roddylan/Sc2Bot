@@ -124,10 +124,10 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     // std::cout << "n basess " << n_bases << std::endl;
     // make a new supply depot if we are at 2/3 unit capacity
     uint32_t current_supply_use = observation->GetFoodUsed();
-    uint32_t max_supply = observation->GetFoodCap();
+    uint32_t cur_max_supply = observation->GetFoodCap();
 
-    if (3 * current_supply_use < 2 * max_supply && (n_supply_depots + n_lower_supply_depots) > 0) {
-        // do not build if current_supply_use/max_suply < 2/3
+    if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply && (n_supply_depots + n_lower_supply_depots) > 0) {
+        // do not build if current_supply_use/max_suply < 2/3 or reached max supply
         return false;
     }
     // commenting this out because our logic for making supply depots should just be based on our food used
