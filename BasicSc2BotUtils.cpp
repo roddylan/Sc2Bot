@@ -7,6 +7,7 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
+#include <limits>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
@@ -364,4 +365,53 @@ bool BasicSc2Bot::EnemyNearBase(const sc2::Unit *base) {
         }
     }
     return false;
+}
+
+/**
+ * @brief Find nearest worker
+ * 
+ * @param pos position to search from
+ * @param is_busy allow selecting busy workers
+ * @param mineral allow selecting workers holding minerals (use if implement mineral walk)
+ * @return const sc2::Unit* 
+ */
+const sc2::Unit* BasicSc2Bot::FindNearestWorker(const sc2::Point2D& pos, bool is_busy, bool mineral) {
+    const sc2::ObservationInterface *obs = Observation();
+    
+    sc2::Units workers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+
+    float min_dist = std::numeric_limits<float>::max();
+
+    const sc2::Unit *res = nullptr;
+    for (auto &scv : workers) {
+        // if worker busy
+        if (!scv->orders.empty() && !is_busy) {
+            continue;
+        }
+
+        bool carrying_mineral = false;
+        for (const auto &buff : scv->buffs) {
+            // if scv carrying minerals or gas
+            if (buff == sc2::BUFF_ID::CARRYHARVESTABLEVESPENEGEYSERGAS ||
+                buff == sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS ||
+                buff == sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
+                
+                carrying_mineral = true;
+                break;
+            } 
+        }
+        
+        if (carrying_mineral && !mineral) {
+            continue;
+        }
+
+        float dist = sc2::Distance2D(scv->pos, pos);
+
+        if (dist < min_dist) {
+            min_dist = dist;
+            res = scv;
+        }
+    }
+
+    return res;
 }
