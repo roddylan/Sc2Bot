@@ -159,7 +159,7 @@ std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch
 	// (num_chunks * 2 - 1)^2 total chunks are computed (just like doing convolutions)
 	// returns an array of num_pinch_points pinch points
 
-    int min_dist_between_points = 15;  // Minimum distance between pinch points
+    int min_dist_between_points = 10;  // Minimum distance between pinch points
     std::unordered_map<std::tuple<int, int>, double> point_betweenness_map;
 
     // Iterate over chunks

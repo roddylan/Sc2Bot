@@ -26,4 +26,4 @@ struct IsUnit {
 sc2::ImageData GetMapChunk(sc2::ImageData data, sc2::Point2DI start, sc2::Point2DI end);
 
 // returns a list of 50 (default) pinch points on the map
-std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch_points=50, int num_chunks=13, int stride=16);
+std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch_points=75, int num_chunks=1, int stride=192);
