@@ -46,6 +46,10 @@ void BasicSc2Bot::BuildWorkers() {
         }
     }
 
+    // dont build too many workers
+    if (obs->GetFoodWorkers() > N_TOTAL_WORKERS) {
+        return;
+    }
     for (const auto &base : bases) {
         // build SCV
         // TODO: maybe just use ideal_harvesters (max)
