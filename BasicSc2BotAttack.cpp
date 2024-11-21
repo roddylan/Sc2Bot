@@ -368,6 +368,7 @@ const sc2::Unit* BasicSc2Bot::ChooseAttackTarget(const sc2::Unit *unit, const sc
         }
 
     // find most dangerous enemy (maximize health/distance)
+    // TODO: filter out buildings
     for (const auto &enemy : enemies) {
         // enemy already dead
         if (!enemy->is_alive) {
