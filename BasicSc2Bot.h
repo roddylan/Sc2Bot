@@ -85,6 +85,7 @@ private:
 	// TODO: adjust
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
+	std::vector<sc2::Point2DI> pinchpoints;
 
 	sc2::Point3D start_location;
 	sc2::Point3D base_location;
