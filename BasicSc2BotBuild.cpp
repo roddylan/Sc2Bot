@@ -39,19 +39,64 @@ bool BasicSc2Bot::TryBuildFactory() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY);
 }
 
-bool BasicSc2Bot::TryBuildSeigeTank() {
+bool BasicSc2Bot::TryBuildSiegeTank() {
     const sc2::ObservationInterface* observation = Observation();
 
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1) {
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) < 1) {
         return false;
     }
-    if (observation->GetVespene() < 125) {
+    if (observation->GetVespene() < 125 || observation->GetMinerals() < 150 ||
+        observation->GetFoodUsed() < (observation->GetFoodCap() - 3)) {
         return false;
     }
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
+    bool build = false;
     for (auto unit : units) {
-        if (CountNearbySeigeTanks(unit) > 0 && units.size() > 1) continue;
+        if (CountNearbySeigeTanks(unit) > n_tanks && units.size() > 1) continue;
+        build = true;
+        std::cout << "building siege tank\n";
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+    }
+    // TODO: get rid of couts here 
+    if (build){
+        sc2::Units tank = observation->GetUnits(
+            sc2::Unit::Alliance::Self, 
+            sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
+        std::cout << "n_siegetanks=" << tank.size() << std::endl;
+    }
+    return true;
+}
+
+/**
+ * @brief Build siege tank on given techlab factory
+ * 
+ * @param factory 
+ * @return true 
+ * @return false 
+ */
+bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
+    const sc2::ObservationInterface* observation = Observation();
+    
+    // if cant build tank
+    if (factory->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
+    if (observation->GetVespene() < 125 || observation->GetMinerals() < 150 ||
+        observation->GetFoodUsed() < (observation->GetFoodCap() - 3)) {
+        return false;
+    }
+    // sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
+    bool build = false;
+    if (CountNearbySeigeTanks(factory) <= n_tanks) {
+        build = true;
+        Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+    }
+    // TODO: get rid of couts here 
+    if (build){
+        sc2::Units tank = observation->GetUnits(
+            sc2::Unit::Alliance::Self, 
+            sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
+        std::cout << "n_siegetanks=" << tank.size() << std::endl;
     }
     return true;
 }
@@ -59,13 +104,13 @@ bool BasicSc2Bot::TryBuildSeigeTank() {
 bool BasicSc2Bot::TryBuildThor() {
     const sc2::ObservationInterface* observation = Observation();
 
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORY) < 1) {
+    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) < 1) {
         return false;
     }
-    if (observation->GetVespene() < 125) {
+    if (observation->GetVespene() < 200 || observation->GetMinerals() < 300) {
         return false;
     }
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
+    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     size_t marines_size = CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
     // TODO: Handle logic for Thor creation as in creating a speicifed amount to cover an area or something
     sc2::Units thors = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
@@ -74,6 +119,21 @@ bool BasicSc2Bot::TryBuildThor() {
         
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
     }
+    return true;
+}
+
+bool BasicSc2Bot::TryBuildThor(const sc2::Unit* factory) {
+    const sc2::ObservationInterface* observation = Observation();
+
+    if (observation->GetVespene() < 200 || observation->GetMinerals() < 300) {
+        return false;
+    }
+    size_t marines_size = CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
+    // TODO: Handle logic for Thor creation as in creating a speicifed amount to cover an area or something
+    sc2::Units thors = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+    if (thors.size() >= (marines_size / 5)) return false;
+    Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_THOR);
+    
     return true;
 }
 
@@ -96,8 +156,10 @@ bool BasicSc2Bot::TryBuildBunker() {
 
 bool BasicSc2Bot::TryBuildBarracks() {
     const sc2::ObservationInterface* observation = Observation();
+    int n_depot = CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
+    int n_lower_depot = CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
 
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) < 1) {
+    if ((n_depot + n_lower_depot) < 1) {
        // std::cout << "supply dept < 1" << std::endl;
         return false;
     }
@@ -121,10 +183,10 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     // std::cout << "n basess " << n_bases << std::endl;
     // make a new supply depot if we are at 2/3 unit capacity
     uint32_t current_supply_use = observation->GetFoodUsed();
-    uint32_t max_supply = observation->GetFoodCap();
+    uint32_t cur_max_supply = observation->GetFoodCap();
 
-    if (3 * current_supply_use < 2 * max_supply) {
-        // do not build if current_supply_use/max_suply < 2/3
+    if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply && (n_supply_depots + n_lower_supply_depots) > 0) {
+        // do not build if current_supply_use/max_suply < 2/3 or reached max supply
         return false;
     }
     // commenting this out because our logic for making supply depots should just be based on our food used
@@ -138,6 +200,10 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
         return false;
     }
 
+    // bool check;
+    // check = TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
+    // std::cout << "built supply depot: " << check << std::endl;
+    // return check;
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
 }
 
@@ -181,14 +247,19 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
     }
 
+    // TODO: bring back build logic
 
-    float rx = sc2::GetRandomScalar() * 15.0f;
     float ry = sc2::GetRandomScalar() * 15.0f;
+    float rx = sc2::GetRandomScalar() * 15.0f;
+    // float ry = sc2::GetRandomScalar() * 10.0f;
+    // float rx = sc2::GetRandomScalar() * 10.0f;
     sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);
     sc2::Point2D starting_point = sc2::Point2D(base_location.x + rx, base_location.y + ry);
     
     sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(starting_point, ability_type_for_structure);
     if (pos_to_place_at == sc2::Point2D(0, 0)) return false;
+    // sc2::Point2D pos_to_place_at = starting_point;
+    
 
     // sc2::Point2D start_location = bases.size() > 1 && nearest_command_center != sc2::Point2D(0, 0) ? nearest_command_center : sc2::Point2D(this->start_location.x, this->start_location.y);
     switch (unit_type) {
@@ -199,8 +270,15 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     // TODO: fix placement so far enough away enough from obstructions so tech lab can be built on it
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         Actions()->UnitCommand(unit_to_build, ability_type_for_structure, pos_to_place_at);
-            // sc2::Point2D(unit_to_build->pos.x + 70000000, unit_to_build->pos.y + 7000000000));
         return true;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
+        // place missile turret around base
+        // within 14 of other missile turret
+            // query check; selecting missile turret to build next to:
+                // grab nearest turret to command center
+                // <= 2 turrets within 14 of selected turret -> build 13 squares away
+                // 
     }
     default: {
         break;
@@ -231,58 +309,18 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         }
         
         unit_to_build = worker;
+        break;
     }
     // todo: this as possible fix?
     float rx = sc2::GetRandomScalar();
     float ry = sc2::GetRandomScalar();
   
-    sc2::Point2D nearestCommandCenter = (unit_to_build != nullptr) ? FindNearestCommandCenter(unit_to_build->pos) : start_location;
-    sc2::Point2D point(nearestCommandCenter.x + rx, nearestCommandCenter.y + ry);
-    if (expansion_starting_point != sc2::Point2D(0, 0)) {
-        point = expansion_starting_point;
-    }
-
-    if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_BUNKER) {
-        int map_height = obs->GetGameInfo().height;
-        int map_width = obs->GetGameInfo().width;
-        const size_t bunker_cost = 100;
-        if (obs->GetMinerals() < 4 * bunker_cost) {
-            return false;
-        }
-        bool all_bunkers_placed = true;
-
-        sc2::Point2D direction = sc2::Point2D(0, 1);
-        float distance_between_bunkers = 10.0f;
-
-        for (int i = 0; i < 4; i++) {
-            sc2::Point2D placement_point = nearestCommandCenter + direction * (i * distance_between_bunkers);
-            bool found_valid_placement = false;
-
-            // Check if the placement point is valid
-            if (Query()->Placement(ability_type_for_structure, placement_point, unit_to_build)) {
-                point = placement_point;
-                found_valid_placement = true;
-            }
-            if (found_valid_placement) {
-                Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
-            }
-            else {
-                all_bunkers_placed = false;
-                break;
-            }
-        }
-
-        return all_bunkers_placed;
-    }
+    sc2::Point2D point = expansion_starting_point;
    
-    while (!Query()->Placement(ability_type_for_structure, point, unit_to_build)) {
-        point.x += 10;
-        point.y += 10;
-    }
-    if (ability_type_for_structure == sc2::ABILITY_ID::BUILD_COMMANDCENTER) {
-        sc2::Point3D expansion_point(point.x, point.y, 0);
+    // sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(point, ability_type_for_structure);
 
-    }
+    // sc2::Point3D expansion_point(point.x, point.y, 0);
+
     Actions()->UnitCommand(unit_to_build, ability_type_for_structure, point);
 
     // check if scv can get there
@@ -312,7 +350,7 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     if (observation->GetMinerals() < 75) {
         return false;
     }
-    size_t max_turrets_per_base = 1;
+    size_t max_turrets_per_base = n_missile;
     size_t base_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
     size_t turret_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MISSILETURRET)).size();
     if (max_turrets_per_base * base_count < turret_count) {
@@ -416,8 +454,10 @@ void BasicSc2Bot::HandleBuild() {
     // build barracks
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
-
-            TryBuildBarracks();
+            
+            if (n_minerals > BARRACKS_COST) {
+                TryBuildBarracks();
+            }
             // if (base->assigned_harvesters >= n_workers_init) {
             //     // std::cout << "building barracks\n\n";
             //     TryBuildBarracks();
@@ -459,6 +499,11 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
+
+    TryBuildSiegeTank();
+
+    TryBuildMissileTurret();
+    
     TryBuildThor();
     // build refinery
     
