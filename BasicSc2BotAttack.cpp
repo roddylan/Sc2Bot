@@ -322,6 +322,23 @@ void BasicSc2Bot::LaunchAttack() {
         return;
     }
     
+    // TODO: decide if keep some at base or send all to attack
+
+    // basic troops (marine, marauder)
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units marauders = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    
+    // air troops
+    
+    // mech troops
+    sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
+    }));
+    sc2::Units thor = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_THOR, sc2::UNIT_TYPEID::TERRAN_THORAP
+    }));
+
+    
 }
 
 
