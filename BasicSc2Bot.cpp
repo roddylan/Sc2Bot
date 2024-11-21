@@ -153,16 +153,19 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         std::cout << "Minerals destroyed" << std::endl;
     }
     // send marines to attack intruders
-    /*
+    
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY) {
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+        Actions()->UnitCommand(marines, sc2::ABILITY_ID::SMART, unit->pos);
+        /*
         for (const auto& marine : marines) {
             Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, unit->pos);
         }
+        */
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {
@@ -171,7 +174,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             if (sent_medivacs % 2) break;
         }
     }
-    */
+    
    
    
     if (unit == this->scout) {
