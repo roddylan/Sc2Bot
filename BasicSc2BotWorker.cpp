@@ -18,8 +18,6 @@ void BasicSc2Bot::BuildWorkers() {
     const sc2::ObservationInterface *obs = Observation();
     // const sc2::QueryInterface *query = Query();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
-    sc2::Units workers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
-    size_t n_workers = workers.size();
     
     // build MULEs (unless being attacked (enemies in range))
     for (const auto &base : bases) {
@@ -49,7 +47,7 @@ void BasicSc2Bot::BuildWorkers() {
     }
 
     // dont build too many workers
-    if (n_workers > N_TOTAL_WORKERS) {
+    if (obs->GetFoodWorkers() > N_TOTAL_WORKERS) {
         return;
     }
     for (const auto &base : bases) {
