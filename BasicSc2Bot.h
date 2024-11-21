@@ -104,6 +104,7 @@ private:
 	bool EnemyNearBase(const sc2::Unit *base);
 	
 	const sc2::Unit* ChooseAttackTarget(const sc2::Unit *unit, const sc2::Units &enemies);
+	bool UseAbility(const sc2::Unit *unit, sc2::ABILITY_ID ability);
 };
 
 
