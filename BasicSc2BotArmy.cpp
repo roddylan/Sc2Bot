@@ -204,7 +204,25 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     return;
 }
 
+/*
+* Gives the Fusion Core an action
+*/
+void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit& fusion_core) {
+    const sc2::ObservationInterface* observation = Observation();
+    const uint32_t& minerals = observation->GetMinerals();
+    const uint32_t& gas = observation->GetVespene();
 
+
+    const sc2::Units& medivacs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    const sc2::Units& fusion_cores = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
+    const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
+    const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+
+   // Actions()->UnitCommand(&fusion_core, sc2::ABILITY_ID::RESEARCH_MEDIVACCADUCEUSREACTOR);
+
+
+    return;
+}
 /*
 * Gives the Starport an action
 * - builds a reactor if it does not have it
@@ -223,22 +241,34 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         return;
     }
     const sc2::Units& medivacs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    const sc2::Units& fusion_cores = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
     const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+    
     if (starport_techlabs.size() < bases.size()) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
     }
     // build a medivac!
-    if (minerals >= 100 && gas >= 75 && medivacs.size() < bases.size()) {
+    if (minerals >= 100 && gas >= 75 && medivacs.size() < 3) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
 
         return;
     }
-    const sc2::Units& liberators = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
-    if (liberators.size() <  bases.size()) {
-        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
+    const sc2::Units banshees = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+    if (starport.add_on_tag != NULL) {
+        // Get the add-on unit using its tag
+        const sc2::Unit* add_on = observation->GetUnit(starport.add_on_tag);
+        if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB) {
+            if (fusion_cores.size() > 1 && banshees.size() > 2) {
+                Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BATTLECRUISER);
+            }
+
+            Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BANSHEE);
+            return;
+        }
     }
-    Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BANSHEE);
+    Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
+
     
 
     return;

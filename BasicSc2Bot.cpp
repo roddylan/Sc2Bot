@@ -182,7 +182,8 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY) {
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE) {
 
         /*
         for (const auto& marine : marines) {
@@ -191,6 +192,8 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         */
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
         Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+        Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
         Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
@@ -281,6 +284,21 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignBarrackAction(*unit);
         break;
     }
+     /**
+    case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
+        
+        sc2::AvailableAbilities abilities = Query()->GetAbilitiesForUnit(unit);
+        std::cout << "Abilities for Fusion Core:" << std::endl;
+        for (const auto& ability : abilities.abilities) {
+            std::cout << "Ability ID: " << ability.ability_id << std::endl;
+        }
+
+        //AssignFusionCoreAction(*unit);
+        break;
+       
+    }
+     */
+                                  
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR: {
         AssignBarrackAction(*unit);
     }

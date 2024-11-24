@@ -47,6 +47,8 @@ public:
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
 	virtual bool TryBuildThor();
+	virtual void AssignFusionCoreAction(const sc2::Unit& fusion_core);
+	virtual bool BasicSc2Bot::TryBuildFusionCore();
 	virtual void AssignStarportTechLabAction(const sc2::Unit& tech_lab);
 	virtual const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
 	virtual bool UpgradeStarportTechlab(const sc2::Unit& starport);

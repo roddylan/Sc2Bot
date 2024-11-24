@@ -214,6 +214,15 @@ bool BasicSc2Bot::TryBuildRefinery() {
     return BuildRefinery();
 }
 
+
+bool BasicSc2Bot::TryBuildFusionCore() {
+    const sc2::ObservationInterface* observation = Observation();
+
+    return TryBuildStructure(sc2::ABILITY_ID::BUILD_FUSIONCORE);
+}
+
+
+
 bool BasicSc2Bot::BuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Unit* unit_to_build = GetGatheringScv();
@@ -409,6 +418,7 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units techlab_factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
     sc2::Units armorys = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit( sc2::UNIT_TYPEID::TERRAN_ARMORY));
+    sc2::Units fusion_cores = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
 
     // TODO: handle other building
 
@@ -460,6 +470,29 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
+    if (starports.size() > 0) {
+        for (const auto &starport : starports) {
+            if (starport->add_on_tag != NULL) {
+                // Get the add-on unit using its tag
+                const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
+                if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB) {
+                    TryBuildFusionCore();
+                    return;
+                }
+            }
+        }
+    }
+    /*
+    for (const auto& starport : starports) {
+        if (starport) {
+            const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
+            if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB && fusion_cores.size() < 1) {
+                TryBuildFusionCore();
+            }
+        }
+        
+    }
+    */
     if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
