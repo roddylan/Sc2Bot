@@ -6,7 +6,10 @@
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
-
+bool BasicSc2Bot::UpgradeStarportTechlab(const sc2::Unit &starport) {
+    Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
+    return true;
+}
 /*
  * Picks unit for the barrack to train and instructs it to train it
  */
@@ -98,7 +101,53 @@ void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
     }
 }
 
+/*
+* Assigns an action to the armory 
+*/
+void BasicSc2Bot::AssignArmoryAction(const sc2::Unit& armory) {
+    const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
 
+    const bool has_ship_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL1) != upgrades.end();
+    const bool has_ship_weapons_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL2) != upgrades.end();
+    const bool has_ship_weapons_3 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL3) != upgrades.end();
+    if ((!has_ship_weapons_1 || !has_ship_weapons_2 || !has_ship_weapons_3)) {
+
+        Actions()->UnitCommand(&armory, sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONS);
+        return;
+    }
+    const bool has_ship_armor_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPARMORSLEVEL1) != upgrades.end();
+    const bool has_ship_armor_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPARMORSLEVEL2) != upgrades.end();
+    const bool has_ship_armor_3 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPARMORSLEVEL3) != upgrades.end();
+    if ((!has_ship_armor_1 || !has_ship_armor_2 || !has_ship_armor_3)) {
+
+        Actions()->UnitCommand(&armory, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATING);
+        return;
+    }
+}
+/*
+* Make sure the starport tech lab is researching things
+*/
+void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit& tech_lab) {
+    const sc2::ObservationInterface* observation = Observation();
+    const std::vector<sc2::UpgradeID>& upgrades = observation->GetUpgrades();
+    const std::vector<sc2::UpgradeData>& upgrade_data = observation->GetUpgradeData();
+
+
+    /*
+    * Upgrades in order of best->worst are combat shield, stimpack, concussive shells
+    * - combat shield: marines gain 10hp
+    * - stimpack: marines can sacrifice 10hp for +50% hp & firing rate for 11 seconds
+    * - concussive shells: marauder's attack slow
+    */
+    /*
+    * Combat shield costs 100 mineral, 100 gas
+    */
+    const bool has_banshee_cloak = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::BANSHEECLOAK) != upgrades.end();
+    if (!has_banshee_cloak) {
+        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_BANSHEECLOAKINGFIELD);
+        return;
+    }
+}
 /*
 * Make sure the barrack tech lab is researching things
 */
@@ -165,7 +214,7 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     const sc2::ObservationInterface* observation = Observation();
     const uint32_t& minerals = observation->GetMinerals();
     const uint32_t& gas = observation->GetVespene();
-
+    
     // currently the strategy is to spam medivacs, I'm not sure about the other air units & how good they are
     // if you don't have an addon, build a reactor
     const sc2::Unit* starport_addon = observation->GetUnit(starport.add_on_tag);
@@ -173,12 +222,24 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
         return;
     }
-
+    const sc2::Units& medivacs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
+    const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+    if (starport_techlabs.size() < bases.size()) {
+        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
+    }
     // build a medivac!
-    if (minerals >= 100 && gas >= 75) {
+    if (minerals >= 100 && gas >= 75 && medivacs.size() < bases.size()) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
+
         return;
     }
+    const sc2::Units& liberators = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+    if (liberators.size() <  bases.size()) {
+        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
+    }
+    Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BANSHEE);
+    
 
     return;
 }

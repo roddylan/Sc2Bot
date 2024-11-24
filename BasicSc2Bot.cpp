@@ -124,6 +124,30 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         break;
 
     }
+    case sc2::UNIT_TYPEID::TERRAN_BANSHEE: {
+        const sc2::Unit* injured_marine = FindInjuredMarine();
+        if (injured_marine) {
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
+            return;
+        }
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
+
+    }
+    case sc2::UNIT_TYPEID::TERRAN_LIBERATOR: {
+        const sc2::Unit* injured_marine = FindInjuredMarine();
+        if (injured_marine) {
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
+            return;
+        }
+        sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
+        if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
+        break;
+
+    }
     case sc2::UNIT_TYPEID::TERRAN_THOR: {
         // TODO: thor should go to choke point when created?
         sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
@@ -159,13 +183,19 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY) {
-        sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-        Actions()->UnitCommand(marines, sc2::ABILITY_ID::SMART, unit->pos);
+
         /*
         for (const auto& marine : marines) {
             Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, unit->pos);
         }
         */
+        sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+        Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+        Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+        Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
+        Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {
@@ -206,6 +236,14 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
         AssignStarportAction(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB: {
+        AssignStarportTechLabAction(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_ARMORY: {
+        AssignArmoryAction(*unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
@@ -269,6 +307,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         UpgradeFactoryTechLab(unit);
     }
+
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
         AssignFactoryAction(unit);
     }
@@ -343,7 +382,7 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
             }
         }
     }
-
+    
     // const sc2::Point2D base_pos = FindNearestCommandCenter(unit->pos);
     
     // radius around structure

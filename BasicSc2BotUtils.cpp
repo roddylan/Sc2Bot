@@ -128,6 +128,29 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
     }
 }
 
+const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
+
+    sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    float distance = std::numeric_limits<float>::max();
+    const sc2::Unit* target = nullptr;
+
+    for (const auto& refinery : refineries) {
+
+        float d = sc2::DistanceSquared2D(refinery->pos, start);
+        if (d < distance) {
+            distance = d;
+            target = refinery;
+        }
+        
+    }
+
+    if (target != nullptr) {
+        return target->pos;
+    }
+    else {
+        return sc2::Point2D(0, 0);
+    }
+}
 
 
 // checks that marine is nearby atleast size other marines

@@ -133,8 +133,8 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
             }
 
             float dist_to_base = sc2::Distance2D(nearest_command_center, sc2::Point2D(exp.x, exp.y));
-            // std::cout << "distance to base: " << dist_to_base << std::endl;
-
+             std::cout << "still looking: " << dist_to_base << std::endl;
+            
             if (Query()->Placement(sc2::ABILITY_ID::BUILD_COMMANDCENTER, exp) && dist_to_base > 1.0f) {
                 min_dist = cur_dist;
                 closest_expansion = exp;

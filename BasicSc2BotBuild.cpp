@@ -422,7 +422,7 @@ void BasicSc2Bot::HandleBuild() {
     const size_t n_barracks_target = 2;
     const size_t n_factory_target = 1;
     const size_t n_armory_target = 1;
-    const size_t n_engg_target = 1;
+    const size_t n_engg_target = 2;
     const size_t n_bunkers_target = 8;
     const size_t n_starports_target = 1;
    // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
@@ -450,7 +450,9 @@ void BasicSc2Bot::HandleBuild() {
     if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion(false);
     }
-
+    if (barracks.size() >= bases.size()) {
+        HandleExpansion(true);
+    }
     // build barracks
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
@@ -492,6 +494,22 @@ void BasicSc2Bot::HandleBuild() {
         
     }
     */
+    // build engg bay for missile turret
+    // TODO: improve count
+    // Only need 2 engineering bays
+    if (engg_bays.size() < n_engg_target) {
+        if (n_minerals > 150 && n_gas > 100) {
+            //std::cout << "building engg bay\n\n";
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+        }
+    }
+
+    // build a starport
+    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
+        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
+        }
+    }
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
@@ -508,21 +526,7 @@ void BasicSc2Bot::HandleBuild() {
     // build refinery
     
 
-    // build engg bay for missile turret
-    // TODO: improve count
-    if (engg_bays.size() < bases.size() * n_engg_target) {
-        if (n_minerals > 150 && n_gas > 100) {
-            //std::cout << "building engg bay\n\n";
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
-        }
-    }
-
-    // build a starport
-    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
-        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
-        }
-    }
+   
 }
 
 

@@ -47,6 +47,10 @@ public:
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
 	virtual bool TryBuildThor();
+	virtual void AssignStarportTechLabAction(const sc2::Unit& tech_lab);
+	virtual const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
+	virtual bool UpgradeStarportTechlab(const sc2::Unit& starport);
+	virtual void AssignArmoryAction(const sc2::Unit& armory);
 	virtual bool TryBuildThor(const sc2::Unit* factory);
 	virtual const sc2::Unit* FindInjuredMarine();
 	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
