@@ -432,13 +432,11 @@ void BasicSc2Bot::HandleBuild() {
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
     }
-    if (marines.size() < 20) {
+    // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
+    if (marines.size() < 20 && bases.size() < 3) {
+        HandleExpansion(true);
         return;
     }
-
-
-
-
 
     // Handle Orbital Command
     
@@ -447,9 +445,17 @@ void BasicSc2Bot::HandleBuild() {
             if (base->build_progress != 1) {
                 continue;
             }
+            sc2::Units orbital_commands = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
+
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (n_minerals > 150) {
-                Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+                if (orbital_commands.size() >= (bases.size() / 2)) {
+                    Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
+                }
+                else {
+                    Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+                }
+                
                 //std::cout << "\nORBITAL COMMAND\n\n";
             }
         }
