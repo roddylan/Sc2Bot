@@ -428,6 +428,18 @@ void BasicSc2Bot::HandleBuild() {
    // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
   //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    if (barracks.size() < 2 * bases.size()) {
+        TryBuildBarracks();
+    }
+    if (marines.size() < 20) {
+        return;
+    }
+
+
+
+
+
     // Handle Orbital Command
     
     if (!barracks.empty()) {
@@ -437,7 +449,7 @@ void BasicSc2Bot::HandleBuild() {
             }
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (n_minerals > 150) {
-                Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+                Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
                 //std::cout << "\nORBITAL COMMAND\n\n";
             }
         }
@@ -445,9 +457,11 @@ void BasicSc2Bot::HandleBuild() {
     if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
-
+    if (barracks.size() < 2 * bases.size()) {
+        TryBuildBarracks();
+    }
     //if (!has_infantry_weapons_1) return;
-    if (n_minerals >= 400 && bases.size() <= 1) {
+    if (n_minerals >= 400 && bases.size() < 1) {
         HandleExpansion(false);
     }
     if (barracks.size() >= bases.size()) {
