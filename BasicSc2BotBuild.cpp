@@ -214,6 +214,15 @@ bool BasicSc2Bot::TryBuildRefinery() {
     return BuildRefinery();
 }
 
+
+bool BasicSc2Bot::TryBuildFusionCore() {
+    const sc2::ObservationInterface* observation = Observation();
+
+    return TryBuildStructure(sc2::ABILITY_ID::BUILD_FUSIONCORE);
+}
+
+
+
 bool BasicSc2Bot::BuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Unit* unit_to_build = GetGatheringScv();
@@ -409,6 +418,7 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units techlab_factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
     sc2::Units armorys = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit( sc2::UNIT_TYPEID::TERRAN_ARMORY));
+    sc2::Units fusion_cores = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
 
     // TODO: handle other building
 
@@ -422,12 +432,22 @@ void BasicSc2Bot::HandleBuild() {
     const size_t n_barracks_target = 2;
     const size_t n_factory_target = 1;
     const size_t n_armory_target = 1;
-    const size_t n_engg_target = 1;
+    const size_t n_engg_target = 2;
     const size_t n_bunkers_target = 8;
     const size_t n_starports_target = 1;
    // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
   //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    if (barracks.size() < 2 * bases.size()) {
+        TryBuildBarracks();
+    }
+    // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
+    if (marines.size() < 20 && bases.size() < 3) {
+        HandleExpansion(true);
+        return;
+    }
+
     // Handle Orbital Command
     
     if (!barracks.empty()) {
@@ -435,22 +455,57 @@ void BasicSc2Bot::HandleBuild() {
             if (base->build_progress != 1) {
                 continue;
             }
+            sc2::Units orbital_commands = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
+
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (n_minerals > 150) {
-                Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+                if (orbital_commands.size() >= (bases.size() / 2)) {
+                    Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
+                }
+                else {
+                    Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+                }
+                
                 //std::cout << "\nORBITAL COMMAND\n\n";
             }
         }
     }
+    if (starports.size() > 0) {
+        for (const auto &starport : starports) {
+            if (starport->add_on_tag != 0) {
+                // Get the add-on unit using its tag
+                const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
+                if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB) {
+                    TryBuildFusionCore();
+                    return;
+                }
+            }
+        }
+    }
+    /*
+    for (const auto& starport : starports) {
+        if (starport) {
+            const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
+            if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB && fusion_cores.size() < 1) {
+                TryBuildFusionCore();
+            }
+        }
+        
+    }
+    */
     if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
-
+    if (barracks.size() < 2 * bases.size()) {
+        TryBuildBarracks();
+    }
     //if (!has_infantry_weapons_1) return;
     if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion(false);
     }
-
+    if (barracks.size() >= bases.size()) {
+        HandleExpansion(true);
+    }
     // build barracks
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
@@ -492,6 +547,22 @@ void BasicSc2Bot::HandleBuild() {
         
     }
     */
+    // build engg bay for missile turret
+    // TODO: improve count
+    // Only need 2 engineering bays
+    if (engg_bays.size() < n_engg_target) {
+        if (n_minerals > 150 && n_gas > 100) {
+            //std::cout << "building engg bay\n\n";
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+        }
+    }
+
+    // build a starport
+    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
+        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
+        }
+    }
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
@@ -508,21 +579,7 @@ void BasicSc2Bot::HandleBuild() {
     // build refinery
     
 
-    // build engg bay for missile turret
-    // TODO: improve count
-    if (engg_bays.size() < bases.size() * n_engg_target) {
-        if (n_minerals > 150 && n_gas > 100) {
-            //std::cout << "building engg bay\n\n";
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
-        }
-    }
-
-    // build a starport
-    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
-        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
-        }
-    }
+   
 }
 
 

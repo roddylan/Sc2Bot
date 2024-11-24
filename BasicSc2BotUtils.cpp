@@ -128,6 +128,29 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
     }
 }
 
+const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
+
+    sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    float distance = std::numeric_limits<float>::max();
+    const sc2::Unit* target = nullptr;
+
+    for (const auto& refinery : refineries) {
+
+        float d = sc2::DistanceSquared2D(refinery->pos, start);
+        if (d < distance) {
+            distance = d;
+            target = refinery;
+        }
+        
+    }
+
+    if (target != nullptr) {
+        return target->pos;
+    }
+    else {
+        return sc2::Point2D(0, 0);
+    }
+}
 
 
 // checks that marine is nearby atleast size other marines
@@ -324,7 +347,22 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 }
                 // we found a valid position to place at, don't iterate again
                 found_pos_to_place_at = true;
-                pos_to_place_at = current_pos;
+                // TODO: Find a way to speed this up
+                // ensures we dont build at expansion location
+                bool is_expansion_location = false;
+                for (const auto& expansion_location : expansion_locations) {
+                    float distance = std::sqrt(std::pow(expansion_location.x - current_pos.x, 2) +
+                        std::pow(expansion_location.y - current_pos.y, 2));
+                    if (distance <= 10.f) {
+                        is_expansion_location = true;
+                        break;
+                    }
+                }
+
+                if (!is_expansion_location) {
+                    pos_to_place_at = current_pos;
+                }
+                
             }
         }
         // increase the search space
