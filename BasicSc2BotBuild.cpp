@@ -449,7 +449,7 @@ void BasicSc2Bot::HandleBuild() {
             }
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (n_minerals > 150) {
-                Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
+                Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
                 //std::cout << "\nORBITAL COMMAND\n\n";
             }
         }
@@ -461,7 +461,7 @@ void BasicSc2Bot::HandleBuild() {
         TryBuildBarracks();
     }
     //if (!has_infantry_weapons_1) return;
-    if (n_minerals >= 400 && bases.size() < 1) {
+    if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion(false);
     }
     if (barracks.size() >= bases.size()) {
