@@ -284,20 +284,12 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignBarrackAction(*unit);
         break;
     }
-     /**
+     
     case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
-        
-        sc2::AvailableAbilities abilities = Query()->GetAbilitiesForUnit(unit);
-        std::cout << "Abilities for Fusion Core:" << std::endl;
-        for (const auto& ability : abilities.abilities) {
-            std::cout << "Ability ID: " << ability.ability_id << std::endl;
-        }
-
-        //AssignFusionCoreAction(*unit);
+        AssignFusionCoreAction(*unit);
         break;
        
     }
-     */
                                   
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR: {
         AssignBarrackAction(*unit);
