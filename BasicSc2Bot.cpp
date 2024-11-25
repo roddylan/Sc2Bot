@@ -53,8 +53,7 @@ void BasicSc2Bot::OnStep() {
 
     CheckScoutStatus();
     AttackIntruders();
-    RecheckUnitIdle();
-    AssignScvToRefineries();
+    MobAttackNearbyBaseOrEnemy();
     // TODO: temporary, move
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
@@ -200,6 +199,8 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
         Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
         Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+        Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {

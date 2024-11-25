@@ -37,6 +37,7 @@ public:
 	virtual bool TryBuildFactory();
 	virtual bool TryBuildBunker();
 	virtual bool TryBuildBarracks();
+	virtual bool MobAttackNearbyBaseOrEnemy();
 	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)); // generalized; for expansions
@@ -57,7 +58,7 @@ public:
 	virtual const sc2::Unit* FindInjuredMarine();
 	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
 	virtual const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
-	virtual int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
+	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units& cluster);
 	virtual bool HandleExpansion(bool resources_depleted);
 	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
 	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
@@ -73,6 +74,7 @@ public:
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
+	sc2::Units marine_cluster;
 	const size_t n_tanks = 3;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
