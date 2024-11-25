@@ -20,30 +20,55 @@ bool BasicSc2Bot::MobAttackNearbyBaseOrEnemy() {
     sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
     sc2::Units cluster;
     for (const auto& marine : marines) {
-        if (MarineClusterSize(marine, marines, cluster) > 20 && sc2::Distance2D(marine->pos, start_location) > 15.0f) {
+        if (!marine) continue; 
+        if (MarineClusterSize(marine, marines, cluster) > 20 &&
+            sc2::Distance2D(marine->pos, start_location) > 15.0f) {
             // We now have our cluster that we want to send the units are in cluster
             break;
         }
     }
+
     
+    // Get the current game loop
+    int game_loop = Observation()->GetGameLoop();
 
-    // Send them to attack enemy locaiton if nearby
+    // Convert game loops to seconds
+    float game_time_seconds = game_loop / 22.4f;
 
-    if (cluster.size() > 0) {
-        sc2::Point2D target_point;
-        const auto& enemy_units = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
-        for (const auto& enemy : enemy_units) {
-            if (sc2::Distance2D(enemy->pos, cluster[0]->pos) < 10.0f) {
-                target_point = enemy->pos;
+    //  Convert to minutes
+    int minutes = static_cast<int>(game_time_seconds) / 60;
+
+
+    if (minutes > 10) {
+        // if clsuter is in corner by enemy base
+        if (!cluster.empty()) {
+            if (sc2::Distance2D(start_location, cluster[0]->pos) > 90.0f) {
+                // Send them to attack enemy locaitons
+                for (const auto& exp : expansion_locations) {
+                    if (sc2::Distance2D(exp, start_location) > 90.0f) {
+
+                        Actions()->UnitCommand(cluster, sc2::ABILITY_ID::ATTACK_ATTACK, exp);
+                    }
+                }
+            }
+            /*
+            sc2::Point2D target_point;
+            const auto& enemy_units = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
+            for (const auto& enemy : enemy_units) {
+                if (sc2::Distance2D(enemy->pos, cluster[0]->pos) < 10.0f) {
+                    target_point = enemy->pos;
+                    Actions()->UnitCommand(cluster, sc2::ABILITY_ID::ATTACK_ATTACK, target_point);
+                }
+            }
+            */
+            /*
+            if (sc2::Distance2D(target_point, cluster[0]->pos) < 30.f) {
                 Actions()->UnitCommand(cluster, sc2::ABILITY_ID::ATTACK_ATTACK, target_point);
             }
+            */
         }
-        /*
-        if (sc2::Distance2D(target_point, cluster[0]->pos) < 30.f) {
-            Actions()->UnitCommand(cluster, sc2::ABILITY_ID::ATTACK_ATTACK, target_point);
-        }
-        */
     }
+    
     return true;
 }
 
