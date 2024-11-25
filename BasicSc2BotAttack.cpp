@@ -16,6 +16,37 @@
 #include <iostream>
 #include <cmath>
 
+bool BasicSc2Bot::MobAttackNearbyBaseOrEnemy() {
+    sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units cluster;
+    for (const auto& marine : marines) {
+        if (MarineClusterSize(marine, marines, cluster) > 20 && sc2::Distance2D(marine->pos, start_location) > 15.0f) {
+            // We now have our cluster that we want to send the units are in cluster
+            break;
+        }
+    }
+    
+
+    // Send them to attack enemy locaiton if nearby
+
+    if (cluster.size() > 0) {
+        sc2::Point2D target_point;
+        const auto& enemy_units = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
+        for (const auto& enemy : enemy_units) {
+            if (sc2::Distance2D(enemy->pos, cluster[0]->pos) < 10.0f) {
+                target_point = enemy->pos;
+                Actions()->UnitCommand(cluster, sc2::ABILITY_ID::ATTACK_ATTACK, target_point);
+            }
+        }
+        /*
+        if (sc2::Distance2D(target_point, cluster[0]->pos) < 30.f) {
+            Actions()->UnitCommand(cluster, sc2::ABILITY_ID::ATTACK_ATTACK, target_point);
+        }
+        */
+    }
+    return true;
+}
+
 bool BasicSc2Bot::AttackIntruders() {
     /*
     * This method does too much work to be called every frame. Call it every few hundred frames instead

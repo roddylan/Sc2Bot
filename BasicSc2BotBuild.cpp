@@ -470,12 +470,13 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
+
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
             if (starport->add_on_tag != 0) {
                 // Get the add-on unit using its tag
                 const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
-                if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB) {
+                if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB && fusion_cores.size() < 1) {
                     TryBuildFusionCore();
                     return;
                 }
