@@ -154,7 +154,7 @@ const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
 
 
 // Counts how many marines are nearby
-int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units &cluster = sc2::Units()) {
+int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units &cluster) {
     cluster.clear();
     int num_nearby_marines = 0;
     const float distance_threshold_sq = 25.0f;
@@ -231,7 +231,8 @@ const sc2::Point2D BasicSc2Bot::FindLargestMarineCluster(const sc2::Point2D& sta
     int largest_cluster_size = 0;
 
     for (const auto& marine : marines) {
-        int cluster_size = MarineClusterSize(marine, marines);
+        sc2::Units cluster{};
+        int cluster_size = MarineClusterSize(marine, marines, cluster);
 
         if (cluster_size > largest_cluster_size && sc2::Distance2D(closest_medivac->pos, marine->pos) > 15.0f) {
             largest_cluster_size = cluster_size;

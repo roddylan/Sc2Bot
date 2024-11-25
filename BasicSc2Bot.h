@@ -58,7 +58,7 @@ public:
 	virtual const sc2::Unit* FindInjuredMarine();
 	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
 	virtual const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
-	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units& cluster);
+	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units& cluster );
 	virtual bool HandleExpansion(bool resources_depleted);
 	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
 	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
