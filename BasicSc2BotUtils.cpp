@@ -153,8 +153,9 @@ const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
 }
 
 
-// checks that marine is nearby atleast size other marines
-int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines) {
+// Counts how many marines are nearby
+int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units &cluster = sc2::Units()) {
+    cluster.clear();
     int num_nearby_marines = 0;
     const float distance_threshold_sq = 25.0f;
     // first find closest marine
@@ -166,6 +167,8 @@ int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& ma
         float dist_to_marine_sq = dx * dx + dy * dy;
 
         if (dist_to_marine_sq < distance_threshold_sq) {
+            // Add to cluster so we can send commands to all units in cluster at once
+            cluster.push_back(other_marine);
             ++num_nearby_marines;
         }
     }
@@ -373,6 +376,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         
         if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(5));
             return sc2::Point2D(0, 0);
             /*
             float rand_x = sc2::GetRandomScalar() * 5.0f;

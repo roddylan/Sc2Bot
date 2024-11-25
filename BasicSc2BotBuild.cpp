@@ -470,7 +470,7 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
-    sc2::Units fusion_cores = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE))
+
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
             if (starport->add_on_tag != 0) {
