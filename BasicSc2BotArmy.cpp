@@ -65,11 +65,11 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     }
 
     // if you have a reactor, you can build things twice as fast so you should spam train marines
-    if (mineral_count >= 50) {
+    if (mineral_count >= 50 && mineral_count + 50 > this->min_minerals_for_units) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
     }
     // train a second one, if you can afford it (reactors build at double speed)
-    if (mineral_count >= 100) {
+    if (mineral_count >= 100 && mineral_count + 100 > this->min_minerals_for_units) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
     }
 }
@@ -184,23 +184,14 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
 
     /*
     * Concussive shells costs 50 mineral, 50 gas
+    * - don't train this until you have the other two upgrades as they are much more important
     */
     const bool has_concussive_shells = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::COMBATSHIELD) != upgrades.end();
-    if (mineral_count >= 50 && gas_count >= 50 && !has_concussive_shells) {
+    if (mineral_count >= 50 && gas_count >= 50 && !has_concussive_shells && has_combat_shield && has_stimpack) {
         Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_CONCUSSIVESHELLS);
         return;
     }
     
-    // train marauder
-    if (mineral_count >= 100 && gas_count >= 100 && CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) < n_marauders) {
-        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::TRAIN_MARAUDER);
-        return;
-    }
-
-    // train marine
-    if (mineral_count >= 50) {
-        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::TRAIN_MARINE);
-    }
     return;
 }
 
@@ -234,7 +225,7 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     const uint32_t& gas = observation->GetVespene();
     
     // currently the strategy is to spam medivacs, I'm not sure about the other air units & how good they are
-    // if you don't have an addon, build a reactor
+    // if you don't have an addon, build a reactor 
     const sc2::Unit* starport_addon = observation->GetUnit(starport.add_on_tag);
     if (starport_addon == nullptr && minerals >= 50 && gas >= 50) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);

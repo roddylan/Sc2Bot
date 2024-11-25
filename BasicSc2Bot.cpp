@@ -53,7 +53,8 @@ void BasicSc2Bot::OnStep() {
 
     CheckScoutStatus();
     AttackIntruders();
-
+    RecheckUnitIdle();
+    AssignScvToRefineries();
     // TODO: temporary, move
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
@@ -86,7 +87,7 @@ void BasicSc2Bot::OnStep() {
 * The OnUnitIdle hook that's automatically called by the game is only called ONCE when the unit starts idling.
 * This is an issue for barracks because when OnUnitIdle is called for them but they don't have the resources to
 * train a unit, they won't take an action and OnUnitIdle is never called on them again so they never get a kick to
-* start training when resources are available.
+* start training when resources are next available. Call this in HandleStep so that we can re-assign it a task.
 */
 void BasicSc2Bot::RecheckUnitIdle() {
     const sc2::Units& idle_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {

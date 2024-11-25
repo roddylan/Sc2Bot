@@ -99,3 +99,16 @@ void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
     }
 }
+
+void BasicSc2Bot::AssignScvToRefineries() {
+    const sc2::Units& refineries = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    for (const sc2::Unit* refinery : refineries) {
+        if (refinery->assigned_harvesters < 3) {
+            const sc2::Unit *gathering_scv = this->GetGatheringScv();
+            if (gathering_scv != nullptr) {
+                Actions()->UnitCommand(gathering_scv, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
+
+            }
+        }
+    }
+}

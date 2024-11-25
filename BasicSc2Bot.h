@@ -87,7 +87,7 @@ private:
 	
 	const size_t N_ARMY_THRESHOLD = 30; // 200 - workers - threshold -> attack; allow bot to keep making units while attacking
 	const size_t N_TOTAL_WORKERS = 70; // max no. of workers
-
+	const size_t min_minerals_for_units = 300; // do not dip below this minearl count when training units
 	// TODO: adjust
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
@@ -107,6 +107,7 @@ private:
 	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
 	void AssignFactoryAction(const sc2::Unit *factory);
 	void RecheckUnitIdle();
+	void AssignScvToRefineries();
 	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
 	bool EnemyNearBase(const sc2::Unit *base);
 	
