@@ -376,7 +376,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         
         if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+
             return sc2::Point2D(0, 0);
             /*
             float rand_x = sc2::GetRandomScalar() * 5.0f;
