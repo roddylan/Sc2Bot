@@ -340,7 +340,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         };
     while (true) {
         const sc2::Point2D current_position = starting_point + sc2::Point2D(x_offset, y_offset);
-        const bool can_wiggle_left = query->Placement(ability_to_place_building, sc2::Point2D(current_position.x - 2, current_position.y));
+        const bool can_wiggle_left = query->Placement(ability_to_place_building, sc2::Point2D(current_position.x - 3, current_position.y));
         if (!can_wiggle_left) {
             // switch direction
             check_bounds_and_flip_direction();
@@ -353,7 +353,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
             step_offset(current_direction);
             continue;
         }
-        const bool can_wiggle_right = query->Placement(ability_to_place_building, sc2::Point2D(current_position.x + 2, current_position.y));
+        const bool can_wiggle_right = query->Placement(ability_to_place_building, sc2::Point2D(current_position.x + 3, current_position.y));
         if (!can_wiggle_right) {
             // switch direction
             check_bounds_and_flip_direction();
