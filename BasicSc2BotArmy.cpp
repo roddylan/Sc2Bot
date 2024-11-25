@@ -255,7 +255,7 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         return;
     }
     const sc2::Units banshees = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-    if (starport.add_on_tag != NULL) {
+    if (starport.add_on_tag != 0) {
         // Get the add-on unit using its tag
         const sc2::Unit* add_on = observation->GetUnit(starport.add_on_tag);
         if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB) {
