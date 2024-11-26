@@ -115,10 +115,12 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
     if (!unit->orders.empty()) {
         return;
     }
-    // if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
-    //     mineral_target = FindNearestMineralPatch(unit->pos);
-    //     Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
-    // }
+    
+    // assign to random
+    const sc2::Unit *rand = sc2::GetRandomEntry(bases);
+    mineral_target = FindNearestMineralPatch(rand->pos);
+    Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, mineral_target);
+
 }
 
 // void BasicSc2Bot::AssignScvToRefineries() {
@@ -219,6 +221,27 @@ void BasicSc2Bot::AssignWorkers() {
                         first_order.target_unit_tag == refinery->tag
                     ) {
                         // reassign worker via idle worker assign
+                        AssignIdleWorkers(scv);
+                        return;
+                    }
+                }
+            }
+        } else {
+            for (const auto &scv : workers) {
+                if (!scv->orders.empty()) {
+                    // scv busy
+                    sc2::UnitOrder first_order = scv->orders.front();
+
+                    // get target building
+                    const sc2::Unit *target = obs->GetUnit(first_order.target_unit_tag);
+
+                    // if no target (not mining, etc.) -> skip worker
+                    if (target == nullptr) {
+                        continue;
+                    }
+
+                    // if not at refinery
+                    if (target->unit_type != sc2::UNIT_TYPEID::TERRAN_REFINERY) {
                         AssignIdleWorkers(scv);
                         return;
                     }
