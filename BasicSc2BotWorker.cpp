@@ -81,10 +81,12 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
 
     for (const auto &refinery : refineries) {
         if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-                std::cout << "refinery assignment\n";
-                sc2::Point2D point = FindNearestRefinery(unit->pos);
+            std::cout << "refinery assignment\n";
+            // sc2::Point2D point = FindNearestRefinery(unit->pos);
+            
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
         }
+        
         std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
     }
 
