@@ -90,8 +90,8 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
             // sc2::Point2D point = FindNearestRefinery(unit->pos);
             
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
-            return;
             std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
+            return;
         }
         std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
 
@@ -116,9 +116,10 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
         return;
     }
     
-    // assign to random
-    const sc2::Unit *rand = sc2::GetRandomEntry(bases);
-    mineral_target = FindNearestMineralPatch(rand->pos);
+    // assign to last
+    // const sc2::Unit *base = sc2::GetRandomEntry(bases);
+    const sc2::Unit *base = bases.back();
+    mineral_target = FindNearestMineralPatch(base->pos);
     Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, mineral_target);
 
 }
