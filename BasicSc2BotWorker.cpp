@@ -62,12 +62,17 @@ void BasicSc2Bot::BuildWorkers() {
     }
 }
 
-void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
+void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
     const sc2::ObservationInterface *obs = Observation();
+    
     const sc2::Units refineries = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
     const sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Unit* mineral_target;
     std::cout << "bases size: " << bases.size() << std::endl;
+
+    if (bases.empty()) {
+        return;
+    }
 
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
         for (const auto &refinery : refineries) {

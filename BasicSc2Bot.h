@@ -54,7 +54,7 @@ public:
 	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
 	virtual void HandleUpgrades();
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
-	virtual void AssignWorkers(const sc2::Unit *);
+	virtual void AssignIdleWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
 	virtual bool TryBuildThor();
 	virtual void AssignFusionCoreAction(const sc2::Unit& fusion_core);

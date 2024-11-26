@@ -232,7 +232,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
-        AssignWorkers(unit);
+        AssignIdleWorkers(unit);
         if (TryScouting(*unit)) {
             break;
         }
