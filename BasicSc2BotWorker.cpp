@@ -74,30 +74,33 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
         return;
     }
 
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
-        for (const auto &refinery : refineries) {
-            if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-                 std::cout << "refinery assignment\n";
-                 sc2::Point2D point = FindNearestRefinery(unit->pos);
-                Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
-            }
-            std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
-        }
-
-        for (const auto &base : bases) {
-            // if building
-            if (base->build_progress != 1) {
-                continue;
-            }
-            // TODO: maybe just use ideal_harvesters (max)
-            if (base->assigned_harvesters < base->ideal_harvesters) {
-                mineral_target = FindNearestMineralPatch(unit->pos);
-                Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
-                return;
-            }
-        }
+    // nothing to do for mules
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
+        return;
     }
 
+    for (const auto &refinery : refineries) {
+        if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
+                std::cout << "refinery assignment\n";
+                sc2::Point2D point = FindNearestRefinery(unit->pos);
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
+        }
+        std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
+    }
+
+    for (const auto &base : bases) {
+        // if building
+        if (base->build_progress != 1) {
+            continue;
+        }
+        // TODO: maybe just use ideal_harvesters (max)
+        if (base->assigned_harvesters < base->ideal_harvesters) {
+            mineral_target = FindNearestMineralPatch(unit->pos);
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
+            return;
+        }
+    }
+    
     // if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
     //     mineral_target = FindNearestMineralPatch(unit->pos);
     //     Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
