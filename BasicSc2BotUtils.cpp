@@ -354,17 +354,18 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 // TODO: Find a way to speed this up
                 // ensures we dont build at expansion location
                 bool is_expansion_location = false;
-                for (const auto& expansion_location : expansion_locations) {
-                    float distance = std::sqrt(std::pow(expansion_location.x - current_pos.x, 2) +
-                        std::pow(expansion_location.y - current_pos.y, 2));
-                    if (distance <= 10.f) {
-                        is_expansion_location = true;
-                        break;
-                    }
-                }
+                // for (const auto& expansion_location : expansion_locations) {
+                //     float distance = std::sqrt(std::pow(expansion_location.x - current_pos.x, 2) +
+                //         std::pow(expansion_location.y - current_pos.y, 2));
+                //     if (distance <= 10.f) {
+                //         is_expansion_location = true;
+                //         break;
+                //     }
+                // }
 
                 if (!is_expansion_location) {
                     pos_to_place_at = current_pos;
+                    return pos_to_place_at;
                 }
                 
             }
