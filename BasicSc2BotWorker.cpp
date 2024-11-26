@@ -85,9 +85,11 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
             // sc2::Point2D point = FindNearestRefinery(unit->pos);
             
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
+            return;
+            std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
         }
-
         std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
+
     }
 
     for (const auto &base : bases) {
@@ -104,6 +106,10 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
         }
     }
     
+    // worker not idle
+    if (!unit->orders.empty()) {
+        return;
+    }
     // if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
     //     mineral_target = FindNearestMineralPatch(unit->pos);
     //     Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
