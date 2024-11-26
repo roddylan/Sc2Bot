@@ -154,7 +154,7 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
     */
     // TODO: change limit
     if (resources_depleted) {
-        goto expand;
+        // goto expand;
     }
     // TODO: change siege tank req
     // if (n_bases > 0 && n_siege_tanks < (n_bases * 1 + 1) && n_marines >= this->n_marines * n_bases) {
