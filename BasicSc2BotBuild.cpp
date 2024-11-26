@@ -389,7 +389,7 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     if (observation->GetMinerals() < 75) {
         return false;
     }
-    size_t max_turrets_per_base = n_missile;
+    size_t max_turrets_per_base = N_MISSILE;
     size_t base_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
     size_t turret_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MISSILETURRET)).size();
     if (max_turrets_per_base * base_count < turret_count) {
@@ -459,12 +459,12 @@ void BasicSc2Bot::HandleBuild() {
 
     // goal amnts
     // TODO: change target amounts
-    const size_t n_barracks_target = 2;
-    const size_t n_factory_target = 1;
-    const size_t n_armory_target = 1;
-    const size_t n_engg_target = 2;
-    const size_t n_bunkers_target = 8;
-    const size_t n_starports_target = 2;
+    // const size_t n_barracks_target = 2;
+    // const size_t n_factory_target = 1;
+    // const size_t n_armory_target = 1;
+    // const size_t n_engg_target = 2;
+    const size_t n_bunkers_target = N_BUNKERS; // 8
+    // const size_t n_starports_target = 2;
    // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
   //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
@@ -528,15 +528,15 @@ void BasicSc2Bot::HandleBuild() {
         
     }
     */
-    if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
+    if (armorys.size() < N_ARMORY_TOTAL && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
-    if (barracks.size() < n_barracks_target * bases.size()) {
+    if (barracks.size() < N_BARRACKS * bases.size()) {
         TryBuildBarracks();
     }
 
     // build a starport
-    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
+    if (factory.size() > 0 && starports.size() < N_STARPORT * bases.size()) {
         if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
             TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
         }
@@ -550,7 +550,7 @@ void BasicSc2Bot::HandleBuild() {
         HandleExpansion(true);
     }
     // build barracks
-    if (barracks.size() < n_barracks_target * bases.size()) {
+    if (barracks.size() < N_BARRACKS * bases.size()) {
         for (const auto &base : bases) {
             
             if (n_minerals > BARRACKS_COST) {
@@ -593,7 +593,7 @@ void BasicSc2Bot::HandleBuild() {
     // build engg bay for missile turret
     // TODO: improve count
     // Only need 2 engineering bays
-    if (engg_bays.size() < n_engg_target) {
+    if (engg_bays.size() < N_ENGG_TOTAL) {
         if (n_minerals > 150 && n_gas > 100) {
             //std::cout << "building engg bay\n\n";
             TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
@@ -602,7 +602,7 @@ void BasicSc2Bot::HandleBuild() {
 
     
     // build factory
-    if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
+    if (!barracks.empty() && factory.size() < (N_FACTORY * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
             //std::cout << "building factory\n\n";
             TryBuildFactory();
