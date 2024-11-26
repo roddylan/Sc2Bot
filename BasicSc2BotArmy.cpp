@@ -168,7 +168,8 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     /*
     * Combat shield costs 100 mineral, 100 gas
     */
-    const bool has_combat_shield = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::COMBATSHIELD) != upgrades.end();
+    
+    const bool has_combat_shield = upgrades.size() > 0;
     if (mineral_count >= 100 && gas_count >= 100 && !has_combat_shield) {
         Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_COMBATSHIELD);
         return;
@@ -176,7 +177,7 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     /*
     * Stimpack costs 100 mineral, 100 gas
     */
-    const bool has_stimpack = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::MARINESTIMPACK) != upgrades.end();
+    const bool has_stimpack = upgrades.size() > 1;
     if (mineral_count >= 100 && gas_count >= 100 && !has_stimpack) {
         Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_STIMPACK);
         return;
@@ -186,7 +187,7 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     * Concussive shells costs 50 mineral, 50 gas
     * - don't train this until you have the other two upgrades as they are much more important
     */
-    const bool has_concussive_shells = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::COMBATSHIELD) != upgrades.end();
+    const bool has_concussive_shells = upgrades.size() > 2;
     if (mineral_count >= 50 && gas_count >= 50 && !has_concussive_shells && has_combat_shield && has_stimpack) {
         Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_CONCUSSIVESHELLS);
         return;
