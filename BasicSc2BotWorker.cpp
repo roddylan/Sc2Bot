@@ -95,10 +95,11 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
         if (base->build_progress != 1 || base->ideal_harvesters == 0) {
             continue;
         }
-        // TODO: maybe just use ideal_harvesters (max)
+        
         if (base->assigned_harvesters < base->ideal_harvesters) {
             mineral_target = FindNearestMineralPatch(unit->pos);
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
+            // Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, mineral_target);
             return;
         }
     }
