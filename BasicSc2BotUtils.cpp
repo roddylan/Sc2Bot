@@ -256,6 +256,9 @@ const sc2::Unit *BasicSc2Bot::GetGatheringScv() {
         if (unit.unit_type.ToType() != sc2::UNIT_TYPEID::TERRAN_SCV) {
             return false;
         }
+        if (unit.orders.empty()) {
+            return true;
+        }
         for (const sc2::UnitOrder& order : unit.orders) {
             if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
                 return true;
