@@ -80,6 +80,11 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
     }
 
     for (const auto &refinery : refineries) {
+        // if refinery under construction or all gas harvested
+        if (refinery->build_progress != 1 || refinery->ideal_harvesters == 0) {
+            continue;
+        }
+
         if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
             std::cout << "refinery assignment\n";
             // sc2::Point2D point = FindNearestRefinery(unit->pos);
@@ -153,11 +158,75 @@ void BasicSc2Bot::AssignWorkers() {
         sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY)
     );
 
+    const sc2::Unit* mineral_target;
+
+    sc2::Units workers = obs->GetUnits(
+        sc2::Unit::Alliance::Self,
+        sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV)
+    );
+    
+    std::cout << "bases size: " << bases.size() << std::endl;
+
     // no bases
     if (bases.empty()) {
         return;
     }
 
-    
+    for (const auto &base : bases) {
+        // if base under construction or all minerals mined
+        if (base->build_progress != 1 || base->ideal_harvesters == 0) {
+            continue;
+        }
+        
+        // base has enough harvesters
+        if (base->assigned_harvesters > base->ideal_harvesters) {
+            for (const auto &scv : workers) {
+                // scv busy
+                if (!scv->orders.empty()) {
+                    sc2::UnitOrder first_order = scv->orders.front();
+
+                    // if unit already harvesting at current base
+                    if (
+                        first_order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER && 
+                        first_order.target_unit_tag == base->tag
+                    ) {
+                        // reassign worker via idle worker assign
+                        AssignIdleWorkers(scv);
+                        return;
+                    }
+                }
+            }
+        }
+
+    }
+
+    for (const auto &refinery : refineries) {
+        // if refinery under construction or all gas harvested -> skip
+        if (refinery->build_progress != 1 || refinery->ideal_harvesters == 0) {
+            continue;
+        }
+
+        // if refinery already has enough scvs
+        if (refinery->assigned_harvesters > refinery->ideal_harvesters) {
+            for (const auto &scv : workers) {
+                if (!scv->orders.empty()) {
+                    // scv busy
+                    sc2::UnitOrder first_order = scv->orders.front();
+
+                    // if unit already harvesting at current base
+                    if (
+                        first_order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER && 
+                        first_order.target_unit_tag == refinery->tag
+                    ) {
+                        // reassign worker via idle worker assign
+                        AssignIdleWorkers(scv);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+
 
 }
