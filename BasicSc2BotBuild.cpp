@@ -472,7 +472,7 @@ void BasicSc2Bot::HandleBuild() {
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
     }
-    
+
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
     // if (marines.size() < 20 && bases.size() < 3) {
     // if (marines.size() > 20 && bases.size() < 3) {
@@ -547,20 +547,15 @@ void BasicSc2Bot::HandleBuild() {
     if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion(false);
     }
-    if (barracks.size() >= bases.size()) {
-        HandleExpansion(true);
-    }
+    // if (barracks.size() >= bases.size()) {
+    //     HandleExpansion(true);
+    // }
     // build barracks
     if (barracks.size() < N_BARRACKS * bases.size()) {
         for (const auto &base : bases) {
-            
             if (n_minerals > BARRACKS_COST) {
                 TryBuildBarracks();
             }
-            // if (base->assigned_harvesters >= n_workers_init) {
-            //     // std::cout << "building barracks\n\n";
-            //     TryBuildBarracks();
-            // }
         }
     }
     /*
@@ -609,6 +604,9 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
+    
+
+    // build armory
 
     TryBuildSiegeTank();
 
