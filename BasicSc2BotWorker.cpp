@@ -72,7 +72,7 @@ void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
         for (const auto &refinery : refineries) {
             if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-                 std::cout << "refinery assignmenty\n";
+                 std::cout << "refinery assignment\n";
                  sc2::Point2D point = FindNearestRefinery(unit->pos);
                 Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
             }
@@ -90,12 +90,11 @@ void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
                 Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
                 return;
             }
-            
         }
     }
 
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
-        mineral_target = FindNearestMineralPatch(unit->pos);
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
-    }
+    // if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
+    //     mineral_target = FindNearestMineralPatch(unit->pos);
+    //     Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
+    // }
 }

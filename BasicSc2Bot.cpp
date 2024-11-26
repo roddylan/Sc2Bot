@@ -236,7 +236,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         if (TryScouting(*unit)) {
             break;
         }
-        AssignWorkers(unit);
+        // AssignWorkers(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
