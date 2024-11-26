@@ -39,8 +39,17 @@ public:
 	virtual bool TryBuildBarracks();
 	virtual bool MobAttackNearbyBaseOrEnemy();
 	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
-	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
-	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)); // generalized; for expansions
+	
+	virtual bool TryBuildStructure(
+		sc2::ABILITY_ID ability_type_for_structure, 
+		sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV
+	);
+	virtual bool TryBuildStructure(
+		sc2::ABILITY_ID ability_type_for_structure, 
+		sc2::Point2D location, 
+		sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)
+	); // generalized; for expansions
+
 	virtual size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
 	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
 	virtual void HandleUpgrades();
@@ -89,7 +98,7 @@ private:
 	
 	const size_t N_ARMY_THRESHOLD = 30; // 200 - workers - threshold -> attack; allow bot to keep making units while attacking
 	const size_t N_TOTAL_WORKERS = 70; // max no. of workers
-
+	const size_t min_minerals_for_units = 300; // do not dip below this minearl count when training units
 	// TODO: adjust
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
@@ -109,6 +118,7 @@ private:
 	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
 	void AssignFactoryAction(const sc2::Unit *factory);
 	void RecheckUnitIdle();
+	void AssignScvToRefineries();
 	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
 	bool EnemyNearBase(const sc2::Unit *base);
 	
