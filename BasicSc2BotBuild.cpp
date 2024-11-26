@@ -178,6 +178,14 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
 
     size_t n_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)).size();
     size_t n_lower_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED)).size();
+
+    size_t in_progress_depots = observation->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit &unit) {
+        bool is_depot = (unit.unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT || 
+                         unit.unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED);
+        
+        bool is_building = (unit.build_progress < 1);
+        return (is_depot && is_building);
+    }).size();
     // std::cout << "n suppply depots " << n_supply_depots << std::endl;
     size_t n_bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
     // std::cout << "n basess " << n_bases << std::endl;
@@ -185,8 +193,12 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     uint32_t current_supply_use = observation->GetFoodUsed();
     uint32_t cur_max_supply = observation->GetFoodCap();
 
-    if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply && (n_supply_depots + n_lower_supply_depots) > 0) {
+    // if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply && (n_supply_depots + n_lower_supply_depots) > 0) {
+    if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply) {
         // do not build if current_supply_use/max_suply < 2/3 or reached max supply
+        return false;
+    }
+    if (in_progress_depots > 2) {
         return false;
     }
     // commenting this out because our logic for making supply depots should just be based on our food used
@@ -200,11 +212,15 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
         return false;
     }
 
-    // bool check;
-    // check = TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
-    // std::cout << "built supply depot: " << check << std::endl;
-    // return check;
-    return TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
+    bool check;
+
+    check = TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
+    std::cout << "\n----------------build supply depot---------------" << std::endl;
+    std::cout << "building " << in_progress_depots << " depots." << std::endl;
+    std::cout << "current supply: " << current_supply_use << " | cur_max_supply: " << cur_max_supply << std::endl;
+    std::cout << "built supply depot: " << check << std::endl;
+    return check;
+    // return TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
 }
 
 
@@ -241,19 +257,26 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     const sc2::ObservationInterface* observation = Observation();
 
     const sc2::Unit* unit_to_build = nullptr;
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self);
+    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(unit_type));
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    
     for (const auto& unit : units) {
+        // bool can_build = false;
+
+        // idle scv can build
+        if (unit->orders.empty()) {
+            // can_build = true;
+            unit_to_build = unit;
+            break;
+        }
+        
         for (const auto& order : unit->orders) {
-            if (order.ability_id == ability_type_for_structure) {
+            if (ability_type_for_structure != sc2::ABILITY_ID::BUILD_SUPPLYDEPOT && order.ability_id == ability_type_for_structure) {
                 return false;
             }
         }
 
-        if (unit->unit_type == unit_type) {
-            unit_to_build = unit;
-        }
-
+        unit_to_build = unit;
     }
 
     // TODO: bring back build logic
@@ -462,7 +485,8 @@ void BasicSc2Bot::HandleBuild() {
 
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (n_minerals > 150) {
-                if (orbital_commands.size() >= (bases.size() / 2)) {
+                // if (orbital_commands.size() >= (bases.size() / 2)) {
+                if (orbital_commands.size() >= 2) {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
                 }
                 else {
