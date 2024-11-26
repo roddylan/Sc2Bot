@@ -158,7 +158,6 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     const uint32_t& mineral_count = observation->GetMinerals();
     const uint32_t& gas_count = observation->GetVespene();
 
-
     /*
     * Upgrades in order of best->worst are combat shield, stimpack, concussive shells
     * - combat shield: marines gain 10hp
@@ -241,6 +240,14 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         return;
     }
     const sc2::Units& medivacs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    const sc2::Units& vikings = observation->GetUnits(
+        sc2::Unit::Alliance::Self, 
+        sc2::IsUnits({
+            sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, 
+            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
+        })
+    );
+
     const sc2::Units& fusion_cores = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
     const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
@@ -251,6 +258,13 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     // build a medivac!
     if (minerals >= 100 && gas >= 75 && medivacs.size() < 3) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
+
+        return;
+    }
+
+    // build a viking!
+    if (minerals >= 100 && gas >= 75 && vikings.size() < 5) {
+        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
 
         return;
     }

@@ -443,10 +443,13 @@ void BasicSc2Bot::HandleBuild() {
         TryBuildBarracks();
     }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 && bases.size() < 3) {
-        HandleExpansion(true);
+    // if (marines.size() < 20 && bases.size() < 3) {
+    // if (marines.size() > 20 && bases.size() < 3) {
+    if (marines.size() > 20) {
+        HandleExpansion(false);
         return;
     }
+    
 
     // Handle Orbital Command
     
