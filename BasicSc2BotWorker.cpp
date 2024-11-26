@@ -86,13 +86,13 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
             
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
         }
-        
+
         std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
     }
 
     for (const auto &base : bases) {
-        // if building
-        if (base->build_progress != 1) {
+        // if base under construction or all minerals mined
+        if (base->build_progress != 1 || base->ideal_harvesters == 0) {
             continue;
         }
         // TODO: maybe just use ideal_harvesters (max)
