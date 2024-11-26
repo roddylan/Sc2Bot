@@ -123,9 +123,10 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
     if (target != nullptr) {
         return target->pos;  
     }
-    else {
-        return sc2::Point2D(0, 0);
+    else if (bases.size() > 0) {
+        return bases[0]->pos;
     }
+    return sc2::Point2D(0, 0);
 }
 
 const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
@@ -280,112 +281,184 @@ struct Point2DLt {
         return lhs.x < rhs.x;
     }
 };
-
+struct FlooredStartingPointLt {
+    bool operator()(const std::pair<int32_t,int32_t>& lhs, const std::pair<int32_t,int32_t>& rhs) const {
+        if (lhs.first == rhs.first) {
+            return lhs.second < rhs.second;
+        }
+        return lhs.first < rhs.first;
+    }
+};
+struct LastSuccessfulSearchValues {
+    float x_min, x_max, y_min, y_max, x_offset, y_offset;
+};
 /*
 * Finds a location to place a building at that is near a given starting position
 */
 sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building) {
     /*
     * We want to find a position that is near starting_point that works to fit the building
-    * Idea: search in a square around the starting point for the first available position. If no where
-    * is found, increase the size of the square and search again.
-    * - so you still build relatively close to the starting point and increase the search space gradually
-    * - though this does seem to be a bit slow sometimes
+    * Idea: given a starting position, spiral outwards until you find a place that is suitable
+    * - we want buildings to have 2 spaces to the left & right to make sure that there's room for addom buildings
     */
 
-    /*
-    * Starting lower & upper bounds for x
-    */
-    int x_lo = -5, x_hi = 5;
-    /*
-    * Starting lower & upper bounds for y
-    */
-    int y_lo = -5, y_hi = 5;
-
-    /*
-    * How much to change the lower & upper bounds if you don't find a suitable spot in the current search square
-    */
-    int x_step = 5;
-    int y_step = 5;
-    bool found_pos_to_place_at = false;
-
+    sc2::QueryInterface* query = Query();
     /*
     * When leaving the loop, pos_to_place should be set
     */
     sc2::Point2D pos_to_place_at;
-
+    float x_min = 0, x_max = 0;
+    float y_min = 0, y_max = 0;
+    float x_offset = 0, y_offset = 0;
+    static std::map<std::pair<int32_t,int32_t>, LastSuccessfulSearchValues, FlooredStartingPointLt> result_cache;
+    std::pair<int32_t, int32_t> floored_starting_point = {std::floor(starting_point.x), std::floor(starting_point.y) };
+    if (result_cache.find(floored_starting_point) != result_cache.end()) {
+        const LastSuccessfulSearchValues& values = result_cache[floored_starting_point];
+        x_min = values.x_min;
+        x_max = values.x_max;
+        y_min = values.y_min;
+        x_offset = values.x_offset;
+        y_offset = values.y_offset;
+    }
+    enum Direction { UP = 0, RIGHT = 1, DOWN = 2, LEFT = 3 };
+    Direction current_direction = UP;  // 0 for up, 1 for right, 2 for down, 3 for left
     /*
-    * Use a cache to not repeatedly query positions we know don't work
+    * If you are hitting the max/min offset, switch directions & increase the bounds for the
+    * next time you spiral around.
     */
-    std::set<sc2::Point2D, Point2DLt> searched_points = {};
-
+    const auto check_bounds_and_flip_direction = [&y_offset, &x_offset, &y_max, &y_min, &x_max, &x_min, &current_direction]() -> void {
+        if (current_direction == UP && y_offset >= y_max) {
+            current_direction = (Direction)((current_direction + 1) % 4);
+            y_max += 2;
+        }
+        else if (current_direction == RIGHT && x_offset >= x_max) {
+            current_direction = (Direction)((current_direction + 1) % 4);
+            x_max += 2;
+        }
+        else if (current_direction == DOWN && y_offset <= y_min) {
+            current_direction = (Direction)((current_direction + 1) % 4);
+            y_min += -2;
+        }
+        else if (current_direction == LEFT && x_offset <= x_min) {
+            current_direction = (Direction)((current_direction + 1) % 4);
+            x_min += -2;
+        }
+        };
+    /*
+    * Adjust x_offset and y_offset to move in the current direction
+    */
+    const auto step_offset = [&x_offset, &y_offset, &current_direction]() -> void {
+        switch (current_direction) {
+        case UP:
+            y_offset += 2;
+            break;
+        case RIGHT:
+            x_offset += 2;
+            break;
+        case DOWN:
+            y_offset += -2;
+        case LEFT:
+            x_offset += -2;
+            break;
+        }
+        };
+    /*
+    * Cache points that are not valid placements & when we last checked that they are invalid placements.
+    * - only re-check that a spot is still invalid if we havent checked within 1000 loops
+    * - should cutdown on the amount of queries we need to make while also being able to find placement positions again if
+    *   the previous building was destroyed
+    */
+    static std::map<sc2::Point2D, size_t, Point2DLt> point_cache;
+    
     size_t loop_count = 0;
-    while (!found_pos_to_place_at) {
-        for (int x = x_lo; x <= x_hi; x += 3) {
-            for (int y = y_lo; y <= y_hi; y += 3) {
-                const sc2::Point2D current_pos = starting_point + sc2::Point2D(x, y);
-                sc2::QueryInterface* query = Query();
-                if (searched_points.find(current_pos) != searched_points.end()) {
-                    continue;
-                }
-
-                const bool can_place_here = query->Placement(ability_to_place_building, current_pos);
-                if (!can_place_here) {
-                    searched_points.insert(current_pos);
-                    continue;
-                }
-
-                /*
-                * We need wiggle room left & right so that the buildings aren't packed and they have room to build addons
-                */
-                const bool can_wiggle_left = query->Placement(ability_to_place_building, sc2::Point2D(current_pos.x - 2, current_pos.y));
-                if (!can_wiggle_left) {
-                    searched_points.insert(current_pos);
-                    continue;
-                }
-                const bool can_wiggle_right = query->Placement(ability_to_place_building, sc2::Point2D(current_pos.x + 2, current_pos.y));
-                if (!can_wiggle_right) {
-                    searched_points.insert(current_pos);
-                    continue;
-                }
-                // we found a valid position to place at, don't iterate again
-                found_pos_to_place_at = true;
-                // TODO: Find a way to speed this up
-                // ensures we dont build at expansion location
-                bool is_expansion_location = false;
-                for (const auto& expansion_location : expansion_locations) {
-                    float distance = std::sqrt(std::pow(expansion_location.x - current_pos.x, 2) +
-                        std::pow(expansion_location.y - current_pos.y, 2));
-                    if (distance <= 10.f) {
-                        is_expansion_location = true;
-                        break;
-                    }
-                }
-
-                if (!is_expansion_location) {
-                    pos_to_place_at = current_pos;
-                }
-
+    bool done_searching = false;
+    while (!done_searching) {
+        ++loop_count;
+        const sc2::Point2D current_position = starting_point + sc2::Point2D(x_offset, y_offset);
+        const bool& point_is_in_cache = point_cache.find(current_position) != point_cache.end();
+        if (point_is_in_cache) {
+            // we have checked this point before, and it was not placeable. so its probably not placeable now?
+            const size_t loops_since_this_point_was_last_checked = point_cache[current_position];
+            if (loops_since_this_point_was_last_checked < 1'000) {
+                // if it hasnt been that long since we learned that this spot is occupied, don't bother checking again
+                // (but still increment the age)
+                point_cache[current_position] += 1;
+                check_bounds_and_flip_direction();
+                step_offset();
+                continue;
+            }
+            else {
+                // otherwise, it has been a while since we last checked if this point was occupied or not, so we should check again
+                point_cache[current_position] = 0;
             }
         }
-        // increase the search space
-        x_lo -= x_step;
-        x_hi += x_step;
-        y_lo -= y_step;
-        x_hi += y_step;
-
-        if (loop_count++ > 5) { // todo: change back to 10 (?)
-            std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-            return sc2::Point2D(0, 0);
-            /*
-            float rand_x = sc2::GetRandomScalar() * 5.0f;
-            float rand_y = sc2::GetRandomScalar() * 5.0f;
-            return this->FindPlaceablePositionNear(starting_point + sc2::Point2D(rand_x, rand_y), ability_to_place_building);
-            */
+        const bool can_wiggle_left = query->Placement(ability_to_place_building, sc2::Point2D(current_position.x - 3, current_position.y));
+        if (!can_wiggle_left) {
+            // switch direction
+            
+            check_bounds_and_flip_direction();
+            step_offset();
+            if (point_cache.find(current_position) == point_cache.end()) {
+                point_cache[current_position] = 1;
+            }
+            else {
+                point_cache[current_position] += 1;
+            }
+            continue;
+        }
+        const bool can_place_here = query->Placement(ability_to_place_building, current_position);
+        if (!can_place_here) {
+            check_bounds_and_flip_direction();
+            step_offset();
+            if (point_cache.find(current_position) == point_cache.end()) {
+                point_cache[current_position] = 1;
+            }
+            else {
+                point_cache[current_position] += 1;
+            }
+            continue;
+        }
+        const bool can_wiggle_right = query->Placement(ability_to_place_building, sc2::Point2D(current_position.x + 3, current_position.y));
+        if (!can_wiggle_right) {
+            // switch direction
+            check_bounds_and_flip_direction();
+            step_offset();
+            if (point_cache.find(current_position) == point_cache.end()) {
+                point_cache[current_position] = 1;
+            }
+            else {
+                point_cache[current_position] += 1;
+            }
+            continue;
         }
 
+        bool is_expansion_location = false;
+        for (const sc2::Point3D& expansion_location : expansion_locations) {
+            float distance_squared = sc2::DistanceSquared2D(expansion_location, current_position);
+            if (distance_squared <= 10.0f) {
+                is_expansion_location = true;
+                check_bounds_and_flip_direction();
+                step_offset();
+                if (point_cache.find(current_position) == point_cache.end()) {
+                    point_cache[current_position] = 1;
+                }
+                else {
+                    point_cache[current_position] += 1;
+                }
+                break;
+            }
+        }
+        if (!is_expansion_location) {
+            pos_to_place_at = current_position;
+            done_searching = true;
+        }
+        if (loop_count > 250) {
+            std::cout << "loop count=" << loop_count << std::endl;
+        }
     }
+
+    result_cache[floored_starting_point] = { x_min, x_max, y_min, y_max, x_offset, y_offset };
+
     return pos_to_place_at;
 }
 

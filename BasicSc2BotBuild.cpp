@@ -239,31 +239,32 @@ bool BasicSc2Bot::BuildRefinery() {
 
 bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type) {
     const sc2::ObservationInterface* observation = Observation();
-
-    const sc2::Unit* unit_to_build = nullptr;
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self);
-    sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
-    for (const auto& unit : units) {
-        for (const auto& order : unit->orders) {
-            if (order.ability_id == ability_type_for_structure) {
-                return false;
+    const sc2::Unit* unit_to_build = GetGatheringScv();
+    if (unit_to_build == nullptr) {
+        sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self);
+        sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+        for (const auto& unit : units) {
+            for (const auto& order : unit->orders) {
+                if (order.ability_id == ability_type_for_structure) {
+                    return false;
+                }
             }
-        }
 
-        if (unit->unit_type == unit_type) {
-            unit_to_build = unit;
-        }
+            if (unit->unit_type == unit_type) {
+                unit_to_build = unit;
+            }
 
+        }
     }
 
     // TODO: bring back build logic
 
-    float ry = sc2::GetRandomScalar() * 15.0f;
-    float rx = sc2::GetRandomScalar() * 15.0f;
+    float ry = sc2::GetRandomScalar() * 5.0f;
+    float rx = sc2::GetRandomScalar() * 5.0f;
     // float ry = sc2::GetRandomScalar() * 10.0f;
     // float rx = sc2::GetRandomScalar() * 10.0f;
     sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);
-    sc2::Point2D starting_point = sc2::Point2D(base_location.x + rx, base_location.y + ry);
+    sc2::Point2D starting_point = sc2::Point2D(nearest_command_center.x + rx, nearest_command_center.y + ry);
     
     sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(starting_point, ability_type_for_structure);
     if (pos_to_place_at == sc2::Point2D(0, 0)) return false;
@@ -309,16 +310,18 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         return false;
     }
 
-    const sc2::Unit* unit_to_build = nullptr;
-    for (const auto& worker : workers) {
-        for (const auto& order : worker->orders) {
-            if (order.ability_id == ability_type_for_structure) {
-                return false;
+    const sc2::Unit* unit_to_build = GetGatheringScv();
+    if (unit_to_build == nullptr) {
+        for (const auto& worker : workers) {
+            for (const auto& order : worker->orders) {
+                if (order.ability_id == ability_type_for_structure) {
+                    return false;
+                }
             }
-        }
         
-        unit_to_build = worker;
-        break;
+            unit_to_build = worker;
+            break;
+        }
     }
     // todo: this as possible fix?
     float rx = sc2::GetRandomScalar();
@@ -434,7 +437,7 @@ void BasicSc2Bot::HandleBuild() {
     const size_t n_armory_target = 1;
     const size_t n_engg_target = 2;
     const size_t n_bunkers_target = 8;
-    const size_t n_starports_target = 1;
+    const size_t n_starports_target = 2;
    // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
   //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
@@ -497,9 +500,17 @@ void BasicSc2Bot::HandleBuild() {
     if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
-    if (barracks.size() < 2 * bases.size()) {
+    if (barracks.size() < n_barracks_target * bases.size()) {
         TryBuildBarracks();
     }
+
+    // build a starport
+    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
+        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
+        }
+    }
+
     //if (!has_infantry_weapons_1) return;
     if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion(false);
@@ -558,12 +569,7 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
 
-    // build a starport
-    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
-        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
-        }
-    }
+    
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
