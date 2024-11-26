@@ -429,6 +429,7 @@ void BasicSc2Bot::HandleBuild() {
     static const uint32_t ORBITAL_COMMAND_COST = 150;
     static const uint32_t STARPORT_COST = 150;
     static const uint32_t ARMORY_MINERAL_COST = 150;
+    static const uint32_t ENGG_COST = 125;
     
     // vespene gas costs
     static const uint32_t ARMORY_GAS_COST = 100;
@@ -492,7 +493,7 @@ void BasicSc2Bot::HandleBuild() {
             sc2::Units orbital_commands = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
 
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
-            if (n_minerals > 150) {
+            if (n_minerals > ORBITAL_COMMAND_COST) {
                 // if (orbital_commands.size() >= (bases.size() / 2)) {
                 if (orbital_commands.size() >= 2) {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
@@ -529,9 +530,12 @@ void BasicSc2Bot::HandleBuild() {
         
     }
     */
+    // build armory
     if (armorys.size() < N_ARMORY_TOTAL && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
+
+    // build barracks
     if (barracks.size() < N_BARRACKS * bases.size()) {
         TryBuildBarracks();
     }
@@ -590,7 +594,7 @@ void BasicSc2Bot::HandleBuild() {
     // TODO: improve count
     // Only need 2 engineering bays
     if (engg_bays.size() < N_ENGG_TOTAL) {
-        if (n_minerals > 150 && n_gas > 100) {
+        if (n_minerals > ENGG_COST) {
             //std::cout << "building engg bay\n\n";
             TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
         }
@@ -606,7 +610,7 @@ void BasicSc2Bot::HandleBuild() {
     }
     
 
-    // build armory
+
 
     TryBuildSiegeTank();
 
