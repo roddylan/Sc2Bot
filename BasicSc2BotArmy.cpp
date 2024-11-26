@@ -67,7 +67,7 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     // if you have a reactor, you can build things twice as fast so you should spam train marines
     if (
         mineral_count >= 50 && 
-        mineral_count + 50 > this->min_minerals_for_units && 
+        // mineral_count + 50 > this->min_minerals_for_units && 
         observation->GetFoodUsed() < (observation->GetFoodCap() - 10)
     ) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
@@ -75,7 +75,7 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     // train a second one, if you can afford it (reactors build at double speed)
     if (
         mineral_count >= 100 && 
-        mineral_count + 100 > this->min_minerals_for_units && 
+        // mineral_count + 100 > this->min_minerals_for_units && 
         observation->GetFoodUsed() < (observation->GetFoodCap() - 10)
     ) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
