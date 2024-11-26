@@ -136,7 +136,28 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
 //     }
 // }
 
-
+/**
+ * @brief Assign workers during onstep
+ * 
+ */
 void BasicSc2Bot::AssignWorkers() {
-    return;
+    const sc2::ObservationInterface *obs = Observation();
+
+    sc2::Units bases = obs->GetUnits(
+        sc2::Unit::Alliance::Self,
+        sc2::IsTownHall()
+    );
+
+    const sc2::Units refineries = obs->GetUnits(
+        sc2::Unit::Alliance::Self, 
+        sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY)
+    );
+
+    // no bases
+    if (bases.empty()) {
+        return;
+    }
+
+    
+
 }
