@@ -472,6 +472,7 @@ void BasicSc2Bot::HandleBuild() {
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
     }
+    
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
     // if (marines.size() < 20 && bases.size() < 3) {
     // if (marines.size() > 20 && bases.size() < 3) {
