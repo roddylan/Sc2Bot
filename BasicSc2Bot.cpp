@@ -28,7 +28,7 @@ void BasicSc2Bot::OnGameStart() {
 
 void BasicSc2Bot::OnGameFullStart() {
 	this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
-	PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
+	// PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
 	return;
 }
 
