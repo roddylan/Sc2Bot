@@ -55,6 +55,7 @@ public:
 	virtual void HandleUpgrades();
 	virtual void HandleBuild(); // logic for building instead of just trying on each step
 	virtual void AssignIdleWorkers(const sc2::Unit *);
+	virtual void AssignWorkers();
 	virtual void BuildWorkers();
 	virtual bool TryBuildThor();
 	virtual void AssignFusionCoreAction(const sc2::Unit& fusion_core);
@@ -118,7 +119,7 @@ private:
 	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
 	void AssignFactoryAction(const sc2::Unit *factory);
 	void RecheckUnitIdle();
-	void AssignScvToRefineries();
+	// void AssignScvToRefineries();
 	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
 	bool EnemyNearBase(const sc2::Unit *base);
 	

@@ -116,22 +116,27 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
     // }
 }
 
-void BasicSc2Bot::AssignScvToRefineries() {
-    static size_t frame_worker_last_moved_to_refinery = 0;
-    const sc2::ObservationInterface* observation = Observation();
-    const uint32_t &current_frame = observation->GetGameLoop();
-    if (frame_worker_last_moved_to_refinery + 100'000 < current_frame) {
-        return;
-    }
-    const sc2::Units& refineries = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
-    for (const sc2::Unit* refinery : refineries) {
-        if (refinery->assigned_harvesters < 3) {
-            const sc2::Unit *gathering_scv = this->GetGatheringScv();
-            if (gathering_scv != nullptr) {
-                Actions()->UnitCommand(gathering_scv, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
-                frame_worker_last_moved_to_refinery = current_frame;
+// void BasicSc2Bot::AssignScvToRefineries() {
+//     static size_t frame_worker_last_moved_to_refinery = 0;
+//     const sc2::ObservationInterface* observation = Observation();
+//     const uint32_t &current_frame = observation->GetGameLoop();
+//     if (frame_worker_last_moved_to_refinery + 100'000 < current_frame) {
+//         return;
+//     }
+//     const sc2::Units& refineries = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+//     for (const sc2::Unit* refinery : refineries) {
+//         if (refinery->assigned_harvesters < 3) {
+//             const sc2::Unit *gathering_scv = this->GetGatheringScv();
+//             if (gathering_scv != nullptr) {
+//                 Actions()->UnitCommand(gathering_scv, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
+//                 frame_worker_last_moved_to_refinery = current_frame;
 
-            }
-        }
-    }
+//             }
+//         }
+//     }
+// }
+
+
+void BasicSc2Bot::AssignWorkers() {
+    return;
 }
