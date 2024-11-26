@@ -49,7 +49,7 @@ void BasicSc2Bot::OnStep() {
     HandleBuild();
     
     BuildWorkers();
-    RecheckUnitIdle();
+    // RecheckUnitIdle();
 
     CheckScoutStatus();
     AttackIntruders();
