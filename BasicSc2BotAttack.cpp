@@ -104,6 +104,8 @@ bool BasicSc2Bot::AttackIntruders() {
             sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT
         })
     );
+
+    VikingAttack(vikings, enemy_units);
     
     for (const sc2::Unit* base : bases) {
         const sc2::Unit* enemy_near_base = nullptr;
