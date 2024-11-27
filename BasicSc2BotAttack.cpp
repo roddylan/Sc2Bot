@@ -169,7 +169,7 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
     // if (n_bases > 0 && n_siege_tanks < (n_bases * 1 + 1) && n_marines >= this->N_MARINES * n_bases) {
     // if (n_bases > 0 && (n_siege_tanks < (n_bases * this->n_tanks) || n_marines < this->N_MARINES * n_bases)) {
     // if (n_bases > 0 && (n_siege_tanks < (n_bases * 1 + 1) || n_marines < this->N_MARINES * n_bases)) {
-    if (n_bases > 0 && (n_marines < this->N_MARINES * n_bases)) {
+    if (n_bases > 1 && (n_marines < this->N_MARINES * n_bases)) {
         // only expand when enough units to defend base + protect expansion
         return false;
     }
