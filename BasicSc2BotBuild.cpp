@@ -574,9 +574,21 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
 
-    if (missile_turrets.size() < N_MISSILE_P1) {
-        TryBuildMissileTurret();
-    }
+    // build engg bay for missile turret
+    // TODO: improve count
+    // Only need 2 engineering bays
+    // if (engg_bays.size() < N_ENGG_TOTAL) {
+    //     if (n_minerals > ENGG_COST) {
+    //         //std::cout << "building engg bay\n\n";
+    //         TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+    //     }
+    // }
+
+    // if (!engg_bays.empty() && missile_turrets.size() < N_MISSILE_P1) {
+    //     std::cout << "build turret\n";
+    //     TryBuildMissileTurret();
+    //     std::cout << "n_missile=" << missile_turrets.size() << std::endl;
+    // }
 
     // build a starport
     if (factory.size() > 0 && starports.size() < N_STARPORT * bases.size()) {
@@ -585,7 +597,7 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2 || missile_turrets.size() < N_MISSILE_P1) {
+    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2) { // || missile_turrets.size() < N_MISSILE_P1
        // HandleExpansion(true);
         return;
     }
@@ -691,15 +703,15 @@ void BasicSc2Bot::HandleBuild() {
         
     }
     */
-    // build engg bay for missile turret
-    // TODO: improve count
-    // Only need 2 engineering bays
-    if (engg_bays.size() < N_ENGG_TOTAL) {
-        if (n_minerals > ENGG_COST) {
-            //std::cout << "building engg bay\n\n";
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
-        }
-    }
+    // // build engg bay for missile turret
+    // // TODO: improve count
+    // // Only need 2 engineering bays
+    // if (engg_bays.size() < N_ENGG_TOTAL) {
+    //     if (n_minerals > ENGG_COST) {
+    //         //std::cout << "building engg bay\n\n";
+    //         TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+    //     }
+    // }
 
     
     // // build factory
