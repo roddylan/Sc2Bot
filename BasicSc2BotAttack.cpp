@@ -105,6 +105,7 @@ bool BasicSc2Bot::AttackIntruders() {
         })
     );
 
+    // TODO: attack all units, fix
     VikingAttack(vikings, enemy_units);
     
     for (const sc2::Unit* base : bases) {
@@ -501,18 +502,6 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
     
     // float max_danger_ground{};
 
-    /*
-    // find closest
-        float min_dist = std::numeric_limits<float>::max();
- 
-        for (const auto &enemy : enemies) {
-            float dist = sc2::Distance2D(tank->pos, enemy->pos);
-            if (dist < min_dist) {
-                min_dist = dist;
-            }
-        }
-    
-    */
     for (const auto &enemy : enemies) {
         if (enemy->is_flying) {
             air_enemies.push_back(enemy);
