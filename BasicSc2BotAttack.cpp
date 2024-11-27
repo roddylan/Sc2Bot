@@ -16,37 +16,6 @@
 #include <iostream>
 #include <cmath>
 
-bool BasicSc2Bot::MobAttackNearbyBaseOrEnemy() {
-    sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-    sc2::Units cluster;
-    for (const auto& marine : marines) {
-        if (MarineClusterSize(marine, marines, cluster) > 20 && sc2::Distance2D(marine->pos, start_location) > 15.0f) {
-            // We now have our cluster that we want to send the units are in cluster
-            break;
-        }
-    }
-    
-
-    // Send them to attack enemy locaiton if nearby
-
-    if (cluster.size() > 0) {
-        sc2::Point2D target_point;
-        const auto& enemy_units = Observation()->GetUnits(sc2::Unit::Alliance::Enemy);
-        for (const auto& enemy : enemy_units) {
-            if (sc2::Distance2D(enemy->pos, cluster[0]->pos) < 10.0f) {
-                target_point = enemy->pos;
-                Actions()->UnitCommand(cluster, sc2::ABILITY_ID::ATTACK_ATTACK, target_point);
-            }
-        }
-        /*
-        if (sc2::Distance2D(target_point, cluster[0]->pos) < 30.f) {
-            Actions()->UnitCommand(cluster, sc2::ABILITY_ID::ATTACK_ATTACK, target_point);
-        }
-        */
-    }
-    return true;
-}
-
 bool BasicSc2Bot::AttackIntruders() {
     /*
     * This method does too much work to be called every frame. Call it every few hundred frames instead
@@ -172,7 +141,28 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
     if (obs->GetMinerals() < std::min<size_t>(bases.size() * 600, 1800)) {
         return false;
     }
-    expand:
+expand:
+    int64_t game_loop = Observation()->GetGameLoop();
+
+    
+    const int64_t ten_minutes_in_loops = 13440;
+    // if less than 10 min mark dont create more than 3 bases
+    if (game_loop < ten_minutes_in_loops && bases.size() > 1) {
+        return false;
+    }
+    const int64_t twenty_minutes_in_loops = 26880;
+    if (game_loop < twenty_minutes_in_loops && bases.size() > 3) {
+        return false;
+    }
+    const int64_t twenty_five_minutes_in_loops = 33600;
+    if (game_loop < twenty_five_minutes_in_loops && bases.size() > 4) {
+        return false;
+    }
+    
+    const int64_t thirty_minutes_in_loops = 40320;
+    if (game_loop < thirty_minutes_in_loops && bases.size() > 5) {
+        return false;
+    }
     float min_dist = std::numeric_limits<float>::max();
     sc2::Point3D closest_expansion(0, 0, 0);
 
