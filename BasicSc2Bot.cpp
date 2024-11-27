@@ -168,14 +168,14 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     static int mineral_fields_destoryed;
-    if (unit->mineral_contents == 0) {
-        ++mineral_fields_destoryed;
-        std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-        if (mineral_fields_destoryed % 5) {
-            HandleExpansion(true);
-        }
-        std::cout << "Minerals destroyed" << std::endl;
+
+    ++mineral_fields_destoryed;
+    std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+    if (mineral_fields_destoryed % 10) {
+       HandleExpansion(true);
     }
+    std::cout << "Minerals destroyed" << std::endl;
+    
     // send marines to attack intruders
     
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 

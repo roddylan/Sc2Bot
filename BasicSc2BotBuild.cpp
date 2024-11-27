@@ -45,27 +45,51 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
     if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) < 1) {
         return false;
     }
-    if (observation->GetVespene() < 125 || observation->GetMinerals() < 150 ||
-        observation->GetFoodUsed() < (observation->GetFoodCap() - 3)) {
+
+    if (observation->GetVespene() < 125 || observation->GetMinerals() < 150) {
         return false;
     }
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
+
+    sc2::Units techlabs = observation->GetUnits(
+        sc2::Unit::Alliance::Self,
+        IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB)
+    );
+
+    sc2::Units factories = observation->GetUnits(
+        sc2::Unit::Alliance::Self,
+        IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY)
+    );
+
     bool build = false;
-    for (auto unit : units) {
-        if (CountNearbySeigeTanks(unit) > n_tanks && units.size() > 1) continue;
-        build = true;
-        std::cout << "building siege tank\n";
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+
+    if (!techlabs.empty()) {
+        for (auto factory : factories) {
+            if (CountNearbySeigeTanks(factory) > n_tanks && factories.size() > 1) {
+                continue;
+            }
+
+            build = true;
+            std::cout << "Building siege tank\n";
+            Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+        }
     }
-    // TODO: get rid of couts here 
-    if (build){
+
+    // TODO: Remove debug output here
+    if (build) {
         sc2::Units tank = observation->GetUnits(
-            sc2::Unit::Alliance::Self, 
-            sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
-        std::cout << "n_siegetanks=" << tank.size() << std::endl;
+            sc2::Unit::Alliance::Self,
+            sc2::IsUnits({
+                sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
+                sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
+                })
+        );
+
+        std::cout << "n_siegetanks = " << tank.size() << std::endl;
     }
+
     return true;
 }
+
 
 /**
  * @brief Build siege tank on given techlab factory
@@ -439,12 +463,20 @@ void BasicSc2Bot::HandleBuild() {
   //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
     sc2::Units marines = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
     }
+    // build factory
+    if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
+        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
+            //std::cout << "building factory\n\n";
+            TryBuildFactory();
+        }
+    }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 && bases.size() < 3) {
-        HandleExpansion(true);
+    if (marines.size() < 20 || tanks.size() < 3) {
+       // HandleExpansion(true);
         return;
     }
 
@@ -470,7 +502,6 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
-    sc2::Units fusion_cores = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE))
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
             if (starport->add_on_tag != NULL) {
@@ -564,15 +595,9 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
         }
     }
-    // build factory
-    if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
-        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
-            //std::cout << "building factory\n\n";
-            TryBuildFactory();
-        }
-    }
+    
 
-    TryBuildSiegeTank();
+  //  TryBuildSiegeTank();
 
     TryBuildMissileTurret();
     
