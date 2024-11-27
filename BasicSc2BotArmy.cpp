@@ -290,9 +290,9 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         }, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER
     );
 
-    std::cout << "      n_vikings=" << vikings.size() << std::endl;
-    std::cout << "TOTAL n_vikings=" << vikings_count << std::endl;
-    
+    // std::cout << "      n_vikings=" << vikings.size() << std::endl;
+    // std::cout << "TOTAL n_vikings=" << vikings_count << std::endl;
+
     const sc2::Units& fusion_cores = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
     const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
