@@ -186,14 +186,14 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 }
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
-    static int mineral_fields_destoryed;
+    static int mineral_fields_destroyed;
 
-    ++mineral_fields_destoryed;
-    std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-    if (mineral_fields_destoryed % 10) {
+    ++mineral_fields_destroyed;
+    // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+    if (mineral_fields_destroyed % 10 == 0 && mineral_fields_destroyed > 0) {
        HandleExpansion(true);
     }
-    std::cout << "Minerals destroyed" << std::endl;
+    // std::cout << "Minerals destroyed" << std::endl;
     
     // send marines to attack intruders
    
