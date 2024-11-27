@@ -256,6 +256,10 @@ void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit& fusion_core) {
 * - otherwise, train a medivac (air unit that heals other units)
 */
 void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
+    // do nothing if starport isnt built
+    if (starport.build_progress < 1) {
+        return;
+    }
     const sc2::ObservationInterface* observation = Observation();
     const uint32_t& minerals = observation->GetMinerals();
     const uint32_t& gas = observation->GetVespene();
@@ -276,6 +280,19 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         })
     );
 
+    size_t vikings_count = CountUnitTotal(observation, {
+            sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, 
+            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
+        }, {sc2::UNIT_TYPEID::TERRAN_STARPORT, 
+            sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB, 
+            sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR,
+            sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING
+        }, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER
+    );
+
+    std::cout << "      n_vikings=" << vikings.size() << std::endl;
+    std::cout << "TOTAL n_vikings=" << vikings_count << std::endl;
+    
     const sc2::Units& fusion_cores = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
     const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
@@ -283,6 +300,13 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     if (starport_techlabs.size() < bases.size()) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
     }
+    // build a viking!
+    if (minerals >= 100 && gas >= 75 && vikings_count < MIN_VIKINGS) {
+        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
+
+        return;
+    }
+
     // build a medivac!
     if (minerals >= 100 && gas >= 75 && (medivacs.size() < 2 || Observation()->GetFoodUsed() < 100)) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
@@ -291,7 +315,7 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     }
 
     // build a viking!
-    if (minerals >= 100 && gas >= 75 && vikings.size() < MIN_VIKINGS) {
+    if (minerals >= 100 && gas >= 75 && vikings.size() < GOAL_VIKINGS) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
 
         return;

@@ -114,7 +114,8 @@ private:
 	const size_t min_minerals_for_units = 300; // do not dip below this minearl count when training units
 
 	const size_t MIN_MARINE = 20; // per base
-	const size_t MIN_VIKINGS = 5; // per base
+	const size_t MIN_VIKINGS = 2; // total
+	const size_t GOAL_VIKINGS = 10; // total
 	// structure goals
 	// per base
 	const size_t N_BARRACKS = 2;
