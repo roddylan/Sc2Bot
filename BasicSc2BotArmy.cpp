@@ -389,6 +389,8 @@ void BasicSc2Bot::BuildArmy() {
 
     size_t banshee_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE)).size();
 
-    
+
+    // TODO: finish
+    // if (bases.size() == 1)
     
 }
