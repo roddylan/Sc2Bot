@@ -24,7 +24,12 @@
  */
 bool BasicSc2Bot::TryScoutingForAttack(const sc2::Unit *unit_to_scout, bool refill_enemy_locations) {
     static std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
-
+    static int times_called;
+    if (times_called % 4 == 0) {
+        unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
+    }
+    ++times_called;
+    
     if (unexplored_enemy_starting_locations.empty()) {
         unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     }
