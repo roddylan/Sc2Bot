@@ -86,14 +86,14 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
         }
 
         if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-            std::cout << "refinery assignment\n";
+            // std::cout << "refinery assignment\n";
             // sc2::Point2D point = FindNearestRefinery(unit->pos);
             
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
-            std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
+            // std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
             return;
         }
-        std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
+        // std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
 
     }
 
@@ -168,7 +168,7 @@ void BasicSc2Bot::AssignWorkers() {
         sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV)
     );
     
-    std::cout << "bases size: " << bases.size() << std::endl;
+    // std::cout << "bases size: " << bases.size() << std::endl;
 
     // no bases
     if (bases.empty()) {
