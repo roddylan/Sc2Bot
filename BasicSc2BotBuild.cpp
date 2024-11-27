@@ -507,7 +507,7 @@ void BasicSc2Bot::HandleBuild() {
     
 
     // build factory
-    if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
+    if (!barracks.empty() && factory.size() < (N_FACTORY * bases.size())) {
         if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST && n_minerals - FACTORY_MINERAL_COST >= 400) {
             //std::cout << "building factory\n\n";
             TryBuildFactory();
