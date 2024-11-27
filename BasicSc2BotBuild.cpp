@@ -230,9 +230,12 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
         return false;
     }
     */
-    if (observation->GetMinerals() < 100) {
+    if (observation->GetMinerals() < 100 && (n_supply_depots + n_lower_supply_depots <= 5)) {
+        return false;
+    } else if (observation->GetMinerals() < 400) {
         return false;
     }
+    
 
     bool check;
 
@@ -496,14 +499,30 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
     sc2::Units refineries = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
     
-    // TODO: handle when multiple gas geysers possible
-    if (refineries.size() < bases.size() * 2) {
-        TryBuildRefinery();
-    }
-    
     // build barracks
     if (barracks.size() < N_BARRACKS * bases.size()) {
         TryBuildBarracks();
+    }
+
+    // build engg bay for missile turret
+    // TODO: improve count
+    // Only need 2 engineering bays
+    if (engg_bays.empty()) {
+        if (n_minerals > ENGG_COST) {
+            //std::cout << "building engg bay\n\n";
+            if (!TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY)) {
+                std::cout << "failed to build engg\n";
+                return;
+            }
+        } else {
+            std::cout << "failed to build engg\n";
+            return;
+        }
+    }
+    
+    // TODO: handle when multiple gas geysers possible
+    if (refineries.size() < bases.size() * 2) {
+        TryBuildRefinery();
     }
 
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
@@ -574,21 +593,11 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
 
-    // build engg bay for missile turret
-    // TODO: improve count
-    // Only need 2 engineering bays
-    // if (engg_bays.size() < N_ENGG_TOTAL) {
-    //     if (n_minerals > ENGG_COST) {
-    //         //std::cout << "building engg bay\n\n";
-    //         TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
-    //     }
-    // }
-
-    // if (!engg_bays.empty() && missile_turrets.size() < N_MISSILE_P1) {
-    //     std::cout << "build turret\n";
-    //     TryBuildMissileTurret();
-    //     std::cout << "n_missile=" << missile_turrets.size() << std::endl;
-    // }
+    if (!engg_bays.empty() && missile_turrets.size() < N_MISSILE_P1) {
+        std::cout << "build turret\n";
+        TryBuildMissileTurret();
+        std::cout << "n_missile=" << missile_turrets.size() << std::endl;
+    }
 
     // build a starport
     if (factory.size() > 0 && starports.size() < N_STARPORT * bases.size()) {
@@ -597,7 +606,8 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2) { // || missile_turrets.size() < N_MISSILE_P1
+    // if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2 || missile_turrets.size() < N_MISSILE_P1) {
+    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2) {
        // HandleExpansion(true);
         return;
     }
