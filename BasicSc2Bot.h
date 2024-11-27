@@ -132,6 +132,7 @@ private:
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
 	sc2::Point2D *enemy_starting_location;
 	bool TryScouting(const sc2::Unit&);
+	bool TryScoutingForAttack(const sc2::Unit* unit_to_scout, bool refill_enemy_locations);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
 	void AssignBarrackAction(const sc2::Unit& barrack);

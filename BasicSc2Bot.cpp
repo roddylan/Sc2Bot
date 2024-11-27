@@ -42,7 +42,18 @@ void BasicSc2Bot::OnStep() {
     if (obs->GetGameLoop() % skip_frame) {
         return;
     }
-
+    sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
+        sc2::UNIT_TYPEID::TERRAN_SCV
+        ));
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
+        sc2::UNIT_TYPEID::TERRAN_MARINE
+    ));
+    if (marines.size() > 10) {
+        if (scvs[0]->orders.empty()) {
+            TryScoutingForAttack(scvs[0], false);
+        }
+        
+    }
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
     
@@ -85,12 +96,13 @@ void BasicSc2Bot::OnStep() {
     // if (TryBuildMissileTurret()) {
     //     return;
     // }
-    if (TryBuildSupplyDepot()) {
+    if (obs->GetMinerals() - 100 >= 400 || obs->GetFoodUsed() - obs->GetFoodCap() < 30) {
+        TryBuildSupplyDepot();
         return;
-    }
-    if (TryBuildRefinery()) {
-        return;
-    }
+    }    
+    TryBuildRefinery();
+    
+
     return;
 }
 
@@ -137,11 +149,6 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 
     }
     case sc2::UNIT_TYPEID::TERRAN_BANSHEE: {
-        const sc2::Unit* injured_marine = FindInjuredMarine();
-        if (injured_marine) {
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
-            return;
-        }
         sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
         if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
@@ -180,22 +187,23 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     static int mineral_fields_destoryed;
-    if (unit->mineral_contents == 0) {
-        ++mineral_fields_destoryed;
-        std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-        if (mineral_fields_destoryed % 5) {
-            HandleExpansion(true);
-        }
-        std::cout << "Minerals destroyed" << std::endl;
+
+    ++mineral_fields_destoryed;
+    std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+    if (mineral_fields_destoryed % 10) {
+       HandleExpansion(true);
     }
-    // send marines to attack intruders
+    std::cout << "Minerals destroyed" << std::endl;
     
+    // send marines to attack intruders
+   
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE) {
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
 
         /*
         for (const auto& marine : marines) {
@@ -203,16 +211,21 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         }
         */
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-        Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
-        Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-        sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
-        Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-        Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
-        Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-        sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
-        Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        if (marines.size() + marauders.size()  + banshees.size() > 15) {
+            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+            Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
+            Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+            Actions()->UnitCommand(tanks, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+            Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+                    
+        }
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {
@@ -220,6 +233,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             ++sent_medivacs;
             if (sent_medivacs % 2) break;
         }
+
     }
     
    
