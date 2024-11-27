@@ -493,7 +493,7 @@ void BasicSc2Bot::HandleBuild() {
             sc2::Units orbital_commands = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
 
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
-            // size_t orbital_threshold = 2;
+            size_t orbital_threshold = 2;
 
             if (n_minerals > ORBITAL_COMMAND_COST) {
                 // if (orbital_commands.size() >= (bases.size() / 2)) {
