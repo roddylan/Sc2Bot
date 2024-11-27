@@ -56,7 +56,7 @@ void BasicSc2Bot::OnStep() {
         sc2::UNIT_TYPEID::TERRAN_MARINE
     ));
     if (marines.size() > 10) {
-        if (scvs[0]->orders.empty()) {
+        if (!scvs.empty() && scvs[0]->orders.empty()) {
             TryScoutingForAttack(scvs[0], false);
         }
         
