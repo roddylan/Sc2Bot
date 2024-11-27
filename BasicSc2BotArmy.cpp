@@ -223,6 +223,7 @@ void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit& fusion_core) {
 
     return;
 }
+
 /*
 * Gives the Starport an action
 * - builds a reactor if it does not have it
@@ -269,14 +270,15 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
             
         }
     }
-    static int viking;
-    if (viking == 1) {
+
+    const sc2::Units vikings = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
+    if (vikings.size() < 3) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
-        viking = 0;
+
     }
     else {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
-        viking = 1;
+
     }
 
     

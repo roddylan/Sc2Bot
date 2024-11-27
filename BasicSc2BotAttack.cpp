@@ -120,7 +120,19 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
     if (obs->GetMinerals() < std::min<size_t>(bases.size() * 600, 1800)) {
         return false;
     }
-    expand:
+expand:
+    int64_t game_loop = Observation()->GetGameLoop();
+
+    
+    const int64_t ten_minutes_in_loops = 13440;
+    // if less than 10 min mark dont create more than 3 bases
+    if (game_loop < ten_minutes_in_loops && bases.size() > 1) {
+        return false;
+    }
+    const int64_t fifteen_minutes_in_loops = 20160;
+    if (game_loop < fifteen_minutes_in_loops && bases.size() > 3) {
+        return false;
+    }
     float min_dist = std::numeric_limits<float>::max();
     sc2::Point3D closest_expansion(0, 0, 0);
 

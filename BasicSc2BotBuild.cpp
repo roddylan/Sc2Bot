@@ -533,6 +533,9 @@ void BasicSc2Bot::HandleBuild() {
         **PHASE ONE DONE**
         
     */
+    if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
+        TryBuildArmory();
+    }
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
             if (starport->add_on_tag != NULL) {
@@ -556,9 +559,7 @@ void BasicSc2Bot::HandleBuild() {
         
     }
     */
-    if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
-        TryBuildArmory();
-    }
+    
     /*
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
@@ -568,9 +569,11 @@ void BasicSc2Bot::HandleBuild() {
     if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion(false);
     }
+    /*
     if (barracks.size() >= bases.size()) {
         HandleExpansion(true);
     }
+    */
     // build barracks
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
