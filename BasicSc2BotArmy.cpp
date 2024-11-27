@@ -291,7 +291,7 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     }
 
     // build a viking!
-    if (minerals >= 100 && gas >= 75 && vikings.size() < 5) {
+    if (minerals >= 100 && gas >= 75 && vikings.size() < MIN_VIKINGS) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
 
         return;
