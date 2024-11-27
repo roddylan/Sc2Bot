@@ -133,11 +133,15 @@ expand:
     if (game_loop < twenty_minutes_in_loops && bases.size() > 3) {
         return false;
     }
-    const int64_t thirty_minutes_in_loops = 40320;
-    if (game_loop < thirty_minutes_in_loops && bases.size() > 3) {
+    const int64_t twenty_five_minutes_in_loops = 33600;
+    if (game_loop < twenty_five_minutes_in_loops && bases.size() > 4) {
         return false;
     }
-
+    
+    const int64_t thirty_minutes_in_loops = 40, 320;
+    if (game_loop < thirty_minutes_in_loops && bases.size() > 5) {
+        return false;
+    }
     float min_dist = std::numeric_limits<float>::max();
     sc2::Point3D closest_expansion(0, 0, 0);
 
