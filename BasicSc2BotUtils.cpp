@@ -481,7 +481,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestWorker(const sc2::Point2D& pos, bool is
  * @param ability 
  * @return size_t 
  */
-size_t CountUnitTotal(const sc2::ObservationInterface *obs,
+size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
                       sc2::UNIT_TYPEID unit_type, sc2::UNIT_TYPEID prod_unit,
                       sc2::ABILITY_ID ability) {
     // count existing
@@ -508,9 +508,9 @@ size_t CountUnitTotal(const sc2::ObservationInterface *obs,
 
 
 
-size_t CountUnitTotal(const sc2::ObservationInterface *obs,
-                      std::vector<sc2::UNIT_TYPEID> unit_type,
-                      std::vector<sc2::UNIT_TYPEID> prod_unit,
+size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
+                      const std::vector<sc2::UNIT_TYPEID> &unit_type,
+                      const std::vector<sc2::UNIT_TYPEID> &prod_unit,
                       sc2::ABILITY_ID ability) {
     // count existing
     size_t existing = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(unit_type)).size();
