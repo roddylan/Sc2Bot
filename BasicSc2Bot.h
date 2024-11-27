@@ -93,13 +93,14 @@ private:
 	// const size_t n_workers = 20; // workers per base goal amnt
 	// const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 2; // goal no. mules per base
-	const size_t n_marines = 8; // per base
+	const size_t N_MARINES = 16; // per base
 	const size_t n_marauders = 5; // per base
 	
 	const size_t N_ARMY_THRESHOLD = 30; // 200 - workers - threshold -> attack; allow bot to keep making units while attacking
 	const size_t N_TOTAL_WORKERS = 70; // max no. of workers
 	const size_t min_minerals_for_units = 300; // do not dip below this minearl count when training units
 
+	const size_t MIN_MARINE = 20; // per base
 	// structure goals
 	// per base
 	const size_t N_BARRACKS = 2;
