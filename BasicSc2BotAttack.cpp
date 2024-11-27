@@ -358,7 +358,8 @@ void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemie
     }
 
     // attack enemy
-    Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+    // Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+    Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front());
 }
 
 
@@ -461,10 +462,7 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
         return;
     }
 
-    const sc2::ObservationInterface *obs = Observation();
-
-    const float AIR_RANGE = 9;
-    const float GROUND_RANGE = 6;
+    // const sc2::ObservationInterface *obs = Observation();
 
     // track viking units
     sc2::Units vikings{};
@@ -480,17 +478,72 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
     if (vikings.empty()) {
         return;
     }
+    
+    // range constants
+    const float AIR_RANGE = 9;
+    const float GROUND_RANGE = 6;
 
     // prioritize attacking air enemies
     sc2::Units air_enemies{};
     sc2::Units ground_enemies{};
 
-    // most dangerous units
-    sc2::Unit target_air;
-    sc2::Unit target_ground;
+    // action interface
+    sc2::ActionInterface *act = Actions();
 
-    // track danger ratios
-    float max_danger_air{}, max_danger_ground{};
+    
+    // float max_danger_ground{};
+
+    /*
+    // find closest
+        float min_dist = std::numeric_limits<float>::max();
+ 
+        for (const auto &enemy : enemies) {
+            float dist = sc2::Distance2D(tank->pos, enemy->pos);
+            if (dist < min_dist) {
+                min_dist = dist;
+            }
+        }
+    
+    */
+    for (const auto &enemy : enemies) {
+        if (enemy->is_flying) {
+            air_enemies.push_back(enemy);
+        } else {
+            ground_enemies.push_back(enemy);
+        }
+    }
+    for (const auto &viking : vikings) {
+        // most dangerous units
+        const sc2::Unit *target_air = nullptr;
+        const sc2::Unit *target_ground = nullptr;
+        
+        // track danger ratios
+        float max_danger_air{};
+        float min_dist{};
+
+        for (const auto &enemy : air_enemies) {
+            // handle flying enemies
+            float dist = sc2::Distance2D(viking->pos, enemy->pos);
+            
+            // not in range
+            if (dist > AIR_RANGE) {
+                continue;
+            }
+
+            float hp = enemy->health + enemy->shield;
+            float cur_ratio = hp / dist;
+
+            if (cur_ratio > max_danger_air) {
+                max_danger_air = cur_ratio;
+                target_air = enemy;
+            }
+        }
+        // if attackable air unit
+        if (target_air != nullptr) {
+            act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGFIGHTERMODE);
+            act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
+        }
+    }
 
 
 }
