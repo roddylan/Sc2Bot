@@ -314,16 +314,16 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     float x_min = 0, x_max = 0;
     float y_min = 0, y_max = 0;
     float x_offset = 0, y_offset = 0;
-    static std::map<std::pair<int32_t,int32_t>, LastSuccessfulSearchValues, FlooredStartingPointLt> result_cache;
+    // static std::map<std::pair<int32_t,int32_t>, LastSuccessfulSearchValues, FlooredStartingPointLt> result_cache;
     std::pair<int32_t, int32_t> floored_starting_point = {std::floor(starting_point.x), std::floor(starting_point.y) };
-    if (result_cache.find(floored_starting_point) != result_cache.end()) {
-        const LastSuccessfulSearchValues& values = result_cache[floored_starting_point];
-        x_min = values.x_min;
-        x_max = values.x_max;
-        y_min = values.y_min;
-        x_offset = values.x_offset;
-        y_offset = values.y_offset;
-    }
+    // if (result_cache.find(floored_starting_point) != result_cache.end()) {
+    //     const LastSuccessfulSearchValues& values = result_cache[floored_starting_point];
+    //     x_min = values.x_min;
+    //     x_max = values.x_max;
+    //     y_min = values.y_min;
+    //     x_offset = values.x_offset;
+    //     y_offset = values.y_offset;
+    // }
     enum Direction { UP = 0, RIGHT = 1, DOWN = 2, LEFT = 3 };
     Direction current_direction = UP;  // 0 for up, 1 for right, 2 for down, 3 for left
     /*
@@ -455,13 +455,14 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         if (!is_expansion_location) {
             pos_to_place_at = current_position;
             done_searching = true;
+            return pos_to_place_at;
         }
         if (loop_count > 250) {
             std::cout << "loop count=" << loop_count << std::endl;
         }
     }
 
-    result_cache[floored_starting_point] = { x_min, x_max, y_min, y_max, x_offset, y_offset };
+    // result_cache[floored_starting_point] = { x_min, x_max, y_min, y_max, x_offset, y_offset };
 
     return pos_to_place_at;
 }
