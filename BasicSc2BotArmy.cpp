@@ -361,5 +361,34 @@ void BasicSc2Bot::BuildArmy() {
     
     sc2::Units bunkers = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     
+
+    // UNIT COUNTS
     // TODO: finish
+    // TODO: use CountUnitTotal
+
+    size_t marine_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE)).size();
+    size_t marauder_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER)).size();
+    
+    size_t tank_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
+    })).size();
+    
+    size_t thor_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_THOR, sc2::UNIT_TYPEID::TERRAN_THORAP
+    })).size();
+    
+    size_t viking_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
+    })).size();
+
+    size_t medivac_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC)).size();
+
+    size_t liberator_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_LIBERATOR, sc2::UNIT_TYPEID::TERRAN_LIBERATORAG
+    })).size();
+
+    size_t banshee_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE)).size();
+
+    
+    
 }
