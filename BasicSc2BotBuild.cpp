@@ -8,6 +8,7 @@
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
 #include <sc2api/sc2_common.h>
+#include <sc2api/sc2_gametypes.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
@@ -593,7 +594,7 @@ void BasicSc2Bot::HandleBuild() {
     }
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
-            if (starport->add_on_tag != 0) {
+            if (starport->add_on_tag != 0LL) {
                 // Get the add-on unit using its tag
                 const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
                 if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB && 
