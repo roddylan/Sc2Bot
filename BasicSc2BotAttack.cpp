@@ -179,7 +179,6 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
 
         if (TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER, p, expansion_location)) {
             base_location = closest_expansion; // set base to closest expansion
-            std::cout << "EXPANSION TIME BABY\n\n";
         }
     }
 
