@@ -7,6 +7,7 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
+#include <limits>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
@@ -126,6 +127,32 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
         return sc2::Point2D(0, 0);
     }
 }
+
+const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
+
+    sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    float distance = std::numeric_limits<float>::max();
+    const sc2::Unit* target = nullptr;
+
+    for (const auto& refinery : refineries) {
+
+        float d = sc2::DistanceSquared2D(refinery->pos, start);
+        if (d < distance) {
+            distance = d;
+            target = refinery;
+        }
+        
+    }
+
+    if (target != nullptr) {
+        return target->pos;
+    }
+    else {
+        return sc2::Point2D(0, 0);
+    }
+}
+
+
 // checks that marine is nearby atleast size other marines
 int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines) {
     int num_nearby_marines = 0;
@@ -320,7 +347,22 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 }
                 // we found a valid position to place at, don't iterate again
                 found_pos_to_place_at = true;
-                pos_to_place_at = current_pos;
+                // TODO: Find a way to speed this up
+                // ensures we dont build at expansion location
+                bool is_expansion_location = false;
+                for (const auto& expansion_location : expansion_locations) {
+                    float distance = std::sqrt(std::pow(expansion_location.x - current_pos.x, 2) +
+                        std::pow(expansion_location.y - current_pos.y, 2));
+                    if (distance <= 10.f) {
+                        is_expansion_location = true;
+                        break;
+                    }
+                }
+
+                if (!is_expansion_location) {
+                    pos_to_place_at = current_pos;
+                }
+                
             }
         }
         // increase the search space
@@ -329,7 +371,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         y_lo -= y_step;
         x_hi += y_step;
         
-        if (loop_count++ > 10) {
+        if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
             return sc2::Point2D(0, 0);
             /*
@@ -361,4 +403,56 @@ bool BasicSc2Bot::EnemyNearBase(const sc2::Unit *base) {
         }
     }
     return false;
+}
+
+/**
+ * @brief Find nearest worker
+ * 
+ * @param pos position to search from
+ * @param is_busy allow selecting busy workers
+ * @param mineral allow selecting workers holding minerals (use if implement mineral walk)
+ * @return const sc2::Unit* 
+ */
+const sc2::Unit* BasicSc2Bot::FindNearestWorker(const sc2::Point2D& pos, bool is_busy, bool mineral) {
+    const sc2::ObservationInterface *obs = Observation();
+    
+    sc2::Units workers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+    if (workers.empty()) {
+        return nullptr;
+    }
+
+    float min_dist = std::numeric_limits<float>::max();
+
+    const sc2::Unit *res = nullptr;
+    for (auto &scv : workers) {
+        // if worker busy
+        if (!scv->orders.empty() && !is_busy) {
+            continue;
+        }
+
+        bool carrying_mineral = false;
+        for (const auto &buff : scv->buffs) {
+            // if scv carrying minerals or gas
+            if (buff == sc2::BUFF_ID::CARRYHARVESTABLEVESPENEGEYSERGAS ||
+                buff == sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS ||
+                buff == sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
+                
+                carrying_mineral = true;
+                break;
+            } 
+        }
+
+        if (carrying_mineral && !mineral) {
+            continue;
+        }
+
+        float dist = sc2::Distance2D(scv->pos, pos);
+
+        if (dist < min_dist) {
+            min_dist = dist;
+            res = scv;
+        }
+    }
+
+    return res;
 }

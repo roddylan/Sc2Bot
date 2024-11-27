@@ -2,6 +2,8 @@
 #include <iostream>
 #include <cmath>
 #include "Betweenness.h"
+#include <unordered_map>
+#include <functional>
 
 
 std::string GetStringFromRace(const sc2::Race RaceIn)
@@ -34,6 +36,7 @@ int GetDataValueBit(sc2::ImageData data, int x, int y)
     return bit == 0 ? 0 : 1;
 }
 
+// prints map with a singular marker
 void PrintMap(sc2::ImageData data, sc2::Point2DI marker) {
     for (int y = data.height - 1; y > -1; --y) { // print starting at top of y level
         for (int x = 0; x < data.width; ++x) {
@@ -48,6 +51,7 @@ void PrintMap(sc2::ImageData data, sc2::Point2DI marker) {
     }
 }
 
+// prints map without any markers
 void PrintMap(sc2::ImageData data) {
     for (int y = data.height - 1; y > -1; --y) { // print starting at top of y level
         for (int x = 0; x < data.width; ++x) {
@@ -57,10 +61,32 @@ void PrintMap(sc2::ImageData data) {
     }
 }
 
+// prints map with multiple markers
+void PrintMap(sc2::ImageData data, std::vector<sc2::Point2DI> markers) {
+    for (int y = data.height - 1; y > -1; --y) { // print starting at top of y level
+		for (int x = 0; x < data.width; ++x) {
+			bool found = false;
+			for (sc2::Point2DI marker : markers) {
+				if (marker.x == x && marker.y == y) {
+					std::cout << "X";
+					found = true;
+                    break;
+				}
+                
+			}
+            if (!found) {
+                std::cout << (GetDataValueBit(data, x, y) == 1 ? " " : "0");
+            }
+        }
+        std::cout << std::endl;
+    }
+}
+
 IsUnit::IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
 bool IsUnit::operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
 
 
+// segments the map into a chunk of the desired size (using bitmaps from the imagedata)
 sc2::ImageData GetMapChunk(sc2::ImageData data, sc2::Point2DI lower_left, sc2::Point2DI top_right) {
     // Validate the input bounds
     if (lower_left.x < 0) {
@@ -113,27 +139,87 @@ sc2::ImageData GetMapChunk(sc2::ImageData data, sc2::Point2DI lower_left, sc2::P
     return chunk;
 }
 
-sc2::Point2DI FindPinchPointAroundPoint(sc2::ImageData data, sc2::Point2DI point, int num_chunks, int stride) {
-	// num_chunks: number of chunks to divide the map section into
-	// stride: size of each chunk
-	// has an overlap of stride/2
-	// explores a total of (num_chunks-1)/2 chunks in each direction from the provided point
-    double best_betweenness = 0;
-    sc2::Point2DI center = sc2::Point2DI(192 / 2, 192 / 2);
-    point = sc2::Point2DI(point.x + round((center.x - point.x) / 5) - stride * ((num_chunks - 1) / 2), point.y + round((center.y - point.y) / 5) - stride * ((num_chunks - 1) / 2));
-    sc2::Point2DI best_point = sc2::Point2DI(0, 0);
+// hash function for std::tuple<int, int>
+namespace std {
+    template <>
+    struct hash<std::tuple<int, int>> {
+        size_t operator()(const std::tuple<int, int>& t) const {
+            // Combine the hashes of the two integers using XOR and bit shifts
+            size_t h1 = hash<int>()(std::get<0>(t));
+            size_t h2 = hash<int>()(std::get<1>(t));
+            return h1 ^ (h2 << 1);  // Combine the two hashes
+        }
+    };
+}
+
+// returns a list of 50 pinch points on the map
+std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch_points, int num_chunks, int stride) {
+	// creates a square of num_chunks^2, with each chunk of size stride
+    // does half strides resulting in (num_chunks * 2) - 1 chunk computations per dimension
+	// (num_chunks * 2 - 1)^2 total chunks are computed (just like doing convolutions)
+	// returns an array of num_pinch_points pinch points
+
+    int min_dist_between_points = 10;  // Minimum distance between pinch points
+    std::unordered_map<std::tuple<int, int>, double> point_betweenness_map;
+
+    // Iterate over chunks
     for (int chunk_y = 0; chunk_y < num_chunks; ++chunk_y) {
         for (int chunk_x = 0; chunk_x < num_chunks; ++chunk_x) {
-            int grid_x = (chunk_x * stride / 2) + point.x;
-            int grid_y = (chunk_y * stride / 2) + point.y;
-            sc2::ImageData chunk_data = GetMapChunk(data, sc2::Point2DI(grid_x, grid_y), sc2::Point2DI(grid_x + stride, grid_y + stride));
-            std::tuple<sc2::Point2DI, double> tup = calculateBetweenness(chunk_data);
-            if (std::get<1>(tup) > best_betweenness) {
-                best_betweenness = std::get<1>(tup);
-                best_point = sc2::Point2D((std::get<0>(tup).x + grid_x), (std::get<0>(tup).y + grid_y));
+            for (int divider = 0; divider < 2; ++divider) {
+                int grid_x = (chunk_x * stride) + (divider * stride);
+                int grid_y = (chunk_y * stride) + (divider * stride);
+
+				if (grid_x + stride > data.width || grid_y + stride > data.height) {
+					continue; // Skip if the chunk is out of bounds
+				}
+
+                // Get chunk data
+                sc2::ImageData chunk_data = GetMapChunk(data, sc2::Point2DI(grid_x, grid_y), sc2::Point2DI(grid_x + stride, grid_y + stride));
+                std::vector<std::pair<sc2::Point2DI, double>> betweennessList = getBetweennessList(chunk_data);
+
+                // Accumulate betweenness scores
+                for (const auto& in_list : betweennessList) {
+                    int new_x = in_list.first.x + grid_x;
+                    int new_y = in_list.first.y + grid_y;
+                    auto point_key = std::make_tuple(new_x, new_y);
+                    point_betweenness_map[point_key] += in_list.second; // accumulate betweenness
+                }
             }
         }
     }
-	return best_point;
-}
 
+    // Convert map to vector for sorting
+    std::vector<std::pair<sc2::Point2DI, double>> all_points;
+    all_points.reserve(point_betweenness_map.size());  // reserve memory
+    for (const auto& entry : point_betweenness_map) {
+        all_points.emplace_back(sc2::Point2DI(std::get<0>(entry.first), std::get<1>(entry.first)), entry.second);
+    }
+
+    // Sort points by betweenness (descending)
+    std::partial_sort(all_points.begin(), all_points.begin() + std::min(num_pinch_points*500, (int)all_points.size()), all_points.end(),
+        [](const std::pair<sc2::Point2DI, double>& a, const std::pair<sc2::Point2DI, double>& b) {
+            return a.second > b.second;
+        });
+
+    // Select top points based on distance criteria
+    std::vector<sc2::Point2DI> best_points;
+    best_points.reserve(num_pinch_points);  // reserve memory for best points
+    for (const auto& all_point : all_points) {
+        bool rejected = false;
+		// makes sure that points are at least min_dist_between_points apart in both x and y
+		// to prevent clumps of points all together
+        for (const sc2::Point2DI& best_point : best_points) {
+            if (std::abs(best_point.x - all_point.first.x) < min_dist_between_points && std::abs(best_point.y - all_point.first.y) < min_dist_between_points) {
+                rejected = true;
+                break;
+            }
+        }
+        if (!rejected) {
+            best_points.push_back(all_point.first);
+            if (best_points.size() >= num_pinch_points) {
+                break;
+            }
+        }
+    }
+    return best_points;
+}

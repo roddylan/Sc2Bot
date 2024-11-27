@@ -34,7 +34,7 @@ void BasicSc2Bot::BuildWorkers() {
                 // if we find a nearby mineral patch
                 if (mineral_target) {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE, mineral_target);
-                    std::cout << "n_mules =" << CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) << std::endl;
+                   // std::cout << "n_mules =" << CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) << std::endl;
                 }
             }
             // else if (base->energy > 75) {
@@ -46,6 +46,10 @@ void BasicSc2Bot::BuildWorkers() {
         }
     }
 
+    // dont build too many workers
+    if (obs->GetFoodWorkers() > N_TOTAL_WORKERS) {
+        return;
+    }
     for (const auto &base : bases) {
         // build SCV
         // TODO: maybe just use ideal_harvesters (max)
@@ -63,12 +67,13 @@ void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
     const sc2::Units refineries = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
     const sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Unit* mineral_target;
-    std::cout << "bases size: " << bases.size() << std::endl;
+   // std::cout << "bases size: " << bases.size() << std::endl;
 
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
         for (const auto &refinery : refineries) {
             if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-                 std::cout << "refinery assignmenty\n";
+               //  std::cout << "refinery assignmenty\n";
+                 sc2::Point2D point = FindNearestRefinery(unit->pos);
                 Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
             }
             std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
