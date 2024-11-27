@@ -559,8 +559,6 @@ void BasicSc2Bot::HandleBuild() {
                 HandleExpansion(true);
             }
         }
-
-       
     }
     // build a starport
     if (factory.size() > 0 && starports.size() < N_STARPORT * bases.size()) {
@@ -569,7 +567,7 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 || tanks.size() < 3) {
+    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2) {
        // HandleExpansion(true);
         return;
     }

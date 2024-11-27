@@ -310,10 +310,16 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
             
         }
     }
-    if (liberators.size() > 0) {
+    static int viking;
+    if (viking == 1) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
+        viking = 0;
     }
-    Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
+    else {
+        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
+        viking = 1;
+    }
+
     
 
     
