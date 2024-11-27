@@ -249,7 +249,7 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
     }
     // build a medivac!
-    if (minerals >= 100 && gas >= 75 && medivacs.size() < 3 && Observation()->GetFoodUsed() < 100) {
+    if (minerals >= 100 && gas >= 75 && (medivacs.size() < 3 || Observation()->GetFoodUsed() < 100)) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
 
         return;
