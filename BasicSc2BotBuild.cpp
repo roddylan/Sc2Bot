@@ -461,7 +461,11 @@ void BasicSc2Bot::HandleBuild() {
     
     sc2::Units marines = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
-
+    sc2::Units refineries = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    if (refineries.size() < bases.size() * 2) {
+        TryBuildRefinery();
+    }
+    
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
     }
@@ -489,7 +493,7 @@ void BasicSc2Bot::HandleBuild() {
 
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (obs->GetMinerals() - 150 >= 400) {
-                if (orbital_commands.size() >= (bases.size() / 2)) {
+                if (orbital_commands.size() >= (bases.size() / 3)) {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
                 }
                 else {
@@ -575,6 +579,7 @@ void BasicSc2Bot::HandleBuild() {
     }
     */
     // build barracks
+    /*
     if (barracks.size() < n_barracks_target * bases.size()) {
         for (const auto &base : bases) {
             
@@ -587,6 +592,7 @@ void BasicSc2Bot::HandleBuild() {
             // }
         }
     }
+    */
     /*
     if (bunkers.size() < n_bunkers_target * bases.size() && n_minerals >= BUNKER_COST) {
         TryBuildBunker();
@@ -631,8 +637,10 @@ void BasicSc2Bot::HandleBuild() {
   //  TryBuildSiegeTank();
 
     TryBuildMissileTurret();
+    if (obs->GetVespene() - 150 >= 200) {
+        TryBuildThor();
+    }
     
-    TryBuildThor();
     // build refinery
     
 

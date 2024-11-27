@@ -33,6 +33,7 @@ public:
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
 	virtual bool TryBuildSiegeTank();
+	virtual void CheckRefineries();
 	virtual bool TryBuildSiegeTank(const sc2::Unit* factory);
 	virtual bool BuildRefinery();
 	virtual bool TryBuildFactory();

@@ -63,6 +63,9 @@ void BasicSc2Bot::BuildWorkers() {
 }
 
 void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
+    if (!unit->orders.empty()) {
+        return;
+    }
     const sc2::ObservationInterface *obs = Observation();
     const sc2::Units refineries = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
     const sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
@@ -74,9 +77,11 @@ void BasicSc2Bot::AssignWorkers(const sc2::Unit *unit) {
             if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
                //  std::cout << "refinery assignmenty\n";
                  sc2::Point2D point = FindNearestRefinery(unit->pos);
-                Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
+                
+                Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER_SCV, refinery);
+                
             }
-            std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
+           // std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
         }
 
         for (const auto &base : bases) {
