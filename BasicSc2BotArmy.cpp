@@ -25,6 +25,17 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     const uint32_t& gas_count = observation->GetVespene();
    
 
+    // prioritize getting some marines before continuing
+    if (
+        marines.size() < MIN_MARINE &&
+        mineral_count >= 50 && 
+        // mineral_count + 50 > this->min_minerals_for_units && 
+        observation->GetFoodUsed() < (observation->GetFoodCap() - 10)
+    ) {
+        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
+        return;
+    }
+
     /*
     * The addon for the barrack, either a tech lab or a reactor or none
     * - if there is no addon, we should make one
