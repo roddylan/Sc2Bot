@@ -32,6 +32,56 @@ void BasicSc2Bot::OnGameFullStart() {
 	return;
 }
 
+
+// This is never called
+void BasicSc2Bot::CheckRefineries() {
+    if (Observation()->GetVespene() / Observation()->GetMinerals() >= 0.6) {
+        return;
+    }
+
+    sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    if (refineries.empty()) {
+        return;
+    }
+
+    for (const auto& refinery : refineries) {
+        if (!refinery || !refinery->is_alive) {
+            continue; 
+        }
+
+        if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
+            int scvs_needed = refinery->ideal_harvesters - refinery->assigned_harvesters;
+
+            sc2::Units scvs = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+            if (scvs.empty()) {
+                return;
+            }
+
+            for (const auto& scv : scvs) {
+                if (!scv || !scv->is_alive) {
+                    continue; 
+                }
+
+                bool is_harvesting = false;
+                for (const auto& order : scv->orders) {
+                    if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
+                        is_harvesting = true;
+                        break;
+                    }
+                }
+                if (scvs_needed == 0) {
+                    break;
+                }
+
+                if (scv->orders.empty() || (is_harvesting && Observation()->GetVespene() / Observation()->GetMinerals() < 0.6)) {
+                    Actions()->UnitCommand(scv, sc2::ABILITY_ID::HARVEST_GATHER_SCV, refinery);
+                    --scvs_needed;
+                }
+            }
+        }
+    }
+}
+
 void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
     const sc2::ObservationInterface *obs = Observation();
@@ -78,7 +128,6 @@ void BasicSc2Bot::OnStep() {
 
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
-
     HandleBuild();
     
     BuildWorkers();
@@ -128,7 +177,7 @@ void BasicSc2Bot::OnStep() {
         TryBuildSupplyDepot();
         return;
     }    
-    TryBuildRefinery();
+    
     
 
     // if (!expansion_supply) {
@@ -264,6 +313,9 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
                     
         }
+
+        sc2::Units battlecruisers = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+        Actions()->UnitCommand(battlecruisers, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {
@@ -300,7 +352,6 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         if (TryScouting(*unit)) {
             break;
         }
-        // AssignWorkers(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_STARPORT: {

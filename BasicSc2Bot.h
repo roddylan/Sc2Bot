@@ -11,6 +11,7 @@
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
 #include <vector>
+#include <mutex>
 
 class BasicSc2Bot : public sc2::Agent {
 public:
@@ -81,6 +82,15 @@ public:
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
 	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	
+
+	
+	virtual void CheckRefineries();
+	// virtual void AssignWorkers(const sc2::Unit *);
+	// virtual int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
+
+	
+	
 	void LaunchAttack();
 	void BuildArmy(); // handle army build
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)

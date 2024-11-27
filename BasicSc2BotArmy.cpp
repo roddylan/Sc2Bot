@@ -249,6 +249,7 @@ void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit& fusion_core) {
 
     return;
 }
+
 /*
 * Gives the Starport an action
 * - builds a reactor if it does not have it
@@ -283,7 +284,7 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
     }
     // build a medivac!
-    if (minerals >= 100 && gas >= 75 && (medivacs.size() < 3 || Observation()->GetFoodUsed() < 100)) {
+    if (minerals >= 100 && gas >= 75 && (medivacs.size() < 2 || Observation()->GetFoodUsed() < 100)) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
 
         return;
@@ -300,25 +301,24 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
         // Get the add-on unit using its tag
         const sc2::Unit* add_on = observation->GetUnit(starport.add_on_tag);
         if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB) {
-            if (fusion_cores.size() > 1 && banshees.size() > 2) {
-                Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BATTLECRUISER);
-            }
-            if (banshees.size() < 5) {
+            if (banshees.size() < 2) {
                 Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BANSHEE);
             }
             
             
         }
     }
-    static int viking;
-    if (viking == 1) {
+
+    const sc2::Units vikings = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
+    const sc2::Units battlecruisers = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+    if (vikings.size() < 2 && battlecruisers.size() == 0) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
-        viking = 0;
+
     }
-    else {
+    else if(liberators.size() < 2 && battlecruisers.size() == 0) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
-        viking = 1;
     }
+    Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BATTLECRUISER);
 
     
 

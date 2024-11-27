@@ -492,8 +492,15 @@ void BasicSc2Bot::HandleBuild() {
     
     sc2::Units marines = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
-
-    if (barracks.size() < 2 * bases.size()) {
+    sc2::Units refineries = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    
+    // TODO: handle when multiple gas geysers possible
+    if (refineries.size() < bases.size() * 2) {
+        TryBuildRefinery();
+    }
+    
+    // build barracks
+    if (barracks.size() < N_BARRACKS * bases.size()) {
         TryBuildBarracks();
     }
 
@@ -528,7 +535,11 @@ void BasicSc2Bot::HandleBuild() {
             sc2::Units orbital_commands = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
 
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
-            size_t orbital_threshold = 2;
+            // size_t orbital_threshold = 2;
+            size_t orbital_threshold = bases.size() / 3;
+            if (orbital_threshold <= 2) {
+                orbital_threshold = 2;
+            }
 
             // if (n_minerals > ORBITAL_COMMAND_COST) {
             if (obs->GetMinerals() - ORBITAL_COMMAND_COST >= 400) {
@@ -576,6 +587,10 @@ void BasicSc2Bot::HandleBuild() {
         **PHASE ONE DONE**
         
     */
+    // build armory
+    if (armorys.size() < N_ARMORY_TOTAL && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
+        TryBuildArmory();
+    }
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
             if (starport->add_on_tag != 0) {
@@ -600,10 +615,7 @@ void BasicSc2Bot::HandleBuild() {
         
     }
     */
-    // build armory
-    if (armorys.size() < N_ARMORY_TOTAL && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
-        TryBuildArmory();
-    }
+    
 
     // // build barracks
     // if (barracks.size() < N_BARRACKS * bases.size()) {
@@ -621,17 +633,29 @@ void BasicSc2Bot::HandleBuild() {
     if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion(false);
     }
+
     // if (barracks.size() >= bases.size()) {
     //     HandleExpansion(true);
     // }
     // build barracks
-    if (barracks.size() < N_BARRACKS * bases.size()) {
+    // if (barracks.size() < N_BARRACKS * bases.size()) {
+
+    /*
+    if (barracks.size() >= bases.size()) {
+        HandleExpansion(true);
+    }
+    */
+    // build barracks
+    /*
+    if (barracks.size() < n_barracks_target * bases.size()) {
+
         for (const auto &base : bases) {
             if (n_minerals > BARRACKS_COST) {
                 TryBuildBarracks();
             }
         }
     }
+    */
     /*
     if (bunkers.size() < n_bunkers_target * bases.size() && n_minerals >= BUNKER_COST) {
         TryBuildBunker();
@@ -685,8 +709,10 @@ void BasicSc2Bot::HandleBuild() {
   //  TryBuildSiegeTank();
 
     TryBuildMissileTurret();
+    if (obs->GetVespene() - 150 >= 200) {
+        TryBuildThor();
+    }
     
-    TryBuildThor();
     // build refinery
     
 
