@@ -86,10 +86,31 @@ bool BasicSc2Bot::AttackIntruders() {
         if (enemy_near_base == nullptr) {
             continue;
         }
-
+        /*
+        * Use the stimpack, if it works on this unit and it's applicable
+        */
+        const std::vector<sc2::UpgradeID> &upgrades = observation->GetUpgrades();
+        // dependent on the order of things we research.. currently stimpacks are researched second. using std::find with UPGRADE_ID::STIMPACK does not work
+        // and the runtime value of the enum does not match when the stimpack is actually researched :(
+        const bool has_stimpack_researched = upgrades.size() > 1;  
         const sc2::Units& defending_units = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_MARINE, sc2::UNIT_TYPEID::TERRAN_MARAUDER }));
         for (const sc2::Unit* defending_unit : defending_units) {
             Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_near_base);
+            
+            if (has_stimpack_researched) {
+                const auto& buffs = defending_unit->buffs;
+                const bool has_stimpack_active = std::find(buffs.begin(), buffs.end(), sc2::BUFF_ID::STIMPACK) != buffs.end();
+                if (has_stimpack_active) {
+                    continue;
+                }
+
+                if (defending_unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE && defending_unit->health > 15) {
+                    Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::EFFECT_STIM);
+                }
+                else if (defending_unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARAUDER && defending_unit->health > 25) {
+                    Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::EFFECT_STIM);
+                }
+            }
         }
 
         // move the medivacs to the battle so that they heal the units

@@ -184,6 +184,9 @@ const sc2::Unit* BasicSc2Bot::FindInjuredMarine() {
         if (marine->health < marine->health_max) {
             sc2::Units medivacs = SortMedivacsAccordingToDistance(marine->pos);
             // medivacs[0] because first element is closest
+            if (medivacs.size() == 0) {
+                std::cout << "ABOUT TO CRASH!!!!!" << std::endl;
+            }
             if (sc2::Distance2D(medivacs[0]->pos, marine->pos) < 5.0f) {
                 continue;
             }
@@ -384,13 +387,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
 
         if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-            return sc2::Point2D(0, 0);
-            /*
-            float rand_x = sc2::GetRandomScalar() * 5.0f;
-            float rand_y = sc2::GetRandomScalar() * 5.0f;
-            return this->FindPlaceablePositionNear(starting_point + sc2::Point2D(rand_x, rand_y), ability_to_place_building);
-            */
+            return sc2::Point2D(starting_point.x + sc2::GetRandomScalar() * 10.0f, starting_point.y + sc2::GetRandomScalar() * 10.0f);
         }
 
     }
