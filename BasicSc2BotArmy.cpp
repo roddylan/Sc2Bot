@@ -319,3 +319,47 @@ void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
     TryBuildThor(factory);
     TryBuildSiegeTank(factory);
 }
+
+
+/**
+ * @brief Build army
+ * 
+ */
+void BasicSc2Bot::BuildArmy() {
+    const sc2::ObservationInterface *obs = Observation();
+
+    // BASES
+    sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+
+    // BARRACKS
+    sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING
+    }));
+    // techlab and reactor barracks
+    sc2::Units techlab_barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+    sc2::Units reactor_barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR));
+    
+    // FACTORIES
+    sc2::Units factories = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_FACTORY, 
+        sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING
+    }));
+    // techlab and reactor barracks
+    sc2::Units techlab_factories = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
+    sc2::Units reactor_factories = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR));
+
+    // STARPORTS
+    sc2::Units starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({
+        sc2::UNIT_TYPEID::TERRAN_STARPORT, 
+        sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING
+    }));
+    // techlab and reactor starports
+    sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+    sc2::Units reactor_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR));
+
+    sc2::Units engg_bays = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY));
+    
+    sc2::Units bunkers = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+    
+    // TODO: finish
+}

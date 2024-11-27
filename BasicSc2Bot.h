@@ -81,6 +81,7 @@ public:
 	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 	void LaunchAttack();
+	void BuildArmy(); // handle army build
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);

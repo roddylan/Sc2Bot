@@ -98,15 +98,6 @@ bool BasicSc2Bot::AttackIntruders() {
     
     const sc2::Units &bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER));
 
-    const sc2::Units vikings = observation->GetUnits(
-        sc2::Unit::Alliance::Self, sc2::IsUnits({
-            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER,
-            sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT
-        })
-    );
-
-    // TODO: attack all units, fix
-    VikingAttack(vikings, enemy_units);
     
     for (const sc2::Unit* base : bases) {
         const sc2::Unit* enemy_near_base = nullptr;
@@ -523,9 +514,9 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
             float dist = sc2::Distance2D(viking->pos, enemy->pos);
             
             // not in range
-            if (dist > AIR_RANGE) {
-                continue;
-            }
+            // if (dist > AIR_RANGE) {
+            //     continue;
+            // }
 
             float hp = enemy->health + enemy->shield;
             float cur_ratio = hp / dist;

@@ -59,12 +59,24 @@ void BasicSc2Bot::OnStep() {
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
         sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
     }));
+
+    const sc2::Units vikings = obs->GetUnits(
+        sc2::Unit::Alliance::Self, sc2::IsUnits({
+            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER,
+            sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT
+        })
+    );
+
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit &unit){
         return unit.display_type == sc2::Unit::DisplayType::Visible;
     });
 
+    // TODO: currently just attacking all units, fix
     if (!enemies.empty() && !tanks.empty()) {
         TankAttack(tanks, enemies);
+    }
+    if (!enemies.empty() && !vikings.empty()) {
+        VikingAttack(vikings, enemies);
     }
     
     // if (TryBuildSeigeTank()) {
