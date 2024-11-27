@@ -10,6 +10,7 @@
 #include <sc2api/sc2_interfaces.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
+#include <vector>
 
 class BasicSc2Bot : public sc2::Agent {
 public:
@@ -157,8 +158,8 @@ private:
 
 	size_t CountUnitTotal(
 		const sc2::ObservationInterface *obs, 
-		std::vector<sc2::UNIT_TYPEID> unit_type, 
-		std::vector<sc2::UNIT_TYPEID> prod_unit, 
+		const std::vector<sc2::UNIT_TYPEID> &unit_type, 
+		const std::vector<sc2::UNIT_TYPEID> &prod_unit, 
 		sc2::ABILITY_ID ability
 	);
 };

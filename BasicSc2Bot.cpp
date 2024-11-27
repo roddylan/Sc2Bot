@@ -36,12 +36,20 @@ void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
     const sc2::ObservationInterface *obs = Observation();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    // size_t marines_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE)).size();
+    size_t marines_count = CountUnitTotal(
+        obs, {sc2::UNIT_TYPEID::TERRAN_MARINE}, 
+        {sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING, 
+        sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB, sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR},
+        sc2::ABILITY_ID::TRAIN_MARINE
+    );
     // skip a few frames for speed; avoid duplicate commands
     int skip_frame = 5;
 
     if (obs->GetGameLoop() % skip_frame) {
         return;
     }
+    AssignWorkers();
     sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
         sc2::UNIT_TYPEID::TERRAN_SCV
         ));
@@ -54,12 +62,30 @@ void BasicSc2Bot::OnStep() {
         }
         
     }
+    
+
+
+    // bool expansion_supply = false;
+
+    // // grind for expansion when 
+    // if (marines_count >= N_MARINES * bases.size() && obs->GetMinerals() < 400) {
+    //     expansion_supply = true;
+    // }
+
+    // if (obs->GetMinerals() >= 400) {
+    //     HandleExpansion(false);
+    // }
+    
+
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
-    
-    HandleBuild();
-    
-    BuildWorkers();
+
+    if (!expansion_supply) {
+        HandleBuild();
+        
+        BuildWorkers();
+    }
+
     RecheckUnitIdle();
 
     CheckScoutStatus();
@@ -103,6 +129,14 @@ void BasicSc2Bot::OnStep() {
     TryBuildRefinery();
     
 
+    // if (!expansion_supply) {
+    //     if (TryBuildSupplyDepot()) {
+    //         return;
+    //     }
+    //     if (TryBuildRefinery()) {
+    //         return;
+    //     }
+    // }
     return;
 }
 
