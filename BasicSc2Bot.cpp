@@ -49,7 +49,6 @@ void BasicSc2Bot::OnStep() {
     if (obs->GetGameLoop() % skip_frame) {
         return;
     }
-    AssignWorkers();
     sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
         sc2::UNIT_TYPEID::TERRAN_SCV
         ));
@@ -62,12 +61,12 @@ void BasicSc2Bot::OnStep() {
         }
         
     }
-    
+    AssignWorkers();
 
 
     // bool expansion_supply = false;
 
-    // // grind for expansion when 
+    // grind for expansion when 
     // if (marines_count >= N_MARINES * bases.size() && obs->GetMinerals() < 400) {
     //     expansion_supply = true;
     // }
@@ -80,11 +79,14 @@ void BasicSc2Bot::OnStep() {
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
 
-    if (!expansion_supply) {
-        HandleBuild();
+    HandleBuild();
+    
+    BuildWorkers();
+    // if (!expansion_supply) {
+    //     HandleBuild();
         
-        BuildWorkers();
-    }
+    //     BuildWorkers();
+    // }
 
     RecheckUnitIdle();
 
