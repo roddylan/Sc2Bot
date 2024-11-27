@@ -1,6 +1,6 @@
 #ifndef BASIC_SC2_BOT_H_
 #define BASIC_SC2_BOT_H_
-
+#include "Args.h"
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_args.h"
 #include "sc2lib/sc2_lib.h"
@@ -13,7 +13,7 @@
 
 class BasicSc2Bot : public sc2::Agent {
 public:
-
+	BasicSc2Bot(Args args) : args(args) {};
 	virtual void OnGameFullStart();
 	virtual void OnGameStart();
 	virtual void OnStep();
@@ -74,6 +74,7 @@ public:
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
+	const Args args;
 	sc2::Units marine_cluster;
 	const size_t n_tanks = 3;
 	const size_t n_bases = 3;
