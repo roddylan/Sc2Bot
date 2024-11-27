@@ -32,8 +32,9 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     const sc2::Unit* barrack_addon = observation->GetUnit(barrack.add_on_tag);
     if (barrack_addon == nullptr) {
         // get ALL the barrack tech labs (not just for this one)
-        // - only have 1 tech lab
-        const sc2::Units& barrack_tech_labs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+        const sc2::Units& barrack_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB));
+        const sc2::Units& barrack_reactors = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR));
+        const sc2::Units& barracks = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BARRACKS));
         /*
         * If we don't have a tech lab yet, make one
         * - tech labs can research buffs for marines & marauders
@@ -41,12 +42,15 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
         *     - stimpacks let you sacrifice 10hp for bonus combat stats, pairs well with medivacs
         * Costs 50 mineral, 25 gas
         */
-        if (barrack_tech_labs.size() < 1 && mineral_count >= 50 && gas_count >= 25) {
+        const float ideal_tech_lab_proportion = (float)args.barrack_techlab_proportion / (float)(args.barrack_reactor_proportion + args.barrack_techlab_proportion);
+        const float current_techlab_proportion = (float)barrack_techlabs.size() / (float)barracks.size();
+        const bool should_build_tech_lab = current_techlab_proportion < ideal_tech_lab_proportion && barrack_reactors.size() >= 2;
+        if (should_build_tech_lab && mineral_count >= 50 && gas_count >= 25) {
             Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
             return;
         }
 
-        // have a tech lab already, so build a reactor (costs 50 mineral, 50 gas)
+        // build a reactor (costs 50 mineral, 50 gas)
         if (mineral_count >= 50 && gas_count >= 50) {
             Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
             return;
