@@ -153,6 +153,13 @@ private:
 		sc2::UNIT_TYPEID prod_unit, 
 		sc2::ABILITY_ID ability
 	);
+
+	size_t CountUnitTotal(
+		const sc2::ObservationInterface *obs, 
+		std::vector<sc2::UNIT_TYPEID> unit_type, 
+		std::vector<sc2::UNIT_TYPEID> prod_unit, 
+		sc2::ABILITY_ID ability
+	);
 };
 
 
