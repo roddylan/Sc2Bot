@@ -201,14 +201,17 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         }
         */
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-        Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-        sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
-        Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-        sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
-        Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-        sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-        Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
-        Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        if (marines.size() > 15) {
+            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+            Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+            Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+            Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
+            Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+                    
+        }
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {
@@ -216,6 +219,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             ++sent_medivacs;
             if (sent_medivacs % 2) break;
         }
+
     }
     
    

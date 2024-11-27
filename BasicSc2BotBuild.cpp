@@ -464,6 +464,7 @@ void BasicSc2Bot::HandleBuild() {
     
     sc2::Units marines = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
     }
@@ -475,7 +476,7 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
-    if (obs->GetMinerals() - 150 >= 400) {
+    if (obs->GetMinerals() - 150 >= 400 && tanks.size() * bases.size() < bases.size()) {
         TryBuildSiegeTank();
     }
     
@@ -501,7 +502,25 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
+    if (bases.size() < 2) {
+        sc2::Units command_centers = Observation()->GetUnits(
+            sc2::Unit::Alliance::Self,
+            sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER)
+        );
+        bool cc_in_progress = false;
+        for (auto& command_center : command_centers) {
+            if (command_center->build_progress < 1.0f) {
+                // The second Command Center is already being built
+                cc_in_progress = true;
 
+            }
+            if (!cc_in_progress) {
+                HandleExpansion(true);
+            }
+        }
+
+       
+    }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
     if (marines.size() < 20 || tanks.size() < 3) {
        // HandleExpansion(true);
