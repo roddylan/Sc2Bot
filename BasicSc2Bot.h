@@ -14,75 +14,75 @@
 class BasicSc2Bot : public sc2::Agent {
 public:
 
-	virtual void OnGameFullStart();
-	virtual void OnGameStart();
-	virtual void OnStep();
+	void OnGameFullStart();
+	void OnGameStart();
+	void OnStep();
 
 	//! Called when the unit in the current observation has lower health or shields than in the previous observation.
     //!< \param unit The damaged unit.
     //!< \param health The change in health (damage is positive)
     //!< \param shields The change in shields (damage is positive)
-    virtual void OnUnitDamaged(const sc2::Unit*, float /*health*/, float /*shields*/);
+    void OnUnitDamaged(const sc2::Unit*, float /*health*/, float /*shields*/);
+	void OnUnitIdle(const sc2::Unit* unit) final;
+	void OnUnitCreated(const sc2::Unit* unit);
 
-	virtual bool AttackIntruders();
-	virtual bool LoadBunker(const sc2::Unit* marine);
-	virtual void OnUnitIdle(const sc2::Unit* unit) final;
-	virtual void OnUnitCreated(const sc2::Unit* unit);
-	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
-	virtual bool TryBuildSupplyDepot();
-	virtual bool TryBuildRefinery();
-	virtual bool TryBuildSiegeTank();
-	virtual bool TryBuildSiegeTank(const sc2::Unit* factory);
-	virtual bool BuildRefinery();
-	virtual bool TryBuildFactory();
-	virtual bool TryBuildBunker();
-	virtual bool TryBuildBarracks();
-	virtual bool MobAttackNearbyBaseOrEnemy();
-	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
+	bool AttackIntruders();
+	bool LoadBunker(const sc2::Unit* marine);
+	bool UpgradeFactoryTechLab(const sc2::Unit* factory);
+	bool TryBuildSupplyDepot();
+	bool TryBuildRefinery();
+	bool TryBuildSiegeTank();
+	bool TryBuildSiegeTank(const sc2::Unit* factory);
+	bool BuildRefinery();
+	bool TryBuildFactory();
+	bool TryBuildBunker();
+	bool TryBuildBarracks();
+	bool MobAttackNearbyBaseOrEnemy();
+	const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	
-	virtual bool TryBuildStructure(
+	bool TryBuildStructure(
 		sc2::ABILITY_ID ability_type_for_structure, 
 		sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV
 	);
-	virtual bool TryBuildStructure(
+	bool TryBuildStructure(
 		sc2::ABILITY_ID ability_type_for_structure, 
 		sc2::Point2D location, 
 		sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)
 	); // generalized; for expansions
 
-	virtual size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
-	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
-	virtual void HandleUpgrades();
-	virtual void HandleBuild(); // logic for building instead of just trying on each step
-	virtual void AssignIdleWorkers(const sc2::Unit *);
-	virtual void AssignWorkers();
-	virtual void BuildWorkers();
-	virtual bool TryBuildThor();
-	virtual void AssignFusionCoreAction(const sc2::Unit& fusion_core);
-	virtual bool TryBuildFusionCore();
-	virtual void AssignStarportTechLabAction(const sc2::Unit& tech_lab);
-	virtual const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
-	virtual bool UpgradeStarportTechlab(const sc2::Unit& starport);
-	virtual void AssignArmoryAction(const sc2::Unit& armory);
-	virtual bool TryBuildThor(const sc2::Unit* factory);
-	virtual const sc2::Unit* FindInjuredMarine();
-	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
-	virtual const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
+	size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
+	const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
+	void HandleUpgrades();
+	void HandleBuild(); // logic for building instead of just trying on each step
+	void AssignIdleWorkers(const sc2::Unit *);
+	void AssignWorkers();
+	void BuildWorkers();
+	bool TryBuildThor();
+	void AssignFusionCoreAction(const sc2::Unit& fusion_core);
+	bool TryBuildFusionCore();
+	void AssignStarportTechLabAction(const sc2::Unit& tech_lab);
+	const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
+	bool UpgradeStarportTechlab(const sc2::Unit& starport);
+	void AssignArmoryAction(const sc2::Unit& armory);
+	bool TryBuildThor(const sc2::Unit* factory);
+	const sc2::Unit* FindInjuredMarine();
+	const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
+	const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
 	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units& cluster );
-	virtual bool HandleExpansion(bool resources_depleted);
-	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
-	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
-	virtual bool TryBuildMissileTurret();
-	virtual bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
-	virtual bool TryBuildArmory();
-	virtual void OnUnitDestroyed(const sc2::Unit* unit);
-	virtual void TankAttack(const sc2::Units &squad);
-	virtual void TankAttack(const sc2::Units &squad, const sc2::Units &enemies);
-	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	bool HandleExpansion(bool resources_depleted);
+	int CountNearbySeigeTanks(const sc2::Unit* factory);
+	const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
+	bool TryBuildMissileTurret();
+	bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
+	bool TryBuildArmory();
+	void OnUnitDestroyed(const sc2::Unit* unit);
+	void TankAttack(const sc2::Units &squad);
+	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies);
+	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 	void LaunchAttack();
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
-	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
+	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
 	sc2::Units marine_cluster;
 	const size_t n_tanks = 3;
