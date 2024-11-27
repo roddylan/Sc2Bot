@@ -474,16 +474,14 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
-    // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 || tanks.size() < 3) {
-       // HandleExpansion(true);
-        return;
+    if (obs->GetMinerals() - 150 >= 400) {
+        TryBuildSiegeTank();
     }
-
-    // Handle Orbital Command
     
+    // Handle Orbital Command
+
     if (!barracks.empty()) {
-        for (const auto &base : bases) {
+        for (const auto& base : bases) {
             if (base->build_progress != 1) {
                 continue;
             }
@@ -497,11 +495,22 @@ void BasicSc2Bot::HandleBuild() {
                 else {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
                 }
-                
+
                 //std::cout << "\nORBITAL COMMAND\n\n";
             }
         }
     }
+
+    // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
+    if (marines.size() < 20 || tanks.size() < 3) {
+       // HandleExpansion(true);
+        return;
+    }
+    /*
+    
+        **PHASE ONE DONE**
+        
+    */
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
             if (starport->add_on_tag != NULL) {
