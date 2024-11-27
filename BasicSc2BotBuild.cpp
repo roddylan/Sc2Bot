@@ -69,7 +69,7 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
             }
 
             build = true;
-            std::cout << "Building siege tank\n";
+          //  std::cout << "Building siege tank\n";
             Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
         }
     }
@@ -84,7 +84,7 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
                 })
         );
 
-        std::cout << "n_siegetanks = " << tank.size() << std::endl;
+       // std::cout << "n_siegetanks = " << tank.size() << std::endl;
     }
 
     return true;
@@ -120,7 +120,7 @@ bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
         sc2::Units tank = observation->GetUnits(
             sc2::Unit::Alliance::Self, 
             sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
-        std::cout << "n_siegetanks=" << tank.size() << std::endl;
+       // std::cout << "n_siegetanks=" << tank.size() << std::endl;
     }
     return true;
 }
@@ -467,9 +467,10 @@ void BasicSc2Bot::HandleBuild() {
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
     }
+
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
-        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
+        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST && n_minerals - FACTORY_MINERAL_COST >= 400) {
             //std::cout << "building factory\n\n";
             TryBuildFactory();
         }
@@ -488,7 +489,7 @@ void BasicSc2Bot::HandleBuild() {
             sc2::Units orbital_commands = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
 
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
-            if (n_minerals > 150) {
+            if (obs->GetMinerals() - 150 >= 400) {
                 if (orbital_commands.size() >= (bases.size() / 2)) {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
                 }
@@ -537,9 +538,11 @@ void BasicSc2Bot::HandleBuild() {
     if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
+    /*
     if (barracks.size() < 2 * bases.size()) {
         TryBuildBarracks();
     }
+    */
     //if (!has_infantry_weapons_1) return;
     if (n_minerals >= 400 && bases.size() <= 1) {
         HandleExpansion(false);

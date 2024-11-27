@@ -42,7 +42,15 @@ void BasicSc2Bot::OnStep() {
     if (obs->GetGameLoop() % skip_frame) {
         return;
     }
-
+    sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
+        sc2::UNIT_TYPEID::TERRAN_SCV
+        ));
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
+        sc2::UNIT_TYPEID::TERRAN_MARINE
+    ));
+    if (marines.size() > 10) {
+        TryScoutingForAttack(scvs[0], false);
+    }
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
     
@@ -73,12 +81,13 @@ void BasicSc2Bot::OnStep() {
     // if (TryBuildMissileTurret()) {
     //     return;
     // }
-    if (TryBuildSupplyDepot()) {
+    if (obs->GetMinerals() - 100 >= 400 || obs->GetFoodUsed() - obs->GetFoodCap() < 30) {
+        TryBuildSupplyDepot();
         return;
-    }
-    if (TryBuildRefinery()) {
-        return;
-    }
+    }    
+    TryBuildRefinery();
+    
+
     return;
 }
 
@@ -177,13 +186,14 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     std::cout << "Minerals destroyed" << std::endl;
     
     // send marines to attack intruders
-    
+   
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE) {
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
 
         /*
         for (const auto& marine : marines) {
