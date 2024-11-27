@@ -85,8 +85,8 @@ public:
 	
 
 	
-	virtual void CheckRefineries();
-	// virtual void AssignWorkers(const sc2::Unit *);
+	void CheckRefineries();
+	// void AssignWorkers(const sc2::Unit *);
 	// virtual int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
 
 	
