@@ -113,6 +113,11 @@ private:
 	const size_t N_TOTAL_WORKERS = 70; // max no. of workers
 	const size_t min_minerals_for_units = 300; // do not dip below this minearl count when training units
 
+	// PHASE ONE THRESHOLDS
+	const size_t N_MISSILE_P1 = 3;
+
+	// --------------------
+
 	const size_t MIN_MARINE = 20; // per base
 	const size_t MIN_VIKINGS = 2; // total
 	const size_t GOAL_VIKINGS = 10; // total
@@ -133,6 +138,8 @@ private:
 	// TODO: fill
 	// track upgrades
 	// ...
+
+	const size_t MIN_ARMY_FOOD = 40;
 
 	// TODO: adjust
 	const float N_REPAIR_RATIO = 1.5;

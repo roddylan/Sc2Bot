@@ -472,6 +472,7 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
     sc2::Units armorys = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit( sc2::UNIT_TYPEID::TERRAN_ARMORY));
     sc2::Units fusion_cores = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
+    sc2::Units missile_turrets = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MISSILETURRET));
 
     // TODO: handle other building
 
@@ -572,6 +573,11 @@ void BasicSc2Bot::HandleBuild() {
             }
         }
     }
+
+    if (missile_turrets.size() < N_MISSILE_P1) {
+        TryBuildMissileTurret();
+    }
+
     // build a starport
     if (factory.size() > 0 && starports.size() < N_STARPORT * bases.size()) {
         if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
@@ -579,7 +585,7 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2) {
+    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2 || missile_turrets.size() < N_MISSILE_P1) {
        // HandleExpansion(true);
         return;
     }

@@ -369,8 +369,18 @@ void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
 void BasicSc2Bot::BuildArmy() {
     const sc2::ObservationInterface *obs = Observation();
 
+
     // BASES
     sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    
+    if (obs->GetFoodArmy() >= MIN_ARMY_FOOD && !bases.empty()) {
+        return;
+    }
+    // TODO: finish
+    if (bases.empty()) {
+        // sell to get back to 400 
+        return;
+    }
 
     // BARRACKS
     sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({
