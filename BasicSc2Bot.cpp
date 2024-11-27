@@ -49,7 +49,10 @@ void BasicSc2Bot::OnStep() {
         sc2::UNIT_TYPEID::TERRAN_MARINE
     ));
     if (marines.size() > 10) {
-        TryScoutingForAttack(scvs[0], false);
+        if (scvs[0]->orders.empty()) {
+            TryScoutingForAttack(scvs[0], false);
+        }
+        
     }
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
@@ -134,11 +137,6 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 
     }
     case sc2::UNIT_TYPEID::TERRAN_BANSHEE: {
-        const sc2::Unit* injured_marine = FindInjuredMarine();
-        if (injured_marine) {
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
-            return;
-        }
         sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
         if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
@@ -201,15 +199,17 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         }
         */
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-        if (marines.size() > 15) {
+        sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+        sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+        if (marines.size() + marauders.size()  + banshees.size() > 15) {
             Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-            sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
             Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
             sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
             Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-            sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
             Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
             Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+            Actions()->UnitCommand(tanks, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
                     
         }
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));

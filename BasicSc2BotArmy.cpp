@@ -59,17 +59,17 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
 
     // if it has a tech lab, train marauders constantly
     // marauders only cost 25 gas, use >= 100 so that there's a bit of a buffer for other things
-    if (has_tech_lab && mineral_count >= 100 && gas_count >= 100) {
+    if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && Observation()->GetFoodUsed() < 100) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARAUDER);
         return;
     }
 
     // if you have a reactor, you can build things twice as fast so you should spam train marines
-    if (mineral_count >= 50) {
+    if (mineral_count >= 50 && marines.size() < 25 && Observation()->GetFoodUsed() < 100) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
     }
     // train a second one, if you can afford it (reactors build at double speed)
-    if (mineral_count >= 100) {
+    if (mineral_count >= 100 && Observation()->GetFoodUsed() < 100) {
         Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
     }
 }
@@ -244,12 +244,12 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     const sc2::Units& fusion_cores = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
     const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
-    
+    const sc2::Units liberators = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
     if (starport_techlabs.size() < bases.size()) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
     }
     // build a medivac!
-    if (minerals >= 100 && gas >= 75 && medivacs.size() < 3) {
+    if (minerals >= 100 && gas >= 75 && medivacs.size() < 3 && Observation()->GetFoodUsed() < 100) {
         Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
 
         return;
@@ -262,12 +262,18 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
             if (fusion_cores.size() > 1 && banshees.size() > 2) {
                 Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BATTLECRUISER);
             }
-
-            Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BANSHEE);
-            return;
+            if (banshees.size() < 5) {
+                Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BANSHEE);
+            }
+            
+            
         }
     }
+    if (liberators.size() > 0) {
+        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
+    }
     Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
+    
 
     
 

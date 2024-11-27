@@ -105,10 +105,7 @@ bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
     if (factory->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
         return false;
     }
-    if (observation->GetVespene() < 125 || observation->GetMinerals() < 150 ||
-        observation->GetFoodUsed() < (observation->GetFoodCap() - 3)) {
-        return false;
-    }
+
     // sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     bool build = false;
     if (CountNearbySeigeTanks(factory) <= n_tanks) {
@@ -476,6 +473,7 @@ void BasicSc2Bot::HandleBuild() {
             TryBuildFactory();
         }
     }
+    // 400 = command center cost
     if (obs->GetMinerals() - 150 >= 400 && tanks.size() * bases.size() < bases.size()) {
         TryBuildSiegeTank();
     }
@@ -520,6 +518,12 @@ void BasicSc2Bot::HandleBuild() {
         }
 
        
+    }
+    // build a starport
+    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
+        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
+        }
     }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
     if (marines.size() < 20 || tanks.size() < 3) {
@@ -620,12 +624,7 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
 
-    // build a starport
-    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
-        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
-        }
-    }
+    
     
 
   //  TryBuildSiegeTank();
