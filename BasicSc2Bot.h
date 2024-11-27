@@ -77,7 +77,8 @@ public:
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
 	void TankAttack(const sc2::Units &squad);
-	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies);
+	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
+	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 	void LaunchAttack();
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)

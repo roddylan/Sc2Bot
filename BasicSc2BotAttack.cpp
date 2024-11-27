@@ -448,3 +448,49 @@ const sc2::Unit* BasicSc2Bot::ChooseAttackTarget(const sc2::Unit *unit, const sc
 
     return target;
 }
+
+/**
+ * @brief Handle attacking enemies with viking
+ * 
+ * @param squad with vikings
+ * @param enemies 
+ */
+void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemies) {
+    // all enemies or squad dead
+    if (enemies.empty() || squad.empty()) {
+        return;
+    }
+
+    const sc2::ObservationInterface *obs = Observation();
+
+    const float AIR_RANGE = 9;
+    const float GROUND_RANGE = 6;
+
+    // track viking units
+    sc2::Units vikings{};
+
+    for (const auto &unit : squad) {
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT || 
+            unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
+            vikings.push_back(unit);
+        }
+    }
+
+    // no vikings in squad
+    if (vikings.empty()) {
+        return;
+    }
+
+    // prioritize attacking air enemies
+    sc2::Units air_enemies{};
+    sc2::Units ground_enemies{};
+
+    // most dangerous units
+    sc2::Unit target_air;
+    sc2::Unit target_ground;
+
+    // track danger ratios
+    float max_danger_air{}, max_danger_ground{};
+
+
+}
