@@ -534,30 +534,32 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
             continue;
         }
 
-        for (const auto &enemy : ground_enemies) {
-            // handle flying enemies
-            float dist = sc2::Distance2D(viking->pos, enemy->pos);
+        // TODO: retreat viking when no targetable enemies
+        // act->UnitCommand(viking, sc2::ABILITY_ID::MOVE_MOVE, )
+        // for (const auto &enemy : ground_enemies) {
+        //     // handle flying enemies
+        //     float dist = sc2::Distance2D(viking->pos, enemy->pos);
             
-            // not in range
-            if (dist > GROUND_RANGE) {
-                continue;
-            }
+        //     // not in range
+        //     if (dist > GROUND_RANGE) {
+        //         continue;
+        //     }
 
-            // float hp = enemy->health + enemy->shield;
-            // float cur_ratio = hp / dist;
+        //     // float hp = enemy->health + enemy->shield;
+        //     // float cur_ratio = hp / dist;
 
-            if (min_dist > dist) {
-                min_dist = dist;
-                target_ground = enemy;
-            }
-        }
-        // TODO: fly to target, then morph and attack
-        if (target_air != nullptr) {
-            act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGASSAULTMODE);
-            act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
-            // dont check ground if already found an air target
-            continue;
-        }
+        //     if (min_dist > dist) {
+        //         min_dist = dist;
+        //         target_ground = enemy;
+        //     }
+        // }
+        // // TODO: fly to target, then morph and attack
+        // if (target_ground != nullptr) {
+        //     act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGASSAULTMODE);
+        //     act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_ground);
+        //     // dont check ground if already found an air target
+        //     continue;
+        // }
     }
 
 
