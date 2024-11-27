@@ -98,7 +98,13 @@ bool BasicSc2Bot::AttackIntruders() {
     
     const sc2::Units &bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER));
 
-
+    const sc2::Units vikings = observation->GetUnits(
+        sc2::Unit::Alliance::Self, sc2::IsUnits({
+            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER,
+            sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT
+        })
+    );
+    
     for (const sc2::Unit* base : bases) {
         const sc2::Unit* enemy_near_base = nullptr;
         for (const sc2::Unit* enemy_unit : enemy_units) {
@@ -519,7 +525,7 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
         
         // track danger ratios
         float max_danger_air{};
-        float min_dist{};
+        float min_dist = std::numeric_limits<float>::max();
 
         for (const auto &enemy : air_enemies) {
             // handle flying enemies
@@ -542,6 +548,33 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
         if (target_air != nullptr) {
             act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGFIGHTERMODE);
             act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
+            // dont check ground if already found an air target
+            continue;
+        }
+
+        for (const auto &enemy : ground_enemies) {
+            // handle flying enemies
+            float dist = sc2::Distance2D(viking->pos, enemy->pos);
+            
+            // not in range
+            if (dist > GROUND_RANGE) {
+                continue;
+            }
+
+            // float hp = enemy->health + enemy->shield;
+            // float cur_ratio = hp / dist;
+
+            if (min_dist > dist) {
+                min_dist = dist;
+                target_ground = enemy;
+            }
+        }
+        // TODO: fly to target, then morph and attack
+        if (target_air != nullptr) {
+            act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGASSAULTMODE);
+            act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
+            // dont check ground if already found an air target
+            continue;
         }
     }
 
