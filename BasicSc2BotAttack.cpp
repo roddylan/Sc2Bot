@@ -464,7 +464,7 @@ void BasicSc2Bot::LaunchAttack() {
         if (!enemy_bases.empty())
             location = (*enemy_bases.begin())->pos;
         else {
-            // TODO: scout/search
+            // TODO: scout/search for base
             return;
         }
         act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, location);
