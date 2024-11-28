@@ -24,6 +24,15 @@ struct UnitHash {
 		return unit->tag;
 	}
 };
+struct UnitEqual {
+	size_t operator()(const sc2::Unit &lhs, const sc2::Unit &rhs) const {
+		return lhs.tag == rhs.tag;
+	}
+	
+	size_t operator()(const sc2::Unit *lhs, const sc2::Unit *rhs) const {
+		return lhs->tag == rhs->tag;
+	}
+};
 
 
 class BasicSc2Bot : public sc2::Agent {
