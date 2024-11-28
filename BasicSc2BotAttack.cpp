@@ -404,6 +404,7 @@ void BasicSc2Bot::LaunchAttack() {
     }
     
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    sc2::Units enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
 
     // TODO: decide if keep some at base or send all to attack
 
@@ -485,7 +486,14 @@ void BasicSc2Bot::LaunchAttack() {
         act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, location);
     } else {
         std::cout << "found enemies\n";
-        act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+        std::cout << enemy_bases.size() << " enemy townhalls found\n";
+        for (const auto &enemy : enemies) {
+            if (enemy->is_alive) {
+                act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy->pos);
+                return;
+            }
+        }
+        std::cout << "failed to find enemy\n";
     }
 
 
