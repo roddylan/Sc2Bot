@@ -124,7 +124,20 @@ void BasicSc2Bot::BuildArmy() {
     // handle starport units
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
-            // AssignStarportAction(starport);
+            AssignStarportAction(starport);
+        }
+    }
+
+    // handle barrack units
+    if (barracks.size() > 0) {
+        for (const auto &barrack : barracks) {
+            AssignBarrackAction(barrack);
+        }
+    }
+
+    if (factories.size() > 0) {
+        for (const auto &factory : factories) {
+            AssignFactoryAction(factory);
         }
     }
     
