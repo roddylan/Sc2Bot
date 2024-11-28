@@ -756,6 +756,8 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
                 return;
             }
         }
+        // TODO: being overwritten in assign worker, fix
+        // std::cout << "attacking with scv \n";
     }
 
     // default attack
