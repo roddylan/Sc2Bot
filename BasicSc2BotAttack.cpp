@@ -408,6 +408,7 @@ void BasicSc2Bot::LaunchAttack() {
     sc2::Units marauders = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     
     // basic air troops
+    sc2::Units medivacs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
 
     // mech ground troops
     sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
@@ -421,9 +422,24 @@ void BasicSc2Bot::LaunchAttack() {
     sc2::Units vikings = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
     }));
-
+    sc2::Units liberators = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+    sc2::Units banshees = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+    sc2::Units battlecruisers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
 
     
+    sc2::Units raid_squad{};
+
+    float ratio = static_cast<double>(2) / 3;
+    
+    const size_t n_marines = marines.size() * ratio;
+    const size_t n_marauders = marauders.size() * ratio;
+    const size_t n_siege_tanks = siege_tanks.size() * ratio;
+    const size_t n_thor = thor.size() * ratio;
+    const size_t n_vikings = vikings.size() * ratio;
+    const size_t n_medivacs = medivacs.size() * ratio;
+    const size_t n_liberators = liberators.size() * ratio;
+    const size_t n_banshees = liberators.size() * ratio;
+    const size_t n_battlecruisers = liberators.size() * ratio;
 }
 
 
@@ -553,8 +569,8 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
         // if attackable air unit
         if (target_air != nullptr) {
             act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGFIGHTERMODE);
-            // act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
-            AttackWithUnit(viking, {target_air});
+            act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
+            // AttackWithUnit(viking, {target_air});
             // dont check ground if already found an air target
             continue;
         }
@@ -595,7 +611,7 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
  * 
  * @param unit attacking unit
  */
-void BasicSc2Bot::UnitAttack(const sc2::Unit *unit) {
+void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit) {
     const sc2::ObservationInterface *obs = Observation();
 
 

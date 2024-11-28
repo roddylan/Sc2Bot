@@ -82,7 +82,7 @@ public:
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
 	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
-	
+	void AttackWithUnit(const sc2::Unit *unit);
 
 	
 	void CheckRefineries();
@@ -174,8 +174,6 @@ private:
 		const std::vector<sc2::UNIT_TYPEID> &prod_unit, 
 		sc2::ABILITY_ID ability
 	);
-
-	void UnitAttack(const sc2::Unit *unit);
 };
 
 
