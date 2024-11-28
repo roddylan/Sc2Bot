@@ -238,8 +238,15 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     // if you don't have an addon, build a reactor
     const sc2::Unit* starport_addon = observation->GetUnit(starport.add_on_tag);
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
-    if (starport_addon == nullptr && minerals >= 50 && gas >= 50 && starport_techlabs.size() > 0) {
-        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+    const sc2::Units starport_reactors = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR));
+    if (starport_addon == nullptr && minerals >= 50 && gas >= 50 ) {
+        if (starport_reactors.size() == 0) {
+            Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+        }
+        if (starport_techlabs.size() > 0) {
+            Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+        }
+        
         return;
     }
     const sc2::Units& medivacs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
