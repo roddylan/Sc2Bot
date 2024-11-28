@@ -89,8 +89,7 @@ void BasicSc2Bot::OnStep() {
     // size_t marines_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE)).size();
     size_t marines_count = CountUnitTotal(
         obs, {sc2::UNIT_TYPEID::TERRAN_MARINE}, 
-        {sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING, 
-        sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB, sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR},
+        {sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING},
         sc2::ABILITY_ID::TRAIN_MARINE
     );
     // skip a few frames for speed; avoid duplicate commands
@@ -426,7 +425,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
      
     case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
-        AssignFusionCoreAction(*unit);
+        AssignFusionCoreAction(unit);
         break;
        
     }
