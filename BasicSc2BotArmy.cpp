@@ -151,8 +151,8 @@ void BasicSc2Bot::AssignArmoryAction(const sc2::Unit& armory) {
 /*
 * Make sure the starport tech lab is researching things
 */
-void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit& tech_lab) {
-    if (tech_lab.build_progress < 1 || tech_lab.orders.size() > 0) {
+void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit *tech_lab) {
+    if (tech_lab->build_progress < 1 || tech_lab->orders.size() > 0) {
         return;
     }
     const sc2::ObservationInterface* observation = Observation();
@@ -171,7 +171,7 @@ void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit& tech_lab) {
     */
     const bool has_banshee_cloak = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::BANSHEECLOAK) != upgrades.end();
     if (!has_banshee_cloak) {
-        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_BANSHEECLOAKINGFIELD);
+        Actions()->UnitCommand(tech_lab, sc2::ABILITY_ID::RESEARCH_BANSHEECLOAKINGFIELD);
         return;
     }
 }

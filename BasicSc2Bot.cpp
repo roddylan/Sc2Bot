@@ -382,7 +382,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB: {
-        AssignStarportTechLabAction(*unit);
+        AssignStarportTechLabAction(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_ARMORY: {
