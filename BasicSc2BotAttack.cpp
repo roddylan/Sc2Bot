@@ -398,8 +398,8 @@ void BasicSc2Bot::LaunchAttack() {
     // if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     //     return;
     // }
-    // if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
-    if (obs->GetFoodArmy() < (150 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (120 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
     }
     
@@ -479,6 +479,9 @@ void BasicSc2Bot::LaunchAttack() {
             // TODO: scout/search for base
             std::cout << "enemy bases empty\n";
             std::cout << "ptr=" << this->enemy_starting_location << std::endl;
+            if (this->enemy_starting_location != nullptr) {
+                std::cout << "(" << this->enemy_starting_location->x << ", " << this->enemy_starting_location->y << ")\n";
+            }
             if (this->enemy_starting_location != nullptr) {
                 location = *(this->enemy_starting_location);
             }
