@@ -733,10 +733,10 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     } 
     
     // default attack
-    // if (enemy_units_in_range.size() > 0) {
-    //     VikingAttack({unit}, enemy_units_in_range);
-    // } else {
-    //     VikingAttack({unit}, enemy_structures_in_range);
-    // }
+    if (enemy_units_in_range.size() > 0) {
+        AttackWithUnit(unit, enemy_units_in_range);
+    } else {
+        AttackWithUnit(unit, enemy_structures_in_range);
+    }
 
 }
