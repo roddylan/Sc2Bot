@@ -202,6 +202,8 @@ private:
 	void HandleAttack();
 	void HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs);
 
+
+	// TODO: change to use position 
 	std::unordered_set<const sc2::Unit *, UnitHash, UnitEqual> enemy_bases;
 
 	void CleanupEnemyBases(); // get rid of dead bases

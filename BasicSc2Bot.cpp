@@ -23,7 +23,7 @@ void BasicSc2Bot::OnGameStart() {
     base_location = start_location;
     scout = nullptr; // no scout initially
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
-    enemy_starting_location = nullptr;  // we use a scout to find this
+    this->enemy_starting_location = nullptr;  // we use a scout to find this
 }
 
 void BasicSc2Bot::OnGameFullStart() {
@@ -358,7 +358,9 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
                 closest_base_position = position;
             }
         }
-        this->enemy_starting_location = &closest_base_position;
+        if (this->enemy_starting_location == nullptr) {
+            this->enemy_starting_location = &closest_base_position;
+        }
     }
 }
 

@@ -455,6 +455,13 @@ void BasicSc2Bot::LaunchAttack() {
     SquadSplit(split_banshees, banshees, raid_squad);
     SquadSplit(split_battlecruisers, battlecruisers, raid_squad);
 
+    // do nothing if raid squad busy
+    for (const auto &unit : raid_squad) {
+        if (unit->orders.size() > 0) {
+            return;
+        }
+    }
+
     std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
     if (enemies.empty()) {
         std::cout << "no enemies, going to starting location\n";
@@ -465,7 +472,7 @@ void BasicSc2Bot::LaunchAttack() {
             location = (*enemy_bases.begin())->pos;
         else {
             // TODO: scout/search for base
-            return;
+            location = *this->enemy_starting_location;
         }
         act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, location);
     } else {
