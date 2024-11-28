@@ -462,17 +462,25 @@ void BasicSc2Bot::LaunchAttack() {
         }
     }
 
+    // TODO: crashing here idk why
     std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
     if (enemies.empty()) {
         std::cout << "no enemies, going to starting location\n";
         // TODO: scout/search for enemy positions instead of just going to starting location
         // act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy_starting_location);
         sc2::Point2D location{};
-        if (!enemy_bases.empty())
-            location = (*enemy_bases.begin())->pos;
+        if (!enemy_bases.empty()) {
+            std::cout << "enemy bases not empty\n";
+            location = (*(enemy_bases.begin()))->pos;
+            std::cout << "location = (" << location.x << ", " << location.y << ")\n";
+        }
         else {
             // TODO: scout/search for base
-            location = *this->enemy_starting_location;
+            std::cout << "enemy bases empty\n";
+            std::cout << "ptr=" << this->enemy_starting_location << std::endl;
+            if (this->enemy_starting_location != nullptr) {
+                location = *(this->enemy_starting_location);
+            }
         }
         act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, location);
     } else {
