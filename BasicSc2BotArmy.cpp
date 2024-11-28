@@ -2,6 +2,7 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
+#include <cstddef>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
@@ -369,6 +370,14 @@ void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
     if (factory->build_progress < 1 || factory->orders.size() > 0) {
         return;
     }
+
+    const sc2::ObservationInterface *obs = Observation();
+
+    if (obs->GetUnit(factory->add_on_tag) == nullptr) {
+        // build factory techlab
+        UpgradeFactoryTechLab(factory);
+    }
+
     TryBuildSiegeTank(factory);
     TryBuildThor(factory);
 }
