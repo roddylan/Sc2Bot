@@ -14,6 +14,11 @@ bool BasicSc2Bot::UpgradeStarportTechlab(const sc2::Unit &starport) {
  * Picks unit for the barrack to train and instructs it to train it
  */
 void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
+    // dont do anything if busy
+    if (barrack->build_progress < 1 || barrack->orders.size() > 0) {
+        return;
+    }
+    
     /*
     * What should a barrack do?
     * - if it doesnt have an addon, build an addon
@@ -361,6 +366,9 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit *starport) {
  * @param factory 
  */
 void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
+    if (factory->build_progress < 1 || factory->orders.size() > 0) {
+        return;
+    }
     TryBuildThor(factory);
     TryBuildSiegeTank(factory);
 }
