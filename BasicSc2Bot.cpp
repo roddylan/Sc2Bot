@@ -167,6 +167,10 @@ void BasicSc2Bot::OnStep() {
         VikingAttack(vikings, enemies);
     }
     
+    LaunchAttack();
+    
+    HandleAttack();
+    
     // if (TryBuildSeigeTank()) {
     //     return;
     // }
