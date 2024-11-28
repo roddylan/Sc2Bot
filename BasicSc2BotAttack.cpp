@@ -666,6 +666,77 @@ void BasicSc2Bot::HandleAttack() {
     sc2::ActionInterface *act = Actions();
 
     sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, NotStructure());
+    
     // only attack with scvs holding mineral and isnt repairing
+    for (const auto &unit : units) {
+        HandleAttack(unit, obs);
+    }
+
+}
+
+/**
+ * @brief Handle attacking in general case for unit (attack whenver enemy in range)
+ * 
+ * @param unit 
+ */
+void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs) {
+    // prioritize enemy units over structures
+    float range{};
+    
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK || 
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK) {
+        range = 13;
+    } else {
+        range = unit->detect_range;
+    }
+
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    if (enemies.empty()) {
+        return;
+    }
+
+    sc2::Units enemy_units_in_range{};
+    sc2::Units enemy_structures_in_range{};
+
+    for (const auto &enemy : enemies) {
+        float dist = sc2::Distance2D(enemy->pos, unit->pos);
+
+        // dont include enemy if not in range
+        if (dist > range) {
+            continue;
+        }
+
+        if (IsStructure(enemy->unit_type)) {
+            enemy_structures_in_range.push_back(enemy);
+        } else {
+            enemy_units_in_range.push_back(enemy);
+        }
+    }
+
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+        if (enemy_units_in_range.size() > 0) {
+            TankAttack({unit}, enemy_units_in_range);
+        } else {
+            TankAttack({unit}, enemy_structures_in_range);
+        }
+        return;
+    }
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT ||
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
+        if (enemy_units_in_range.size() > 0) {
+            VikingAttack({unit}, enemy_units_in_range);
+        } else {
+            VikingAttack({unit}, enemy_structures_in_range);
+        }
+        return;
+    } 
+    
+    // default attack
+    // if (enemy_units_in_range.size() > 0) {
+    //     VikingAttack({unit}, enemy_units_in_range);
+    // } else {
+    //     VikingAttack({unit}, enemy_structures_in_range);
+    // }
 
 }
