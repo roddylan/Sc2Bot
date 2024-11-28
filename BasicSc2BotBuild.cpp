@@ -23,7 +23,7 @@ bool BasicSc2Bot::UpgradeFactoryTechLab(const sc2::Unit* factory) {
     if (obs->GetMinerals() < TECHLAB_MINERAL_COST || obs->GetVespene() < TECHLAB_GAS_COST) {
         return false;
     }
-    
+
     Actions()->UnitCommand(factory, sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY);
     
     return true;
@@ -470,11 +470,13 @@ void BasicSc2Bot::HandleBuild() {
     static const uint32_t STARPORT_COST = 150;
     static const uint32_t ARMORY_MINERAL_COST = 150;
     static const uint32_t ENGG_COST = 125;
+    const uint32_t BASE_COST = 400;
     
     // vespene gas costs
     static const uint32_t ARMORY_GAS_COST = 100;
     static const uint32_t FACTORY_GAS_COST = 100;
     static const uint32_t STARPORT_GAS_COST = 100;
+
     
     const sc2::ObservationInterface *obs = Observation();
 
@@ -525,6 +527,16 @@ void BasicSc2Bot::HandleBuild() {
     // build barracks
     if (barracks.size() < N_BARRACKS * bases.size()) {
         TryBuildBarracks();
+    }
+
+    // build engg bay for missile turret
+    // TODO: improve count
+    // Only need 2 engineering bays
+    if (engg_bays.size() < N_ENGG_TOTAL) {
+        if (n_minerals > ENGG_COST) {
+            //std::cout << "building engg bay\n\n";
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+        }
     }
 
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
@@ -610,11 +622,11 @@ void BasicSc2Bot::HandleBuild() {
         **PHASE ONE DONE**
         
     */
-    if (obs->GetMinerals() < 400) {
+    if (obs->GetMinerals() < BASE_COST) {
         return;
     }
     // build armory
-    if (armorys.size() < N_ARMORY_TOTAL && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
+    if (armorys.size() < N_ARMORY_TOTAL && obs->GetMinerals() >= ARMORY_MINERAL_COST + BASE_COST && obs->GetVespene() >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
     if (starports.size() > 0) {
@@ -654,9 +666,9 @@ void BasicSc2Bot::HandleBuild() {
     //         TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
     //     }
     // }
-
+    TryBuildMissileTurret();
     //if (!has_infantry_weapons_1) return;
-    if (n_minerals >= 400 && bases.size() <= 3) {
+    if (obs->GetMinerals() >= 400 && bases.size() <= 3) {
         // TODO: change
         HandleExpansion(false);
     }
@@ -711,15 +723,15 @@ void BasicSc2Bot::HandleBuild() {
         
     }
     */
-    // build engg bay for missile turret
-    // TODO: improve count
-    // Only need 2 engineering bays
-    if (engg_bays.size() < N_ENGG_TOTAL) {
-        if (n_minerals > ENGG_COST) {
-            //std::cout << "building engg bay\n\n";
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
-        }
-    }
+    // // build engg bay for missile turret
+    // // TODO: improve count
+    // // Only need 2 engineering bays
+    // if (engg_bays.size() < N_ENGG_TOTAL) {
+    //     if (n_minerals > ENGG_COST) {
+    //         //std::cout << "building engg bay\n\n";
+    //         TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+    //     }
+    // }
 
     
     // // build factory
@@ -735,10 +747,10 @@ void BasicSc2Bot::HandleBuild() {
 
   //  TryBuildSiegeTank();
 
-    TryBuildMissileTurret();
-    if (obs->GetVespene() - 150 >= 200) {
-        TryBuildThor();
-    }
+    
+    // if (obs->GetVespene() - 150 >= 200) {
+    //     TryBuildThor();
+    // }
     
     // build refinery
     
