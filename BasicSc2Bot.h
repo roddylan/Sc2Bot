@@ -114,7 +114,11 @@ public:
 	
 	
 	void LaunchAttack();
+	
 	void BuildArmy(); // handle army build
+
+	// bool HandleUpgrade(const sc2::Unit *unit); // research upgrades
+
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);

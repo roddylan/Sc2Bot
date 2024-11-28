@@ -152,6 +152,9 @@ void BasicSc2Bot::AssignArmoryAction(const sc2::Unit& armory) {
 * Make sure the starport tech lab is researching things
 */
 void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit& tech_lab) {
+    if (tech_lab.build_progress < 1 || tech_lab.orders.size() > 0) {
+        return;
+    }
     const sc2::ObservationInterface* observation = Observation();
     const std::vector<sc2::UpgradeID>& upgrades = observation->GetUpgrades();
     const std::vector<sc2::UpgradeData>& upgrade_data = observation->GetUpgradeData();
@@ -257,7 +260,7 @@ void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit& fusion_core) {
 */
 void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     // do nothing if starport isnt built
-    if (starport.build_progress < 1) {
+    if (starport.build_progress < 1 || starport.orders.size() > 0) {
         return;
     }
     const sc2::ObservationInterface* observation = Observation();

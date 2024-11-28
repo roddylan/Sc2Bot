@@ -122,5 +122,12 @@ void BasicSc2Bot::BuildArmy() {
 
     // TODO: finish
     // if (bases.size() == 1)
+
+    // handle starport units
+    if (starports.size() > 0) {
+        for (const auto &starport : starports) {
+            
+        }
+    }
     
 }
