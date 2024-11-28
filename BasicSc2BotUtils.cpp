@@ -559,7 +559,7 @@ void BasicSc2Bot::SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Uni
  * @return true if unit is structure
  * @return false if unit is not structure
  */
-bool BasicSc2Bot::IsStructure(const sc2::Unit &unit) {
+bool BasicSc2Bot::IsStructure(const sc2::Unit &unit) const {
     sc2::UNIT_TYPEID unit_type = unit.unit_type;
 
     return (

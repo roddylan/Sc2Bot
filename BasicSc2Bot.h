@@ -177,7 +177,7 @@ private:
 
 	void SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad);
 	void HandleAttack();
-	bool IsStructure(const sc2::Unit &unit);
+	bool IsStructure(const sc2::Unit &unit) const;
 };
 
 
