@@ -61,7 +61,7 @@ void BasicSc2Bot::TurretDefend(const sc2::Unit *turret) {
     }
 
     if (attack != nullptr) {
-        std::cout << "TURRET ATTACK\n";
+       // std::cout << "TURRET ATTACK\n";
         // able to attack
         acts->UnitCommand(turret, sc2::ABILITY_ID::ATTACK_ATTACK, attack);
     }

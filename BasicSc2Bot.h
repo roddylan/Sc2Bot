@@ -10,6 +10,7 @@
 #include <sc2api/sc2_interfaces.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
+#include <mutex>
 
 class BasicSc2Bot : public sc2::Agent {
 public:
@@ -32,6 +33,7 @@ public:
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
 	virtual bool TryBuildSiegeTank();
+	virtual void CheckRefineries();
 	virtual bool TryBuildSiegeTank(const sc2::Unit* factory);
 	virtual bool BuildRefinery();
 	virtual bool TryBuildFactory();
@@ -99,6 +101,7 @@ private:
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
 	sc2::Point2D *enemy_starting_location;
 	bool TryScouting(const sc2::Unit&);
+	bool TryScoutingForAttack(const sc2::Unit* unit_to_scout, bool refill_enemy_locations);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
 	void AssignBarrackAction(const sc2::Unit& barrack);
