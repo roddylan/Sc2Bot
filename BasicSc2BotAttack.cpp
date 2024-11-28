@@ -456,6 +456,7 @@ void BasicSc2Bot::LaunchAttack() {
 
     std::cout << "ATTACK TIME\n";
     if (enemies.empty()) {
+        // TODO: scout/search for enemy positions instead of just going to starting location
         act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy_starting_location);
     } else {
         act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
