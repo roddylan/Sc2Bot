@@ -583,7 +583,7 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < 2) {
+    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < N_STARPORT) {
        // HandleExpansion(true);
         return;
     }
@@ -592,6 +592,9 @@ void BasicSc2Bot::HandleBuild() {
         **PHASE ONE DONE**
         
     */
+    if (n_minerals < 400) {
+        return;
+    }
     // build armory
     if (armorys.size() < N_ARMORY_TOTAL && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
         TryBuildArmory();
