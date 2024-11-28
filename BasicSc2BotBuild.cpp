@@ -592,7 +592,7 @@ void BasicSc2Bot::HandleBuild() {
         **PHASE ONE DONE**
         
     */
-    if (n_minerals < 400) {
+    if (obs->GetMinerals() < 400) {
         return;
     }
     // build armory

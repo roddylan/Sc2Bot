@@ -750,7 +750,8 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         }
         if (unit->orders.size() > 0) {
             sc2::UnitOrder order = unit->orders.front();
-            if (order.ability_id != sc2::ABILITY_ID::HARVEST_GATHER) {
+            if (order.ability_id != sc2::ABILITY_ID::HARVEST_GATHER ||
+                order.ability_id != sc2::ABILITY_ID::HARVEST_RETURN) {
                 // scv cant attack
                 return;
             }
