@@ -713,30 +713,28 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         }
     }
 
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
-        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
-        if (enemy_units_in_range.size() > 0) {
-            TankAttack({unit}, enemy_units_in_range);
-        } else {
-            TankAttack({unit}, enemy_structures_in_range);
-        }
-        return;
+    // attack units
+    sc2::Units &attacking = enemy_units_in_range;
+    if (enemy_units_in_range.empty()) {
+        // attack buildings if no units to attack
+        attacking = enemy_structures_in_range;
     }
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT ||
-        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
-        if (enemy_units_in_range.size() > 0) {
-            VikingAttack({unit}, enemy_units_in_range);
-        } else {
-            VikingAttack({unit}, enemy_structures_in_range);
-        }
-        return;
-    } 
     
     // default attack
-    if (enemy_units_in_range.size() > 0) {
-        AttackWithUnit(unit, enemy_units_in_range);
-    } else {
-        AttackWithUnit(unit, enemy_structures_in_range);
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+        TankAttack({unit}, attacking);
+        return;
     }
+    // attack with viking
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT ||
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
+        VikingAttack({unit}, attacking);
+        return;
+    }
+    // default attack
+    AttackWithUnit(unit, attacking);
+    return;
+    
 
 }
