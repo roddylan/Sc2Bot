@@ -398,7 +398,8 @@ void BasicSc2Bot::LaunchAttack() {
     // if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     //     return;
     // }
-    if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    if (obs->GetFoodArmy() < (150 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
     }
     
@@ -668,7 +669,6 @@ void BasicSc2Bot::HandleAttack() {
 
     sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, NotStructure());
     
-    // only attack with scvs holding mineral and isnt repairing
     for (const auto &unit : units) {
         HandleAttack(unit, obs);
     }
@@ -683,6 +683,10 @@ void BasicSc2Bot::HandleAttack() {
 void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs) {
     // prioritize enemy units over structures
     float range{};
+    // cant do anything with mule
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
+        return;
+    }
     
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK || 
         unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK) {
@@ -733,6 +737,26 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         VikingAttack({unit}, attacking);
         return;
     }
+    // scv attack
+    // only attack with scvs holding mineral and isnt repairing
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
+        if (unit->buffs.size() > 0) {
+            sc2::BUFF_ID buff = unit->buffs.front();
+            if (buff != sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS &&
+                buff != sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
+                // scv cant attack
+                return;
+            }
+        }
+        if (unit->orders.size() > 0) {
+            sc2::UnitOrder order = unit->orders.front();
+            if (order.ability_id != sc2::ABILITY_ID::HARVEST_GATHER) {
+                // scv cant attack
+                return;
+            }
+        }
+    }
+
     // default attack
     AttackWithUnit(unit, attacking);
     return;
