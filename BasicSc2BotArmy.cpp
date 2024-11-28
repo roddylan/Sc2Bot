@@ -369,6 +369,6 @@ void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
     if (factory->build_progress < 1 || factory->orders.size() > 0) {
         return;
     }
-    TryBuildThor(factory);
     TryBuildSiegeTank(factory);
+    TryBuildThor(factory);
 }
