@@ -714,11 +714,11 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     }
 
     // attack units
-    sc2::Units &attacking = enemy_units_in_range;
-    if (enemy_units_in_range.empty()) {
-        // attack buildings if no units to attack
-        attacking = enemy_structures_in_range;
-    }
+    const sc2::Units &attacking = enemy_units_in_range.empty() ? enemy_structures_in_range : enemy_units_in_range;
+    // if (enemy_units_in_range.empty()) {
+    //     // attack buildings if no units to attack
+    //     attacking = enemy_structures_in_range;
+    // }
     
     // default attack
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
