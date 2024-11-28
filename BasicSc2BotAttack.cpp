@@ -665,10 +665,7 @@ void BasicSc2Bot::HandleAttack() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::ActionInterface *act = Actions();
 
-    sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit &unit) {
-        // return IsStructure(unit);
-        return false;
-    });
+    sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     // only attack with scvs holding mineral and isnt repairing
 
 }

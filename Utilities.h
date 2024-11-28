@@ -33,7 +33,7 @@ bool IsStructure(const sc2::Unit &unit);
 
 // functor for structure check
 struct FIsStructure {
-    bool operator()(const sc2::Unit &unit) {
+    bool operator()(const sc2::Unit &unit) const {
         return IsStructure(unit);
     }
 };
