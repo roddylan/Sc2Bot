@@ -414,7 +414,7 @@ void BasicSc2Bot::LaunchAttack() {
     sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
     }));
-    sc2::Units thor = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    sc2::Units thors = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_THOR, sc2::UNIT_TYPEID::TERRAN_THORAP
     }));
 
@@ -431,15 +431,25 @@ void BasicSc2Bot::LaunchAttack() {
 
     float ratio = static_cast<double>(2) / 3;
     
-    const size_t n_marines = marines.size() * ratio;
-    const size_t n_marauders = marauders.size() * ratio;
-    const size_t n_siege_tanks = siege_tanks.size() * ratio;
-    const size_t n_thor = thor.size() * ratio;
-    const size_t n_vikings = vikings.size() * ratio;
-    const size_t n_medivacs = medivacs.size() * ratio;
-    const size_t n_liberators = liberators.size() * ratio;
-    const size_t n_banshees = liberators.size() * ratio;
-    const size_t n_battlecruisers = liberators.size() * ratio;
+    const size_t split_marines = marines.size() * ratio;
+    const size_t split_marauders = marauders.size() * ratio;
+    const size_t split_siege_tanks = siege_tanks.size() * ratio;
+    const size_t split_thors = thors.size() * ratio;
+    const size_t split_vikings = vikings.size() * ratio;
+    const size_t split_medivacs = medivacs.size() * ratio;
+    const size_t split_liberators = liberators.size() * ratio;
+    const size_t split_banshees = liberators.size() * ratio;
+    const size_t split_battlecruisers = liberators.size() * ratio;
+
+    SquadSplit(split_marines, marines, raid_squad);
+    SquadSplit(split_marauders, marauders, raid_squad);
+    SquadSplit(split_siege_tanks, siege_tanks, raid_squad);
+    SquadSplit(split_thors, thors, raid_squad);
+    SquadSplit(split_vikings, vikings, raid_squad);
+    SquadSplit(split_medivacs, medivacs, raid_squad);
+    SquadSplit(split_liberators, liberators, raid_squad);
+    SquadSplit(split_banshees, banshees, raid_squad);
+    SquadSplit(split_battlecruisers, battlecruisers, raid_squad);
 
     
 }
