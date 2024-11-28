@@ -517,10 +517,15 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
     sc2::Units refineries = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
     
-    if (n_minerals >= 400 && bases.size() <= 1) {
-        HandleExpansion(false);
+    // prioritize saving money when past phase one
+    // if (marines.size() >= 20 && tanks.size() >= 3 && starports.size() >= N_STARPORT) {
+    // if (marines.size() >= 10 && tanks.size() >= 2 && starports.size() >= N_STARPORT) {
+    if (barracks.size() >= N_BARRACKS && factory.size() >= N_FACTORY && starports.size() >= N_STARPORT) {
+        if (obs->GetMinerals() < BASE_COST) {
+            return;
+        }
     }
-    
+
     // TODO: handle when multiple gas geysers possible
     if (refineries.size() < bases.size() * 2) {
         TryBuildRefinery();
@@ -552,8 +557,9 @@ void BasicSc2Bot::HandleBuild() {
 
     // build factory
     if (!barracks.empty() && factory.size() < (N_FACTORY * bases.size())) {
-        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST && n_minerals - FACTORY_MINERAL_COST >= 400) {
-            //std::cout << "building factory\n\n";
+        // if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST && n_minerals - FACTORY_MINERAL_COST >= 400) {
+        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST) {
+            // std::cout << "building factory\n\n";
             TryBuildFactory();
         }
     }
@@ -604,7 +610,7 @@ void BasicSc2Bot::HandleBuild() {
 
             }
             if (!cc_in_progress) {
-                HandleExpansion(true);
+                HandleExpansion(false);
             }
         }
     }
@@ -615,7 +621,9 @@ void BasicSc2Bot::HandleBuild() {
         }
     }
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 || tanks.size() < 3 || starports.size() < N_STARPORT) {
+    // if (marines.size() < 20 || tanks.size() < 3 || starports.size() < N_STARPORT) {
+    // if (marines.size() < 10 || tanks.size() < 2 || starports.size() < N_STARPORT) {
+    if (barracks.size() < N_BARRACKS || factory.size() < N_FACTORY || starports.size() < N_STARPORT) {
        // HandleExpansion(true);
         return;
     }
@@ -624,6 +632,10 @@ void BasicSc2Bot::HandleBuild() {
         **PHASE ONE DONE**
         
     */
+    if (n_minerals >= 400 && bases.size() <= 1) {
+        HandleExpansion(false);
+    }
+
     if (obs->GetMinerals() < BASE_COST) {
         return;
     }
@@ -631,6 +643,7 @@ void BasicSc2Bot::HandleBuild() {
     if (armorys.size() < N_ARMORY_TOTAL && obs->GetMinerals() >= ARMORY_MINERAL_COST + BASE_COST && obs->GetVespene() >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
+    
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
             if (starport->add_on_tag != 0LL) {
