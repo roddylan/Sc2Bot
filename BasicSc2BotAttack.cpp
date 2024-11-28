@@ -440,6 +440,8 @@ void BasicSc2Bot::LaunchAttack() {
     const size_t n_liberators = liberators.size() * ratio;
     const size_t n_banshees = liberators.size() * ratio;
     const size_t n_battlecruisers = liberators.size() * ratio;
+
+    
 }
 
 

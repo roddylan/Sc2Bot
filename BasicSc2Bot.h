@@ -174,6 +174,8 @@ private:
 		const std::vector<sc2::UNIT_TYPEID> &prod_unit, 
 		sc2::ABILITY_ID ability
 	);
+
+	void SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad);
 };
 
 
