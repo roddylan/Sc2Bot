@@ -552,3 +552,32 @@ void BasicSc2Bot::SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Uni
     }
 }
 
+
+/**
+ * @brief Remove enemy base from set
+ * 
+ * @param base base unit
+ */
+void BasicSc2Bot::RemoveEnemyBase(const sc2::Unit *base) {
+    // not in set
+    if (enemy_bases.find(base) == enemy_bases.end()) {
+        return;
+    }
+    
+    this->enemy_bases.erase(base);
+}
+
+
+/**
+ * @brief Remove enemy base from set
+ * 
+ * @param base_tag tag for base
+ */
+void BasicSc2Bot::RemoveEnemyBase(const sc2::Tag &base_tag) {
+    const sc2::Unit *base = Observation()->GetUnit(base_tag);
+    if (base == nullptr) {
+        return;
+    }
+
+    RemoveEnemyBase(base);
+}

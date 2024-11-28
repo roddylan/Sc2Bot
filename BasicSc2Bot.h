@@ -203,6 +203,10 @@ private:
 	void HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs);
 
 	std::unordered_set<const sc2::Unit *, UnitHash, UnitEqual> enemy_bases;
+
+	void CleanupEnemyBases(); // get rid of dead bases
+	void RemoveEnemyBase(const sc2::Unit *base); // get rid of dead bases
+	void RemoveEnemyBase(const sc2::Tag &base_tag); // get rid of dead bases
 };
 
 
