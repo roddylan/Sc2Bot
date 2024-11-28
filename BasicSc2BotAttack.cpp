@@ -399,6 +399,8 @@ void BasicSc2Bot::LaunchAttack() {
         return;
     }
     
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+
     // TODO: decide if keep some at base or send all to attack
 
     // basic ground troops (marine, marauder)
@@ -419,6 +421,7 @@ void BasicSc2Bot::LaunchAttack() {
     sc2::Units vikings = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
     }));
+
 
     
 }

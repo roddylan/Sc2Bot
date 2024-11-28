@@ -495,6 +495,10 @@ void BasicSc2Bot::HandleBuild() {
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
     sc2::Units refineries = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
     
+    if (n_minerals >= 400 && bases.size() <= 1) {
+        HandleExpansion(false);
+    }
+    
     // TODO: handle when multiple gas geysers possible
     if (refineries.size() < bases.size() * 2) {
         TryBuildRefinery();
@@ -631,7 +635,8 @@ void BasicSc2Bot::HandleBuild() {
     // }
 
     //if (!has_infantry_weapons_1) return;
-    if (n_minerals >= 400 && bases.size() <= 1) {
+    if (n_minerals >= 400 && bases.size() <= 3) {
+        // TODO: change
         HandleExpansion(false);
     }
 
