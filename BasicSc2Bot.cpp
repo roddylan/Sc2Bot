@@ -94,7 +94,8 @@ void BasicSc2Bot::OnStep() {
         sc2::ABILITY_ID::TRAIN_MARINE
     );
     // skip a few frames for speed; avoid duplicate commands
-    int skip_frame = 5;
+    const int skip_frame = 5;
+    const int attack_skip_frame = 15;
 
     if (obs->GetGameLoop() % skip_frame) {
         return;
@@ -167,9 +168,12 @@ void BasicSc2Bot::OnStep() {
         VikingAttack(vikings, enemies);
     }
     
-    LaunchAttack();
-    
-    HandleAttack();
+
+    if (obs->GetGameLoop() % attack_skip_frame == 0) {
+        LaunchAttack();
+        
+        HandleAttack();
+    }
     
     // if (TryBuildSeigeTank()) {
     //     return;
