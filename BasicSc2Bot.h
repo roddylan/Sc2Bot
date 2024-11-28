@@ -124,7 +124,7 @@ public:
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
 	sc2::Units marine_cluster;
-	const size_t n_tanks = 3;
+	const size_t n_tanks = 6;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
 	// TODO: increase to 22
