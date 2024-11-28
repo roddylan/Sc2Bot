@@ -488,8 +488,8 @@ void BasicSc2Bot::HandleBuild() {
     // const size_t n_engg_target = 2;
     const size_t n_bunkers_target = N_BUNKERS; // 8
     // const size_t n_starports_target = 2;
-   // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
-  //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
+    // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
+    // const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
     
     sc2::Units marines = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
