@@ -37,3 +37,9 @@ struct FIsStructure {
         return IsStructure(unit);
     }
 };
+// functor for structure check
+struct NotStructure {
+    bool operator()(const sc2::Unit &unit) const {
+        return !IsStructure(unit);
+    }
+};
