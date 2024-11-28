@@ -202,7 +202,7 @@ private:
 	void HandleAttack();
 	void HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs);
 
-	std::unordered_set<sc2::Unit *, UnitHash> enemy_bases;
+	std::unordered_set<const sc2::Unit *, UnitHash, UnitEqual> enemy_bases;
 };
 
 
