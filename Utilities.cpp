@@ -1,7 +1,9 @@
 #include "Utilities.h"
 #include <iostream>
 #include <cmath>
+#include "BasicSc2Bot.h"
 #include "Betweenness.h"
+#include <sc2api/sc2_typeenums.h>
 #include <unordered_map>
 #include <functional>
 
@@ -226,15 +228,13 @@ std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch
 
 
 /**
- * @brief Check if unit is structure
+ * @brief Check if unit_type is structure
  * 
- * @param unit 
- * @return true if unit is structure
- * @return false if unit is not structure
+ * @param unit_type
+ * @return true if unit_type is structure
+ * @return false if unit_type is not structure
  */
-bool IsStructure(const sc2::Unit &unit) {
-    sc2::UNIT_TYPEID unit_type = unit.unit_type;
-
+bool IsStructure(const sc2::UNIT_TYPEID &unit_type) {
     return (
         // TERRAN UNITS
         unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
@@ -305,4 +305,18 @@ bool IsStructure(const sc2::Unit &unit) {
         unit_type == sc2::UNIT_TYPEID::ZERG_ULTRALISKCAVERN ||
         unit_type == sc2::UNIT_TYPEID::ZERG_GREATERSPIRE
     );
+}
+
+
+/**
+ * @brief Check if unit is structure
+ * 
+ * @param unit
+ * @return true if unit is structure
+ * @return false if unit is not structure
+ */
+bool IsStructure(const sc2::Unit &unit) {
+    const sc2::UNIT_TYPEID unit_type = unit.unit_type;
+
+    return IsStructure(unit_type);
 }
