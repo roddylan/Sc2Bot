@@ -296,9 +296,11 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
         }
         
         // closest enemy detected within siege range -> move back and go siege mode
-        if (min_dist >= THRESHOLD) {
+        if (min_dist > TANK_SIEGE_RANGE) {
+            Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
+        } else if (min_dist >= THRESHOLD) {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_SIEGEMODE);
-        } else if (min_dist > TANK_SIEGE_RANGE) {
+        } else {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
         }
         
@@ -356,9 +358,11 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
         }
         
         // closest enemy detected within siege range -> move back and go siege mode
-        if (min_dist >= THRESHOLD) {
+        if (min_dist > TANK_SIEGE_RANGE) {
+            Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
+        } else if (min_dist >= THRESHOLD) {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_SIEGEMODE);
-        } else if (min_dist > TANK_SIEGE_RANGE) {
+        } else {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
         }
         AttackWithUnit(tank, enemies);
