@@ -110,7 +110,9 @@ void BasicSc2Bot::OnStep() {
     sc2::Units cur_enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
 
     for (const auto &base : cur_enemy_bases) {
-        enemy_bases.insert(base);
+        if (base->is_alive) {
+            enemy_bases.insert(base);
+        }
     }
 
     if (marines.size() > 10) {
