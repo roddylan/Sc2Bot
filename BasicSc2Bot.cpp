@@ -106,6 +106,13 @@ void BasicSc2Bot::OnStep() {
     sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
         sc2::UNIT_TYPEID::TERRAN_MARINE
     ));
+
+    sc2::Units cur_enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
+
+    for (const auto &base : cur_enemy_bases) {
+        // enemy_bases.pu
+    }
+
     if (marines.size() > 10) {
         if (!scvs.empty() && scvs[0]->orders.empty()) {
             TryScoutingForAttack(scvs[0], false);

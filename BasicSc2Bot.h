@@ -10,8 +10,21 @@
 #include <sc2api/sc2_interfaces.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
+#include <unordered_set>
 #include <vector>
 #include <mutex>
+
+
+struct UnitHash {
+	size_t operator()(const sc2::Unit &unit) const {
+		return unit.tag;
+	}
+	
+	size_t operator()(const sc2::Unit *unit) const {
+		return unit->tag;
+	}
+};
+
 
 class BasicSc2Bot : public sc2::Agent {
 public:
@@ -179,6 +192,8 @@ private:
 	void SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad);
 	void HandleAttack();
 	void HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs);
+
+	std::unordered_set<sc2::Unit *, UnitHash> enemy_bases;
 };
 
 
