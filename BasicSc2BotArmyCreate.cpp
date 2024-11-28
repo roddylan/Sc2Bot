@@ -51,10 +51,16 @@ void BasicSc2Bot::BuildArmy() {
     
     sc2::Units bunkers = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     
+    const size_t COMMAND_CENTER_COST = 400;
+    
+    // THRESHOLD
+    // if have some units, maintain enough money to expand
+    if (bases.size() > 0 && obs->GetFoodArmy() > MIN_ARMY_FOOD && obs->GetMinerals() <= COMMAND_CENTER_COST) {
+        return;
+    }
 
     // UNIT COUNTS
     // TODO: finish
-    // TODO: use CountUnitTotal
 
     size_t marine_count = CountUnitTotal(
         obs, {sc2::UNIT_TYPEID::TERRAN_MARINE}, 
