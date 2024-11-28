@@ -174,6 +174,8 @@ private:
 		const std::vector<sc2::UNIT_TYPEID> &prod_unit, 
 		sc2::ABILITY_ID ability
 	);
+
+	void UnitAttack(const sc2::Unit *unit);
 };
 
 
