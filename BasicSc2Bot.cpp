@@ -95,7 +95,7 @@ void BasicSc2Bot::OnStep() {
     );
     // skip a few frames for speed; avoid duplicate commands
     const int skip_frame = 5;
-    const int attack_skip_frame = 15;
+    const int attack_skip_frame = 10;
 
     if (obs->GetGameLoop() % skip_frame) {
         return;
