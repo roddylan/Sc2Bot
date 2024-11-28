@@ -14,6 +14,7 @@
 #include <sc2lib/sc2_search.h>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 sc2::Filter isEnemy = [](const sc2::Unit& unit) {
     return unit.alliance != sc2::Unit::Alliance::Self; 
@@ -580,4 +581,26 @@ void BasicSc2Bot::RemoveEnemyBase(const sc2::Tag &base_tag) {
     }
 
     RemoveEnemyBase(base);
+}
+
+/**
+ * @brief Cleanup dead enemy bases
+ * 
+ */
+void BasicSc2Bot::CleanupEnemyBases() {
+    if (enemy_bases.empty()) {
+        return;
+    }
+    
+    std::vector<sc2::Tag> rm_tags;
+
+    for (const auto &enemy_base : enemy_bases) {
+        if (!enemy_base->is_alive) {
+            rm_tags.push_back(enemy_base->tag);
+        }
+    }
+
+    for (const auto &rm_tag : rm_tags) {
+        RemoveEnemyBase(rm_tag);
+    }
 }
