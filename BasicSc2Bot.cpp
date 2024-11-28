@@ -144,6 +144,8 @@ void BasicSc2Bot::OnStep() {
     HandleBuild();
     
     BuildWorkers();
+
+    BuildArmy();
     // if (!expansion_supply) {
     //     HandleBuild();
         
@@ -376,10 +378,10 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         }
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
-        AssignStarportAction(unit);
-        break;
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
+    //     AssignStarportAction(unit);
+    //     break;
+    // }
     case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB: {
         AssignStarportTechLabAction(unit);
         break;
@@ -419,10 +421,10 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
-        AssignBarrackAction(unit);
-        break;
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
+    //     AssignBarrackAction(unit);
+    //     break;
+    // }
      
     case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
         AssignFusionCoreAction(unit);
@@ -453,9 +455,9 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
-        UpgradeFactoryTechLab(unit);
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
+    //     UpgradeFactoryTechLab(unit);
+    // }
 
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
         AssignFactoryAction(unit);
