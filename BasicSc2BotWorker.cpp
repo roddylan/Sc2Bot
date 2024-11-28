@@ -184,6 +184,9 @@ void BasicSc2Bot::AssignWorkers() {
         // base has enough harvesters
         if (base->assigned_harvesters > base->ideal_harvesters) {
             for (const auto &scv : workers) {
+                if (scv == scout) {
+                    continue;
+                }
                 // scv busy
                 if (!scv->orders.empty()) {
                     sc2::UnitOrder first_order = scv->orders.front();
@@ -212,6 +215,9 @@ void BasicSc2Bot::AssignWorkers() {
         // if refinery already has enough scvs
         if (refinery->assigned_harvesters > refinery->ideal_harvesters) {
             for (const auto &scv : workers) {
+                if (scv == scout) {
+                    continue;
+                }
                 if (!scv->orders.empty()) {
                     // scv busy
                     sc2::UnitOrder first_order = scv->orders.front();
