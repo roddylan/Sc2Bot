@@ -395,7 +395,10 @@ void BasicSc2Bot::LaunchAttack() {
     // TODO: army composition requirements
 
     // dont attack if not ready
-    if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    //     return;
+    // }
+    if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
     }
     
@@ -450,6 +453,14 @@ void BasicSc2Bot::LaunchAttack() {
     SquadSplit(split_liberators, liberators, raid_squad);
     SquadSplit(split_banshees, banshees, raid_squad);
     SquadSplit(split_battlecruisers, battlecruisers, raid_squad);
+
+    std::cout << "ATTACK TIME\n";
+    if (enemies.empty()) {
+        act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy_starting_location);
+    } else {
+        act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+    }
+
 
     
 }
@@ -644,4 +655,22 @@ void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit) {
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
         }
     }
+}
+
+/**
+ * @brief Handle attacking in general case (attack whenever enemy in range)
+ * 
+ */
+void BasicSc2Bot::HandleAttack() {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::ActionInterface *act = Actions();
+
+    sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit &unit) {
+        // only collect nonbuilding
+        // unit.
+        
+        return true;
+    });
+    // only attack with scvs holding mineral and isnt repairing
+
 }
