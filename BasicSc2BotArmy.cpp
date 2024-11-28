@@ -376,6 +376,7 @@ void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
     if (obs->GetUnit(factory->add_on_tag) == nullptr) {
         // build factory techlab
         UpgradeFactoryTechLab(factory);
+        return;
     }
 
     TryBuildSiegeTank(factory);

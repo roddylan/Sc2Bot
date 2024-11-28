@@ -16,7 +16,14 @@
 #include <cmath>
 
 bool BasicSc2Bot::UpgradeFactoryTechLab(const sc2::Unit* factory) {
-        
+    const sc2::ObservationInterface *obs = Observation();
+
+    const size_t TECHLAB_MINERAL_COST = 50;
+    const size_t TECHLAB_GAS_COST = 25;
+    if (obs->GetMinerals() < TECHLAB_MINERAL_COST || obs->GetVespene() < TECHLAB_GAS_COST) {
+        return false;
+    }
+    
     Actions()->UnitCommand(factory, sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY);
     
     return true;
