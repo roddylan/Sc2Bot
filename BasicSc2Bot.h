@@ -176,7 +176,7 @@ private:
 	bool TryScoutingForAttack(const sc2::Unit* unit_to_scout, bool refill_enemy_locations);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
-	void AssignBarrackAction(const sc2::Unit& barrack);
+	void AssignBarrackAction(const sc2::Unit *barrack);
 	void AssignBarrackTechLabAction(const sc2::Unit& barrack_tech_lab);
 	void AssignStarportAction(const sc2::Unit *starport);
 	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
