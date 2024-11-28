@@ -429,12 +429,14 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     if (observation->GetMinerals() < 75) {
         return false;
     }
+
     size_t max_turrets_per_base = N_MISSILE;
     size_t base_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
     size_t turret_count = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MISSILETURRET)).size();
     if (max_turrets_per_base * base_count < turret_count) {
         return false;
     }
+    // std::cout << "building turret\n";
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_MISSILETURRET);
 
 }
