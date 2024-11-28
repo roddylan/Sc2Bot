@@ -28,9 +28,10 @@ sc2::ImageData GetMapChunk(sc2::ImageData data, sc2::Point2DI start, sc2::Point2
 // returns a list of 50 (default) pinch points on the map
 std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch_points=75, int num_chunks=1, int stride=192);
 
-
+// structure check
 bool IsStructure(const sc2::Unit &unit);
 
+// functor for structure check
 struct FIsStructure {
     bool operator()(const sc2::Unit &unit) {
         return IsStructure(unit);
