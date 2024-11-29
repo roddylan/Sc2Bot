@@ -110,8 +110,30 @@ private:
 	const size_t n_bunkers = 6;
 	
 	const size_t N_ARMY_THRESHOLD = 30; // 200 - workers - threshold -> attack; allow bot to keep making units while attacking
+	const size_t MIN_ARMY_FOOD = 30; // min army size before prioritizing resources
 	const size_t N_TOTAL_WORKERS = 70; // max no. of workers
+	const size_t min_minerals_for_units = 300; // do not dip below this minearl count when training units
 
+	const size_t MIN_MARINE = 20; // per base
+	const size_t MIN_VIKINGS = 2; // total
+	const size_t GOAL_VIKINGS = 10; // total
+	const size_t GOAL_MEDIVAC = 10; // total
+	
+	// structure goals
+	// per base
+	const size_t N_BARRACKS = 2;
+	const size_t N_FACTORY = 2;
+	const size_t N_STARPORT = 2;
+	const size_t N_TURRET = 6;
+	const size_t N_BUNKERS = 8;
+	const size_t N_MISSILE = 5;
+	
+	// total
+	const size_t N_ENGG_TOTAL = 1;
+	const size_t N_ARMORY_TOTAL = 1;
+	const size_t N_FUSION_CORE_TOTAL = 1;
+	
+	
 	// TODO: adjust
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
