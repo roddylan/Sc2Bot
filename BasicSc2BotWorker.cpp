@@ -104,7 +104,7 @@ void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
         }
         
         if (base->assigned_harvesters < base->ideal_harvesters) {
-            mineral_target = FindNearestMineralPatch(unit->pos);
+            mineral_target = FindNearestMineralPatch(base->pos);
             // Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, mineral_target);
             return;
@@ -188,7 +188,7 @@ void BasicSc2Bot::AssignWorkers() {
                     continue;
                 }
                 // scv busy
-                if (!scv->orders.empty()) {
+                if (scv->orders.size() > 0) {
                     sc2::UnitOrder first_order = scv->orders.front();
 
                     // if unit already harvesting at current base
