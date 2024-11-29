@@ -118,8 +118,8 @@ void BasicSc2Bot::OnStep() {
 
     CleanupEnemyBases();
 
-    if (marines.size() > 10) {
-        if (!scvs.empty() && scvs[0]->orders.empty()) {
+    if (marines.size() > 10 && !scvs.empty()) {
+        if (scvs[0]->orders.empty()) {
             TryScoutingForAttack(scvs[0], false);
         }
         
