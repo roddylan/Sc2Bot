@@ -315,7 +315,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_ARMORY: {
-        AssignArmoryAction(*unit);
+        AssignArmoryAction(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
