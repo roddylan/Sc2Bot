@@ -43,14 +43,23 @@ public:
 	bool TryBuildFactory();
 	bool TryBuildBunker();
 	bool TryBuildBarracks();
+
+	bool TryBuildStructure(
+		sc2::ABILITY_ID ability_type_for_structure, 
+		sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV
+	);
+	bool TryBuildStructure(
+		sc2::ABILITY_ID ability_type_for_structure, 
+		sc2::Point2D location, 
+		sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)
+	); // generalized; for expansions
+
+	const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
+	size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
+	const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
+	void HandleUpgrades();
+	void HandleBuild(); // logic for building instead of just trying on each step
 	
-	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
-	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
-	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)); // generalized; for expansions
-	virtual size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
-	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
-	virtual void HandleUpgrades();
-	virtual void HandleBuild(); // logic for building instead of just trying on each step
 	virtual void AssignWorkers(const sc2::Unit *);
 	virtual void BuildWorkers();
 	virtual bool TryBuildThor();
