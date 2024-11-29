@@ -314,7 +314,6 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     * When leaving the loop, pos_to_place should be set
     */
     sc2::Point2D pos_to_place_at;
-
     /*
     * Use a cache to not repeatedly query positions we know don't work
     */
@@ -355,9 +354,9 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 // ensures we dont build at expansion location
                 bool is_expansion_location = false;
                 for (const auto& expansion_location : expansion_locations) {
-                    float distance = std::sqrt(std::pow(expansion_location.x - current_pos.x, 2) +
-                        std::pow(expansion_location.y - current_pos.y, 2));
-                    if (distance <= 10.f) {
+                    float distance_squared = sc2::DistanceSquared2D(expansion_location, current_pos);
+                    // if (distance_squared <= 100.f) {
+                    if (distance_squared <= 10.f) {
                         is_expansion_location = true;
                         break;
                     }
@@ -366,7 +365,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 if (!is_expansion_location) {
                     pos_to_place_at = current_pos;
                 }
-                
+
             }
         }
         // increase the search space
@@ -374,7 +373,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         x_hi += x_step;
         y_lo -= y_step;
         x_hi += y_step;
-        
+
         if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
             return sc2::Point2D(0, 0);
@@ -384,7 +383,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
             return this->FindPlaceablePositionNear(starting_point + sc2::Point2D(rand_x, rand_y), ability_to_place_building);
             */
         }
-        
+
     }
     return pos_to_place_at;
 }
