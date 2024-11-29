@@ -10,70 +10,97 @@
 #include <sc2api/sc2_interfaces.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
+#include <unordered_set>
+#include <vector>
 #include <mutex>
 
 class BasicSc2Bot : public sc2::Agent {
 public:
 
-	virtual void OnGameFullStart();
-	virtual void OnGameStart();
-	virtual void OnStep();
+	void OnGameFullStart();
+	void OnGameStart();
+	void OnStep();
 
 	//! Called when the unit in the current observation has lower health or shields than in the previous observation.
     //!< \param unit The damaged unit.
     //!< \param health The change in health (damage is positive)
     //!< \param shields The change in shields (damage is positive)
-    virtual void OnUnitDamaged(const sc2::Unit*, float /*health*/, float /*shields*/);
+    void OnUnitDamaged(const sc2::Unit*, float /*health*/, float /*shields*/);
+	void OnUnitIdle(const sc2::Unit* unit) final;
+	void OnUnitCreated(const sc2::Unit* unit);
 
-	virtual bool AttackIntruders();
-	virtual bool LoadBunker(const sc2::Unit* marine);
-	virtual void OnUnitIdle(const sc2::Unit* unit) final;
-	virtual void OnUnitCreated(const sc2::Unit* unit);
-	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
-	virtual bool TryBuildSupplyDepot();
-	virtual bool TryBuildRefinery();
-	virtual bool TryBuildSiegeTank();
+	bool AttackIntruders();
+	bool LoadBunker(const sc2::Unit* marine);
+	bool UpgradeFactoryTechLab(const sc2::Unit* factory);
+	bool TryBuildSupplyDepot();
+	bool TryBuildRefinery();
+	bool TryBuildSiegeTank();
+	bool TryBuildSiegeTank(const sc2::Unit* factory);
+	
 	virtual void CheckRefineries();
-	virtual bool TryBuildSiegeTank(const sc2::Unit* factory);
-	virtual bool BuildRefinery();
-	virtual bool TryBuildFactory();
-	virtual bool TryBuildBunker();
-	virtual bool TryBuildBarracks();
-	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
-	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
-	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)); // generalized; for expansions
-	virtual size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
-	virtual const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
-	virtual void HandleUpgrades();
-	virtual void HandleBuild(); // logic for building instead of just trying on each step
-	virtual void AssignWorkers(const sc2::Unit *);
-	virtual void BuildWorkers();
-	virtual bool TryBuildThor();
-	virtual void AssignFusionCoreAction(const sc2::Unit& fusion_core);
-	virtual bool BasicSc2Bot::TryBuildFusionCore();
-	virtual void AssignStarportTechLabAction(const sc2::Unit& tech_lab);
-	virtual const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
-	virtual bool UpgradeStarportTechlab(const sc2::Unit& starport);
-	virtual void AssignArmoryAction(const sc2::Unit& armory);
-	virtual bool TryBuildThor(const sc2::Unit* factory);
-	virtual const sc2::Unit* FindInjuredMarine();
-	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
-	virtual const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
-	virtual int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
-	virtual bool HandleExpansion(bool resources_depleted);
-	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
-	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
-	virtual bool TryBuildMissileTurret();
-	virtual bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
-	virtual bool TryBuildArmory();
-	virtual void OnUnitDestroyed(const sc2::Unit* unit);
-	virtual void TankAttack(const sc2::Units &squad);
-	virtual void TankAttack(const sc2::Units &squad, const sc2::Units &enemies);
-	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	
+	bool BuildRefinery();
+	bool TryBuildFactory();
+	bool TryBuildBunker();
+	bool TryBuildBarracks();
+
+	bool TryBuildStructure(
+		sc2::ABILITY_ID ability_type_for_structure, 
+		sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV
+	);
+	bool TryBuildStructure(
+		sc2::ABILITY_ID ability_type_for_structure, 
+		sc2::Point2D location, 
+		sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)
+	); // generalized; for expansions
+
+	const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
+	size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
+	const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
+	void HandleUpgrades();
+	void HandleBuild(); // logic for building instead of just trying on each step
+	
+	void AssignIdleWorkers(const sc2::Unit *);
+	void AssignWorkers();
+	
+	void BuildWorkers();
+	bool TryBuildThor();
+	void AssignFusionCoreAction(const sc2::Unit *fusion_core);
+	bool TryBuildFusionCore();
+	void AssignStarportTechLabAction(const sc2::Unit *tech_lab);
+	const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
+	bool UpgradeStarportTechlab(const sc2::Unit& starport);
+	void AssignArmoryAction(const sc2::Unit *armory);
+	bool TryBuildThor(const sc2::Unit* factory);
+
+	const sc2::Unit* FindInjuredMarine();
+	const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
+	const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
+	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
+	bool HandleExpansion(bool resources_depleted);
+	int CountNearbySeigeTanks(const sc2::Unit* factory);
+	const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
+	bool TryBuildMissileTurret();
+	bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure); // TODO: not finished
+	bool TryBuildArmory();
+	void OnUnitDestroyed(const sc2::Unit* unit);
+	
+	void TankAttack(const sc2::Units &squad);
+	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
+
+	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
+	
+	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	void AttackWithUnit(const sc2::Unit *unit);
+	
 	void LaunchAttack();
+
+	void BuildArmy(); // handle army build
+
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
-	virtual const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
+	
+	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
 	const size_t n_tanks = 3;
 	const size_t n_bases = 3;
@@ -88,8 +115,30 @@ private:
 	const size_t n_bunkers = 6;
 	
 	const size_t N_ARMY_THRESHOLD = 30; // 200 - workers - threshold -> attack; allow bot to keep making units while attacking
+	const size_t MIN_ARMY_FOOD = 30; // min army size before prioritizing resources
 	const size_t N_TOTAL_WORKERS = 70; // max no. of workers
+	const size_t min_minerals_for_units = 300; // do not dip below this minearl count when training units
 
+	const size_t MIN_MARINE = 20; // per base
+	const size_t MIN_VIKINGS = 2; // total
+	const size_t GOAL_VIKINGS = 10; // total
+	const size_t GOAL_MEDIVAC = 10; // total
+	
+	// structure goals
+	// per base
+	const size_t N_BARRACKS = 2;
+	const size_t N_FACTORY = 2;
+	const size_t N_STARPORT = 2;
+	const size_t N_TURRET = 6;
+	const size_t N_BUNKERS = 8;
+	const size_t N_MISSILE = 5;
+	
+	// total
+	const size_t N_ENGG_TOTAL = 1;
+	const size_t N_ARMORY_TOTAL = 1;
+	const size_t N_FUSION_CORE_TOTAL = 1;
+	
+	
 	// TODO: adjust
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
@@ -104,9 +153,9 @@ private:
 	bool TryScoutingForAttack(const sc2::Unit* unit_to_scout, bool refill_enemy_locations);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
-	void AssignBarrackAction(const sc2::Unit& barrack);
+	void AssignBarrackAction(const sc2::Unit *barrack);
 	void AssignBarrackTechLabAction(const sc2::Unit& barrack_tech_lab);
-	void AssignStarportAction(const sc2::Unit& starport);
+	void AssignStarportAction(const sc2::Unit *starport);
 	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
 	void AssignFactoryAction(const sc2::Unit *factory);
 	void RecheckUnitIdle();
@@ -115,6 +164,25 @@ private:
 	
 	const sc2::Unit* ChooseAttackTarget(const sc2::Unit *unit, const sc2::Units &enemies);
 	bool UseAbility(const sc2::Unit *unit, sc2::ABILITY_ID ability);
+
+	size_t CountUnitTotal(
+		const sc2::ObservationInterface *obs, 
+		sc2::UNIT_TYPEID unit_type, 
+		sc2::UNIT_TYPEID prod_unit, 
+		sc2::ABILITY_ID ability
+	);
+
+	size_t CountUnitTotal(
+		const sc2::ObservationInterface *obs, 
+		const std::vector<sc2::UNIT_TYPEID> &unit_type, 
+		const std::vector<sc2::UNIT_TYPEID> &prod_unit, 
+		sc2::ABILITY_ID ability
+	);
+
+	void SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad); // partition units and add to squad
+
+	void HandleAttack();
+	void HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs);
 };
 
 

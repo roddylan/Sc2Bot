@@ -145,6 +145,15 @@ bool BasicSc2Bot::TryBuildThor() {
 
 bool BasicSc2Bot::TryBuildThor(const sc2::Unit* factory) {
     const sc2::ObservationInterface* observation = Observation();
+    const sc2::Unit *add_on = observation->GetUnit(factory->add_on_tag);
+
+    // if cant build thor
+    if (add_on == nullptr) {
+        return false;
+    }
+    if (add_on->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
 
     if (observation->GetVespene() < 200 || observation->GetMinerals() < 300) {
         return false;
@@ -281,6 +290,8 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
     float ry = sc2::GetRandomScalar() * 15.0f;
     float rx = sc2::GetRandomScalar() * 15.0f;
+    // float ry = sc2::GetRandomScalar() * 5.0f;
+    // float rx = sc2::GetRandomScalar() * 5.0f;
     // float ry = sc2::GetRandomScalar() * 10.0f;
     // float rx = sc2::GetRandomScalar() * 10.0f;
     sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);
@@ -542,7 +553,7 @@ void BasicSc2Bot::HandleBuild() {
     }
     if (starports.size() > 0) {
         for (const auto &starport : starports) {
-            if (starport->add_on_tag != NULL) {
+            if (starport->add_on_tag != 0) {
                 // Get the add-on unit using its tag
                 const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
                 if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB && fusion_cores.size() < 1) {

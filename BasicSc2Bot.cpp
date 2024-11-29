@@ -35,7 +35,7 @@ void BasicSc2Bot::OnGameFullStart() {
 
 // This is never called
 void BasicSc2Bot::CheckRefineries() {
-    if (Observation()->GetVespene() / Observation()->GetMinerals() >= 0.6) {
+    if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
         return;
     }
 
@@ -73,7 +73,7 @@ void BasicSc2Bot::CheckRefineries() {
                     break;
                 }
 
-                if (scv->orders.empty() || (is_harvesting && Observation()->GetVespene() / Observation()->GetMinerals() < 0.6)) {
+                if (scv->orders.empty() || (is_harvesting && (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals()) < 0.6)) {
                     Actions()->UnitCommand(scv, sc2::ABILITY_ID::HARVEST_GATHER_SCV, refinery);
                     --scvs_needed;
                 }
@@ -104,6 +104,7 @@ void BasicSc2Bot::OnStep() {
         }
         
     }
+    // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
     HandleBuild();
@@ -113,6 +114,13 @@ void BasicSc2Bot::OnStep() {
 
     CheckScoutStatus();
     AttackIntruders();
+
+    // BuildArmy(); // TODO: use this
+    
+
+    // LaunchAttack(); // TODO: fix implementation for final attack logic
+
+    // HandleAttack();
 
     // TODO: temporary, move
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
@@ -218,6 +226,8 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
         break;
     }
+    default: 
+        break;
     }
     
 }
@@ -300,22 +310,22 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
-        AssignWorkers(unit);
+        AssignIdleWorkers(unit);
         if (TryScouting(*unit)) {
             break;
         }
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
-        AssignStarportAction(*unit);
+        AssignStarportAction(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB: {
-        AssignStarportTechLabAction(*unit);
+        AssignStarportTechLabAction(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_ARMORY: {
-        AssignArmoryAction(*unit);
+        AssignArmoryAction(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
@@ -350,18 +360,18 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
-        AssignBarrackAction(*unit);
+        AssignBarrackAction(unit);
         break;
     }
      
     case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
-        AssignFusionCoreAction(*unit);
+        AssignFusionCoreAction(unit);
         break;
        
     }
                                   
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR: {
-        AssignBarrackAction(*unit);
+        AssignBarrackAction(unit);
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
         AssignBarrackTechLabAction(*unit);
@@ -385,10 +395,11 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         UpgradeFactoryTechLab(unit);
+        // AssignFactoryAction(unit);
     }
 
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
-        AssignFactoryAction(unit);
+        AssignFactoryAction(unit); // TODO: techlab should only be upgrading (not the actual factory)
     }
     case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
         TurretDefend(unit);
