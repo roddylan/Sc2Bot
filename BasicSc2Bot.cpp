@@ -115,11 +115,11 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
 
-    // BuildArmy();
+    // BuildArmy(); // TODO: use this
     
 
     // LaunchAttack(); // TODO: fix implementation for final attack logic
-    
+
     HandleAttack();
 
     // TODO: temporary, move
