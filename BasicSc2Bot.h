@@ -29,18 +29,21 @@ public:
 	void OnUnitIdle(const sc2::Unit* unit) final;
 	void OnUnitCreated(const sc2::Unit* unit);
 
-	virtual bool AttackIntruders();
-	virtual bool LoadBunker(const sc2::Unit* marine);
-	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
-	virtual bool TryBuildSupplyDepot();
-	virtual bool TryBuildRefinery();
-	virtual bool TryBuildSiegeTank();
+	bool AttackIntruders();
+	bool LoadBunker(const sc2::Unit* marine);
+	bool UpgradeFactoryTechLab(const sc2::Unit* factory);
+	bool TryBuildSupplyDepot();
+	bool TryBuildRefinery();
+	bool TryBuildSiegeTank();
+	bool TryBuildSiegeTank(const sc2::Unit* factory);
+	
 	virtual void CheckRefineries();
-	virtual bool TryBuildSiegeTank(const sc2::Unit* factory);
-	virtual bool BuildRefinery();
-	virtual bool TryBuildFactory();
-	virtual bool TryBuildBunker();
-	virtual bool TryBuildBarracks();
+	
+	bool BuildRefinery();
+	bool TryBuildFactory();
+	bool TryBuildBunker();
+	bool TryBuildBarracks();
+	
 	virtual const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type = sc2::UNIT_TYPEID::TERRAN_SCV);
 	virtual bool TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, sc2::Point2D expansion_starting_point = sc2::Point2D(0, 0)); // generalized; for expansions
