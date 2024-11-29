@@ -339,10 +339,17 @@ void BasicSc2Bot::LaunchAttack() {
     // TODO: army composition requirements
 
     // dont attack if not ready
-    if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    //     return;
+    // }
+    if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (120 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
     }
     
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    sc2::Units enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
+
     // TODO: decide if keep some at base or send all to attack
 
     // basic ground troops (marine, marauder)
@@ -350,12 +357,13 @@ void BasicSc2Bot::LaunchAttack() {
     sc2::Units marauders = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     
     // basic air troops
+    sc2::Units medivacs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
 
     // mech ground troops
     sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
     }));
-    sc2::Units thor = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    sc2::Units thors = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_THOR, sc2::UNIT_TYPEID::TERRAN_THORAP
     }));
 
@@ -363,6 +371,77 @@ void BasicSc2Bot::LaunchAttack() {
     sc2::Units vikings = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
     }));
+    sc2::Units liberators = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+    sc2::Units banshees = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+    sc2::Units battlecruisers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+
+    
+    sc2::Units raid_squad{};
+
+    float ratio = static_cast<double>(2) / 3;
+    
+    const size_t split_marines = marines.size() * ratio;
+    const size_t split_marauders = marauders.size() * ratio;
+    const size_t split_siege_tanks = siege_tanks.size() * ratio;
+    const size_t split_thors = thors.size() * ratio;
+    const size_t split_vikings = vikings.size() * ratio;
+    const size_t split_medivacs = medivacs.size() * ratio;
+    const size_t split_liberators = liberators.size() * ratio;
+    const size_t split_banshees = liberators.size() * ratio;
+    const size_t split_battlecruisers = liberators.size() * ratio;
+
+    SquadSplit(split_marines, marines, raid_squad);
+    SquadSplit(split_marauders, marauders, raid_squad);
+    SquadSplit(split_siege_tanks, siege_tanks, raid_squad);
+    SquadSplit(split_thors, thors, raid_squad);
+    SquadSplit(split_vikings, vikings, raid_squad);
+    SquadSplit(split_medivacs, medivacs, raid_squad);
+    SquadSplit(split_liberators, liberators, raid_squad);
+    SquadSplit(split_banshees, banshees, raid_squad);
+    SquadSplit(split_battlecruisers, battlecruisers, raid_squad);
+
+    // do nothing if raid squad busy
+    for (const auto &unit : raid_squad) {
+        if (unit->orders.size() > 0) {
+            return;
+        }
+    }
+
+    // TODO: crashing here idk why
+    std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
+    if (enemies.empty()) {
+        std::cout << "no enemies, going to starting location\n";
+        // TODO: scout/search for enemy positions instead of just going to starting location
+        // act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy_starting_location);
+        sc2::Point2D location{};
+        if (!enemy_bases.empty()) {
+            std::cout << "enemy bases not empty\n";
+            location = (*(enemy_bases.begin()))->pos;
+            std::cout << "location = (" << location.x << ", " << location.y << ")\n";
+        }
+        else {
+            // TODO: scout/search for base
+            std::cout << "enemy bases empty\n";
+            std::cout << "ptr=" << this->enemy_starting_location << std::endl;
+            if (this->enemy_starting_location != nullptr) {
+                std::cout << "(" << this->enemy_starting_location->x << ", " << this->enemy_starting_location->y << ")\n";
+            }
+            if (this->enemy_starting_location != nullptr) {
+                location = *(this->enemy_starting_location);
+            }
+        }
+        act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, location);
+    } else {
+        std::cout << "found enemies\n";
+        std::cout << enemy_bases.size() << " enemy townhalls found\n";
+        for (const auto &enemy : enemies) {
+            if (enemy->is_alive) {
+                act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy->pos);
+                return;
+            }
+        }
+        std::cout << "failed to find enemy\n";
+    }
 
     
 }
