@@ -63,29 +63,34 @@ public:
 	void AssignIdleWorkers(const sc2::Unit *);
 	void AssignWorkers();
 	
-	virtual void BuildWorkers();
-	virtual bool TryBuildThor();
+	void BuildWorkers();
+	bool TryBuildThor();
 	virtual void AssignFusionCoreAction(const sc2::Unit& fusion_core);
-	virtual bool TryBuildFusionCore();
+	bool TryBuildFusionCore();
 	virtual void AssignStarportTechLabAction(const sc2::Unit& tech_lab);
-	virtual const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
+	const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
 	virtual bool UpgradeStarportTechlab(const sc2::Unit& starport);
 	virtual void AssignArmoryAction(const sc2::Unit& armory);
 	virtual bool TryBuildThor(const sc2::Unit* factory);
-	virtual const sc2::Unit* FindInjuredMarine();
-	virtual const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
-	virtual const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
-	virtual int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
-	virtual bool HandleExpansion(bool resources_depleted);
-	virtual int CountNearbySeigeTanks(const sc2::Unit* factory);
-	virtual const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
-	virtual bool TryBuildMissileTurret();
-	virtual bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure);
-	virtual bool TryBuildArmory();
-	virtual void OnUnitDestroyed(const sc2::Unit* unit);
-	virtual void TankAttack(const sc2::Units &squad);
-	virtual void TankAttack(const sc2::Units &squad, const sc2::Units &enemies);
-	virtual void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+
+	const sc2::Unit* FindInjuredMarine();
+	const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
+	const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
+	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
+	bool HandleExpansion(bool resources_depleted);
+	int CountNearbySeigeTanks(const sc2::Unit* factory);
+	const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
+	bool TryBuildMissileTurret();
+	bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure); // TODO: not finished
+	bool TryBuildArmory();
+	void OnUnitDestroyed(const sc2::Unit* unit);
+	
+	void TankAttack(const sc2::Units &squad);
+	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
+	
+	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	void AttackWithUnit(const sc2::Unit *unit);
+	
 	void LaunchAttack();
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
