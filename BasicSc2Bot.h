@@ -94,6 +94,9 @@ public:
 	void AttackWithUnit(const sc2::Unit *unit);
 	
 	void LaunchAttack();
+
+	void BuildArmy(); // handle army build
+
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	
