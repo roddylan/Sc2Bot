@@ -71,7 +71,7 @@ public:
 	const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
 	bool UpgradeStarportTechlab(const sc2::Unit& starport);
 	void AssignArmoryAction(const sc2::Unit *armory);
-	virtual bool TryBuildThor(const sc2::Unit* factory);
+	bool TryBuildThor(const sc2::Unit* factory);
 
 	const sc2::Unit* FindInjuredMarine();
 	const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
