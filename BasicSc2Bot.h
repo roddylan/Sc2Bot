@@ -10,6 +10,8 @@
 #include <sc2api/sc2_interfaces.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
+#include <unordered_set>
+#include <vector>
 #include <mutex>
 
 class BasicSc2Bot : public sc2::Agent {
