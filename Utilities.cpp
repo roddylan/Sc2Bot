@@ -223,3 +223,98 @@ std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch
     }
     return best_points;
 }
+
+
+/**
+ * @brief Check if unit_type is structure
+ * 
+ * @param unit_type
+ * @return true if unit_type is structure
+ * @return false if unit_type is not structure
+ */
+bool IsStructure(const sc2::UNIT_TYPEID &unit_type) {
+    return (
+        // TERRAN UNITS
+        unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BUNKER ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_MISSILETURRET ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_SENSORTOWER ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_ARMORY ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FUSIONCORE ||
+        // PROTOSS UNITS
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_NEXUS ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_ASSIMILATORRICH ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_PYLON ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_PYLONOVERCHARGED ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_GATEWAY ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_FORGE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_CYBERNETICSCORE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_PHOTONCANNON ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_SHIELDBATTERY ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_STARGATE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_DARKSHRINE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_FLEETBEACON ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_ROBOTICSBAY ||
+        // ZERG UNITS
+        unit_type == sc2::UNIT_TYPEID::ZERG_HATCHERY ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_EXTRACTOR ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_EXTRACTORRICH ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPAWNINGPOOL ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_EVOLUTIONCHAMBER ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_LAIR ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_ROACHWARREN ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_BANELINGNEST ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPINECRAWLER ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPINECRAWLERUPROOTED ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPORECRAWLER ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPORECRAWLERUPROOTED ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_HYDRALISKDEN ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_INFESTATIONPIT ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPIRE ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_NYDUSNETWORK ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_LURKERDENMP ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_HIVE ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_NYDUSCANAL ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_ULTRALISKCAVERN ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_GREATERSPIRE
+    );
+}
+
+
+/**
+ * @brief Check if unit is structure
+ * 
+ * @param unit
+ * @return true if unit is structure
+ * @return false if unit is not structure
+ */
+bool IsStructure(const sc2::Unit &unit) {
+    const sc2::UNIT_TYPEID unit_type = unit.unit_type;
+
+    return IsStructure(unit_type);
+}
