@@ -497,7 +497,15 @@ size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
 }
 
 
-
+/**
+ * @brief Count units that have spawned in + in production
+ * 
+ * @param obs 
+ * @param unit_type 
+ * @param prod_unit 
+ * @param ability 
+ * @return size_t 
+ */
 size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
                       const std::vector<sc2::UNIT_TYPEID> &unit_type,
                       const std::vector<sc2::UNIT_TYPEID> &prod_unit,
@@ -521,4 +529,23 @@ size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
     }
 
     return existing + in_production;
+}
+
+
+/**
+ * @brief Add partition of units to squad
+ * 
+ * @param split_sz number of units to take from units (partition size)
+ * @param units units that can be moved into squad
+ * @param squad squad vector
+ */
+void BasicSc2Bot::SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad) {
+    for (size_t i = 0; i < split_sz; ++i) {
+        if (units.empty()) {
+            return;
+        }
+
+        squad.push_back(units.back());
+        units.pop_back();
+    }
 }
