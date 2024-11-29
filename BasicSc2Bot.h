@@ -17,9 +17,9 @@
 class BasicSc2Bot : public sc2::Agent {
 public:
 
-	virtual void OnGameFullStart();
-	virtual void OnGameStart();
-	virtual void OnStep();
+	void OnGameFullStart();
+	void OnGameStart();
+	void OnStep();
 
 	//! Called when the unit in the current observation has lower health or shields than in the previous observation.
     //!< \param unit The damaged unit.
