@@ -503,3 +503,31 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
         // TODO: retreat viking when no targetable (flying) enemies
     }
 }
+
+/**
+ * @brief Handle attack
+ * 
+ * @param unit attacking unit
+ */
+void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit) {
+    const sc2::ObservationInterface *obs = Observation();
+
+
+    const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+
+    if (enemies.empty()) {
+        return;
+    }
+
+    if (unit->orders.empty() || unit->orders.front().ability_id != sc2::ABILITY_ID::ATTACK) {
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK || 
+            unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+            TankAttack({unit}, enemies);
+        } else if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT ||
+                   unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
+            VikingAttack({unit}, enemies);
+        } else {
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+        }
+    }
+}
