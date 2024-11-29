@@ -23,32 +23,135 @@ void BasicSc2Bot::OnGameStart() {
     base_location = start_location;
     scout = nullptr; // no scout initially
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
-    enemy_starting_location = nullptr;  // we use a scout to find this
+    this->enemy_starting_location = nullptr;  // we use a scout to find this
 }
 
 void BasicSc2Bot::OnGameFullStart() {
 	this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
-	PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
+	// PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
 	return;
+}
+
+
+// This is never called
+void BasicSc2Bot::CheckRefineries() {
+    if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
+        return;
+    }
+
+    sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    if (refineries.empty()) {
+        return;
+    }
+
+    for (const auto& refinery : refineries) {
+        if (!refinery || !refinery->is_alive) {
+            continue; 
+        }
+
+        if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
+            int scvs_needed = refinery->ideal_harvesters - refinery->assigned_harvesters;
+
+            sc2::Units scvs = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+            if (scvs.empty()) {
+                return;
+            }
+
+            for (const auto& scv : scvs) {
+                if (!scv || !scv->is_alive) {
+                    continue; 
+                }
+
+                bool is_harvesting = false;
+                for (const auto& order : scv->orders) {
+                    if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
+                        is_harvesting = true;
+                        break;
+                    }
+                }
+                if (scvs_needed == 0) {
+                    break;
+                }
+
+                if (scv->orders.empty() || (is_harvesting && (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals()) < 0.6)) {
+                    Actions()->UnitCommand(scv, sc2::ABILITY_ID::HARVEST_GATHER_SCV, refinery);
+                    --scvs_needed;
+                }
+            }
+        }
+    }
 }
 
 void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
     const sc2::ObservationInterface *obs = Observation();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    // size_t marines_count = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE)).size();
+    size_t marines_count = CountUnitTotal(
+        obs, {sc2::UNIT_TYPEID::TERRAN_MARINE}, 
+        {sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING},
+        sc2::ABILITY_ID::TRAIN_MARINE
+    );
     // skip a few frames for speed; avoid duplicate commands
-    int skip_frame = 5;
+    const int skip_frame = 5;
+    const int attack_skip_frame = 10;
 
     if (obs->GetGameLoop() % skip_frame) {
         return;
     }
+    sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
+        sc2::UNIT_TYPEID::TERRAN_SCV
+        ));
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
+        sc2::UNIT_TYPEID::TERRAN_MARINE
+    ));
+
+    sc2::Units cur_enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
+
+    if (cur_enemy_bases.size() > 0) {
+        for (const auto &base : cur_enemy_bases) {
+            if (base->is_alive) {
+                enemy_bases.insert(base);
+            }
+        }
+    }
+
+    CleanupEnemyBases();
+
+    if (marines.size() > 10 && !scvs.empty()) {
+        if (scvs[0]->orders.empty()) {
+            TryScoutingForAttack(scvs[0], false);
+        }
+        
+    }
+    AssignWorkers();
+
+
+    // bool expansion_supply = false;
+
+    // grind for expansion when 
+    // if (marines_count >= N_MARINES * bases.size() && obs->GetMinerals() < 400) {
+    //     expansion_supply = true;
+    // }
+
+    // if (obs->GetMinerals() >= 400) {
+    //     HandleExpansion(false);
+    // }
+    
 
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
-    
     HandleBuild();
     
     BuildWorkers();
+
+    BuildArmy();
+    // if (!expansion_supply) {
+    //     HandleBuild();
+        
+    //     BuildWorkers();
+    // }
+
     RecheckUnitIdle();
 
     CheckScoutStatus();
@@ -59,13 +162,32 @@ void BasicSc2Bot::OnStep() {
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
         sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
     }));
+
+    const sc2::Units vikings = obs->GetUnits(
+        sc2::Unit::Alliance::Self, sc2::IsUnits({
+            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER,
+            sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT
+        })
+    );
+
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit &unit){
         return unit.display_type == sc2::Unit::DisplayType::Visible;
     });
 
+    // TODO: currently just attacking all units, fix
     if (!enemies.empty() && !tanks.empty()) {
         TankAttack(tanks, enemies);
     }
+    if (!enemies.empty() && !vikings.empty()) {
+        VikingAttack(vikings, enemies);
+    }
+    
+
+    // if (obs->GetGameLoop() % attack_skip_frame == 0) {
+    //     LaunchAttack();
+        
+    //     HandleAttack();
+    // }
     
     // if (TryBuildSeigeTank()) {
     //     return;
@@ -73,12 +195,21 @@ void BasicSc2Bot::OnStep() {
     // if (TryBuildMissileTurret()) {
     //     return;
     // }
-    if (TryBuildSupplyDepot()) {
+    if (obs->GetMinerals() - 100 >= 400 || obs->GetFoodUsed() - obs->GetFoodCap() < 30) {
+        TryBuildSupplyDepot();
         return;
-    }
-    if (TryBuildRefinery()) {
-        return;
-    }
+    }    
+    
+    
+
+    // if (!expansion_supply) {
+    //     if (TryBuildSupplyDepot()) {
+    //         return;
+    //     }
+    //     if (TryBuildRefinery()) {
+    //         return;
+    //     }
+    // }
     return;
 }
 
@@ -125,11 +256,6 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 
     }
     case sc2::UNIT_TYPEID::TERRAN_BANSHEE: {
-        const sc2::Unit* injured_marine = FindInjuredMarine();
-        if (injured_marine) {
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, injured_marine);
-            return;
-        }
         sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
         if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
@@ -162,45 +288,60 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
         break;
     }
+    default: {
+        // do nothing
+        break;
+    }
     }
     
 }
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
-    static int mineral_fields_destoryed;
-    if (unit->mineral_contents == 0) {
-        ++mineral_fields_destoryed;
-        std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-        if (mineral_fields_destoryed % 5) {
-            HandleExpansion(true);
-        }
-        std::cout << "Minerals destroyed" << std::endl;
+    static int mineral_fields_destroyed;
+
+    ++mineral_fields_destroyed;
+    // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+    if (mineral_fields_destroyed % 10 == 0 && mineral_fields_destroyed > 0) {
+       HandleExpansion(true);
     }
-    // send marines to attack intruders
+    // std::cout << "Minerals destroyed" << std::endl;
     
+    // send marines to attack intruders
+   
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE) {
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
 
         /*
         for (const auto& marine : marines) {
             Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, unit->pos);
         }
         */
+        sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-        Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
-        Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-        sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
-        Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-        Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
-        Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-        sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
-        Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        if (marines.size() + marauders.size()  + banshees.size() + vikings.size() > 15) {
+            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            Actions()->UnitCommand(vikings, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+            Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
+            Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+            Actions()->UnitCommand(tanks, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+            sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+            Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+                    
+        }
+
+        sc2::Units battlecruisers = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+        Actions()->UnitCommand(battlecruisers, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {
@@ -208,6 +349,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             ++sent_medivacs;
             if (sent_medivacs % 2) break;
         }
+
     }
     
    
@@ -221,7 +363,9 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
                 closest_base_position = position;
             }
         }
-        this->enemy_starting_location = &closest_base_position;
+        if (this->enemy_starting_location == nullptr) {
+            this->enemy_starting_location = &closest_base_position;
+        }
     }
 }
 
@@ -232,23 +376,22 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
-        AssignWorkers(unit);
+        AssignIdleWorkers(unit);
         if (TryScouting(*unit)) {
             break;
         }
-        AssignWorkers(unit);
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
-        AssignStarportAction(*unit);
-        break;
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
+    //     AssignStarportAction(unit);
+    //     break;
+    // }
     case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB: {
-        AssignStarportTechLabAction(*unit);
+        AssignStarportTechLabAction(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_ARMORY: {
-        AssignArmoryAction(*unit);
+        AssignArmoryAction(unit);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
@@ -282,19 +425,19 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
-        AssignBarrackAction(*unit);
-        break;
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
+    //     AssignBarrackAction(unit);
+    //     break;
+    // }
      
     case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
-        AssignFusionCoreAction(*unit);
+        AssignFusionCoreAction(unit);
         break;
        
     }
                                   
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR: {
-        AssignBarrackAction(*unit);
+        AssignBarrackAction(unit);
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
         AssignBarrackTechLabAction(*unit);
@@ -316,9 +459,9 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
 
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
-        UpgradeFactoryTechLab(unit);
-    }
+    // case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
+    //     UpgradeFactoryTechLab(unit);
+    // }
 
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
         AssignFactoryAction(unit);

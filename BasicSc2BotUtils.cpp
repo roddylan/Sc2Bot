@@ -14,6 +14,7 @@
 #include <sc2lib/sc2_search.h>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 sc2::Filter isEnemy = [](const sc2::Unit& unit) {
     return unit.alliance != sc2::Unit::Alliance::Self; 
@@ -155,7 +156,7 @@ const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
 
 
 // Counts how many marines are nearby
-int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units &cluster = sc2::Units()) {
+int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units &cluster) {
     cluster.clear();
     int num_nearby_marines = 0;
     const float distance_threshold_sq = 25.0f;
@@ -232,7 +233,8 @@ const sc2::Point2D BasicSc2Bot::FindLargestMarineCluster(const sc2::Point2D& sta
     int largest_cluster_size = 0;
 
     for (const auto& marine : marines) {
-        int cluster_size = MarineClusterSize(marine, marines);
+        sc2::Units cluster{};
+        int cluster_size = MarineClusterSize(marine, marines, cluster);
 
         if (cluster_size > largest_cluster_size && sc2::Distance2D(closest_medivac->pos, marine->pos) > 15.0f) {
             largest_cluster_size = cluster_size;
@@ -254,6 +256,9 @@ const sc2::Unit *BasicSc2Bot::GetGatheringScv() {
     const sc2::Units &gathering_scv_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {
         if (unit.unit_type.ToType() != sc2::UNIT_TYPEID::TERRAN_SCV) {
             return false;
+        }
+        if (unit.orders.empty()) {
+            return true;
         }
         for (const sc2::UnitOrder& order : unit.orders) {
             if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
@@ -322,7 +327,6 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     * When leaving the loop, pos_to_place should be set
     */
     sc2::Point2D pos_to_place_at;
-
     /*
     * Use a cache to not repeatedly query positions we know don't work
     */
@@ -384,7 +388,6 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
 
         if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
             return sc2::Point2D(0, 0);
             /*
             float rand_x = sc2::GetRandomScalar() * 5.0f;
@@ -467,4 +470,137 @@ const sc2::Unit* BasicSc2Bot::FindNearestWorker(const sc2::Point2D& pos, bool is
     }
 
     return res;
+}
+
+
+/**
+ * @brief Count units that have spawned in + in production
+ * 
+ * @param obs 
+ * @param unit_type 
+ * @param prod_unit 
+ * @param ability 
+ * @return size_t 
+ */
+size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
+                      sc2::UNIT_TYPEID unit_type, sc2::UNIT_TYPEID prod_unit,
+                      sc2::ABILITY_ID ability) {
+    // count existing
+    size_t existing = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(unit_type)).size();
+    // size_t in_production = 0;
+
+    // sc2::Units production_units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(prod_unit));
+    size_t in_production = obs->GetUnits(sc2::Unit::Alliance::Self, [&prod_unit, &ability](const sc2::Unit &unit) {
+        bool is_unit = (unit.unit_type == prod_unit);
+        bool is_producing = false;
+
+        for (const auto &order : unit.orders) {
+            if (order.ability_id == ability) {
+                is_producing = true;
+                break;
+            }
+        }
+
+        return is_unit && is_producing;
+    }).size();
+
+    return existing + in_production;
+}
+
+
+
+size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
+                      const std::vector<sc2::UNIT_TYPEID> &unit_type,
+                      const std::vector<sc2::UNIT_TYPEID> &prod_unit,
+                      sc2::ABILITY_ID ability) {
+    // count existing
+    size_t existing = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(unit_type)).size();
+    size_t in_production = 0;
+
+    sc2::Units production_units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(prod_unit));
+
+    for (const auto &unit : production_units) {
+        if (unit->orders.empty()) {
+            continue;
+        }
+        
+        for (const auto &order : unit->orders) {
+            if (order.ability_id == ability) {
+                ++in_production;
+            }
+        }
+    }
+
+    return existing + in_production;
+}
+
+
+/**
+ * @brief Add units to squad
+ * 
+ * @param split_sz number of units to take from units
+ * @param units units that can be moved into squad
+ * @param squad squad vector
+ */
+void BasicSc2Bot::SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad) {
+    for (size_t i = 0; i < split_sz; ++i) {
+        if (units.empty()) {
+            return;
+        }
+
+        squad.push_back(units.back());
+        units.pop_back();
+    }
+}
+
+
+/**
+ * @brief Remove enemy base from set
+ * 
+ * @param base base unit
+ */
+void BasicSc2Bot::RemoveEnemyBase(const sc2::Unit *base) {
+    // not in set
+    if (enemy_bases.find(base) == enemy_bases.end()) {
+        return;
+    }
+    
+    this->enemy_bases.erase(base);
+}
+
+
+/**
+ * @brief Remove enemy base from set
+ * 
+ * @param base_tag tag for base
+ */
+void BasicSc2Bot::RemoveEnemyBase(const sc2::Tag &base_tag) {
+    const sc2::Unit *base = Observation()->GetUnit(base_tag);
+    if (base == nullptr) {
+        return;
+    }
+
+    RemoveEnemyBase(base);
+}
+
+/**
+ * @brief Cleanup dead enemy bases
+ * 
+ */
+void BasicSc2Bot::CleanupEnemyBases() {
+    if (enemy_bases.empty()) {
+        return;
+    }
+    
+    std::vector<sc2::Tag> rm_tags;
+
+    for (const auto &enemy_base : enemy_bases) {
+        if (!enemy_base->is_alive) {
+            rm_tags.push_back(enemy_base->tag);
+        }
+    }
+
+    for (const auto &rm_tag : rm_tags) {
+        RemoveEnemyBase(rm_tag);
+    }
 }
