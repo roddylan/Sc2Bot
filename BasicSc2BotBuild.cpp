@@ -521,12 +521,10 @@ void BasicSc2Bot::HandleBuild() {
     // if (marines.size() >= 20 && tanks.size() >= 3 && starports.size() >= N_STARPORT) {
     // if (marines.size() >= 10 && tanks.size() >= 2 && starports.size() >= N_STARPORT) {
     if (barracks.size() >= N_BARRACKS && factory.size() >= N_FACTORY && starports.size() >= N_STARPORT) {
-        // if (obs->GetMinerals() < BASE_COST) {
-        if (obs->GetMinerals() < std::min<size_t>(bases.size() * BASE_COST, 1800)) {
+        if (obs->GetMinerals() < BASE_COST) {
             return;
         }
     }
-    HandleExpansion(false);
     // build barracks
     if (barracks.size() < N_BARRACKS * bases.size()) {
         TryBuildBarracks();

@@ -183,11 +183,11 @@ void BasicSc2Bot::OnStep() {
     }
     
 
-    // if (obs->GetGameLoop() % attack_skip_frame == 0) {
-    //     LaunchAttack();
+    if (obs->GetGameLoop() % attack_skip_frame == 0) {
+        LaunchAttack();
         
-    //     HandleAttack();
-    // }
+        HandleAttack();
+    }
     
     // if (TryBuildSeigeTank()) {
     //     return;
