@@ -274,64 +274,36 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit *starport) {
     const uint32_t& gas = observation->GetVespene();
     
     // currently the strategy is to spam medivacs, I'm not sure about the other air units & how good they are
-    // if you don't have an addon, build a reactor 
+    // if you don't have an addon, build a reactor
     const sc2::Unit* starport_addon = observation->GetUnit(starport->add_on_tag);
-    if (starport_addon == nullptr && minerals >= 50 && gas >= 50) {
-        Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+    const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+    const sc2::Units starport_reactors = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR));
+    if (starport_addon == nullptr && minerals >= 50 && gas >= 50 ) {
+        if (starport_reactors.size() == 0) {
+            Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+        }
+        if (starport_techlabs.size() > 0) {
+            Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+        }
+        
         return;
     }
     const sc2::Units& medivacs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
-    const sc2::Units& vikings = observation->GetUnits(
-        sc2::Unit::Alliance::Self, 
-        sc2::IsUnits({
-            sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, 
-            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
-        })
-    );
-
-    size_t vikings_count = CountUnitTotal(observation, {
-            sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, 
-            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
-        }, {sc2::UNIT_TYPEID::TERRAN_STARPORT, 
-            sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING
-            // sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB, 
-            // sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR,
-        }, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER
-    );
-
-    // std::cout << "      n_vikings=" << vikings.size() << std::endl;
-    // std::cout << "TOTAL n_vikings=" << vikings_count << std::endl;
-
     const sc2::Units& fusion_cores = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
     const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
-    const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+    
     const sc2::Units liberators = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
     if (starport_techlabs.size() < bases.size()) {
         Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
     }
-    // build a viking!
-    if (minerals >= 100 && gas >= 75 && vikings_count < MIN_VIKINGS) {
-        Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
-
-        return;
-    }
-
     // build a medivac!
-    // if (minerals >= 100 && gas >= 75 && (medivacs.size() < 2 || Observation()->GetFoodUsed() < 100)) {
-    if (minerals >= 100 && gas >= 75 && (medivacs.size() < GOAL_MEDIVAC)) {
+    if (minerals >= 100 && gas >= 75 && (medivacs.size() < 2 || Observation()->GetFoodUsed() < 100)) {
         Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
 
         return;
     }
-
-    // build a viking!
-    if (minerals >= 100 && gas >= 75 && vikings.size() < GOAL_VIKINGS) {
-        Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
-
-        return;
-    }
     const sc2::Units banshees = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-    if (starport->add_on_tag != 0) {
+    if (starport->add_on_tag != 0LL) {
         // Get the add-on unit using its tag
         const sc2::Unit* add_on = observation->GetUnit(starport->add_on_tag);
         if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB) {
@@ -343,15 +315,15 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit *starport) {
         }
     }
 
-    // const sc2::Units vikings = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
+    const sc2::Units vikings = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
     const sc2::Units battlecruisers = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
     if (vikings.size() < 2 && battlecruisers.size() == 0) {
         Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
-        
+
     }
-    // else if(liberators.size() < 2 && battlecruisers.size() == 0) {
-    //     Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
-    // }
+    else if(liberators.size() < 2 && battlecruisers.size() == 0) {
+        Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
+    }
     Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_BATTLECRUISER);
 
     
