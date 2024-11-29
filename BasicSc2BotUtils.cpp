@@ -355,8 +355,8 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 bool is_expansion_location = false;
                 for (const auto& expansion_location : expansion_locations) {
                     float distance_squared = sc2::DistanceSquared2D(expansion_location, current_pos);
-                    // if (distance_squared <= 100.f) {
-                    if (distance_squared <= 10.f) {
+                    // if (distance_squared <= 10.f) {
+                    if (distance_squared <= 100.f) {
                         is_expansion_location = true;
                         break;
                     }
