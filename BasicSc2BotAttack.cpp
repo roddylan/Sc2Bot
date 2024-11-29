@@ -414,3 +414,92 @@ const sc2::Unit* BasicSc2Bot::ChooseAttackTarget(const sc2::Unit *unit, const sc
 
     return target;
 }
+
+/**
+ * @brief Handle attacking enemies with viking
+ * 
+ * @param squad with vikings
+ * @param enemies 
+ */
+void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemies) {
+    // all enemies or squad dead
+    if (enemies.empty() || squad.empty()) {
+        return;
+    }
+
+    // const sc2::ObservationInterface *obs = Observation();
+
+    // track viking units
+    sc2::Units vikings{};
+
+    for (const auto &unit : squad) {
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT || 
+            unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
+            vikings.push_back(unit);
+        }
+    }
+
+    // no vikings in squad
+    if (vikings.empty()) {
+        return;
+    }
+    
+    // range constants
+    const float AIR_RANGE = 9;
+    const float GROUND_RANGE = 6;
+
+    // prioritize attacking air enemies
+    sc2::Units air_enemies{};
+    sc2::Units ground_enemies{};
+
+    // action interface
+    sc2::ActionInterface *act = Actions();
+
+    
+    // float max_danger_ground{};
+
+    for (const auto &enemy : enemies) {
+        if (enemy->is_flying) {
+            air_enemies.push_back(enemy);
+        } else {
+            ground_enemies.push_back(enemy);
+        }
+    }
+    for (const auto &viking : vikings) {
+        // most dangerous units
+        const sc2::Unit *target_air = nullptr;
+        const sc2::Unit *target_ground = nullptr;
+        
+        // track danger ratios
+        float max_danger_air{};
+        float min_dist = std::numeric_limits<float>::max();
+
+        for (const auto &enemy : air_enemies) {
+            // handle flying enemies
+            float dist = sc2::Distance2D(viking->pos, enemy->pos);
+            
+            // not in range
+            // if (dist > AIR_RANGE) {
+            //     continue;
+            // }
+
+            float hp = enemy->health + enemy->shield;
+            float cur_ratio = hp / dist;
+
+            if (cur_ratio > max_danger_air) {
+                max_danger_air = cur_ratio;
+                target_air = enemy;
+            }
+        }
+        // if attackable air unit
+        if (target_air != nullptr) {
+            act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGFIGHTERMODE);
+            act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
+            // AttackWithUnit(viking, {target_air});
+            // dont check ground if already found an air target
+            continue;
+        }
+
+        // TODO: retreat viking when no targetable (flying) enemies
+    }
+}
