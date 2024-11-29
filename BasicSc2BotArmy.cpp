@@ -233,22 +233,27 @@ void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit *fusion_core) {
 * - builds a reactor if it does not have it
 * - otherwise, train a medivac (air unit that heals other units)
 */
-void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
+void BasicSc2Bot::AssignStarportAction(const sc2::Unit *starport) {
+    // do nothing if starport isnt built or is idle
+    if (starport->build_progress < 1 || starport->orders.size() > 0) {
+        return;
+    }
+    
     const sc2::ObservationInterface* observation = Observation();
     const uint32_t& minerals = observation->GetMinerals();
     const uint32_t& gas = observation->GetVespene();
     
     // currently the strategy is to spam medivacs, I'm not sure about the other air units & how good they are
     // if you don't have an addon, build a reactor
-    const sc2::Unit* starport_addon = observation->GetUnit(starport.add_on_tag);
+    const sc2::Unit* starport_addon = observation->GetUnit(starport->add_on_tag);
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
     const sc2::Units starport_reactors = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR));
     if (starport_addon == nullptr && minerals >= 50 && gas >= 50 ) {
         if (starport_reactors.size() == 0) {
-            Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+            Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
         }
         if (starport_techlabs.size() > 0) {
-            Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
+            Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_REACTOR_STARPORT);
         }
         
         return;
@@ -259,21 +264,21 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     
     const sc2::Units liberators = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
     if (starport_techlabs.size() < bases.size()) {
-        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
+        Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
     }
     // build a medivac!
     if (minerals >= 100 && gas >= 75 && (medivacs.size() < 2 || Observation()->GetFoodUsed() < 100)) {
-        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
+        Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
 
         return;
     }
     const sc2::Units banshees = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-    if (starport.add_on_tag != 0) {
+    if (starport->add_on_tag != 0) {
         // Get the add-on unit using its tag
-        const sc2::Unit* add_on = observation->GetUnit(starport.add_on_tag);
+        const sc2::Unit* add_on = observation->GetUnit(starport->add_on_tag);
         if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB) {
             if (banshees.size() < 2) {
-                Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BANSHEE);
+                Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_BANSHEE);
             }
             
             
@@ -283,13 +288,13 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit& starport) {
     const sc2::Units vikings = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
     const sc2::Units battlecruisers = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
     if (vikings.size() < 2 && battlecruisers.size() == 0) {
-        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
+        Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_VIKINGFIGHTER);
 
     }
     else if(liberators.size() < 2 && battlecruisers.size() == 0) {
-        Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
+        Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_LIBERATOR);
     }
-    Actions()->UnitCommand(&starport, sc2::ABILITY_ID::TRAIN_BATTLECRUISER);
+    Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_BATTLECRUISER);
 
     
 
