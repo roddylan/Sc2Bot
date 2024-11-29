@@ -384,11 +384,12 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
-        UpgradeFactoryTechLab(unit);
+        // UpgradeFactoryTechLab(unit);
+        AssignFactoryAction(unit);
     }
 
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
-        AssignFactoryAction(unit);
+        AssignFactoryAction(unit); // TODO: techlab should only be upgrading (not the actual factory)
     }
     case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
         TurretDefend(unit);
