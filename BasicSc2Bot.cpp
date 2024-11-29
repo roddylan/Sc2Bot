@@ -35,7 +35,7 @@ void BasicSc2Bot::OnGameFullStart() {
 
 // This is never called
 void BasicSc2Bot::CheckRefineries() {
-    if (Observation()->GetVespene() / Observation()->GetMinerals() >= 0.6) {
+    if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
         return;
     }
 
@@ -73,7 +73,7 @@ void BasicSc2Bot::CheckRefineries() {
                     break;
                 }
 
-                if (scv->orders.empty() || (is_harvesting && Observation()->GetVespene() / Observation()->GetMinerals() < 0.6)) {
+                if (scv->orders.empty() || (is_harvesting && (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals()) < 0.6)) {
                     Actions()->UnitCommand(scv, sc2::ABILITY_ID::HARVEST_GATHER_SCV, refinery);
                     --scvs_needed;
                 }
@@ -226,6 +226,8 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
         break;
     }
+    default: 
+        break;
     }
     
 }
