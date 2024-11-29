@@ -138,7 +138,7 @@ expand:
         return false;
     }
     
-    const int64_t thirty_minutes_in_loops = 40, 320;
+    const int64_t thirty_minutes_in_loops = 40320;
     if (game_loop < thirty_minutes_in_loops && bases.size() > 5) {
         return false;
     }

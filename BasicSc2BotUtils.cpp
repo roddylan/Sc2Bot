@@ -179,11 +179,15 @@ const sc2::Unit* BasicSc2Bot::FindInjuredMarine() {
         
         if (marine->health < marine->health_max) {
             sc2::Units medivacs = SortMedivacsAccordingToDistance(marine->pos);
-            // medivacs[0] because first element is closest
-            if (sc2::Distance2D(medivacs[0]->pos, marine->pos) < 5.0f) {
-                continue;
+            if (!medivacs.empty()) {
+                // medivacs[0] because first element is closest
+                if (sc2::Distance2D(medivacs[0]->pos, marine->pos) < 5.0f) {
+                    continue;
+                }
+                return marine;
             }
-            return marine;
+            
+            
         }
     }
     return nullptr;
