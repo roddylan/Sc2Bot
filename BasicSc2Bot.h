@@ -177,6 +177,9 @@ private:
 	);
 
 	void SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad); // partition units and add to squad
+
+	void HandleAttack();
+	void HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs);
 };
 
 

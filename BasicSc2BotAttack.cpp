@@ -531,3 +531,111 @@ void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit) {
         }
     }
 }
+
+/**
+ * @brief Handle attacking in general case (attack whenever enemy in range)
+ * 
+ */
+void BasicSc2Bot::HandleAttack() {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::ActionInterface *act = Actions();
+
+    sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, NotStructure());
+    
+    for (const auto &unit : units) {
+        HandleAttack(unit, obs);
+    }
+
+}
+
+/**
+ * @brief Handle attacking in general case for unit (attack whenver enemy in range)
+ * 
+ * @param unit 
+ */
+void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs) {
+    // prioritize enemy units over structures
+    float range{};
+    // cant do anything with mule
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
+        return;
+    }
+    
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK || 
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK) {
+        range = 13;
+    } else {
+        range = unit->detect_range;
+    }
+
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    if (enemies.empty()) {
+        return;
+    }
+
+    sc2::Units enemy_units_in_range{};
+    sc2::Units enemy_structures_in_range{};
+
+    for (const auto &enemy : enemies) {
+        float dist = sc2::Distance2D(enemy->pos, unit->pos);
+
+        // dont include enemy if not in range
+        if (dist > range) {
+            continue;
+        }
+
+        if (IsStructure(enemy->unit_type)) {
+            enemy_structures_in_range.push_back(enemy);
+        } else {
+            enemy_units_in_range.push_back(enemy);
+        }
+    }
+
+    // attack units
+    const sc2::Units &attacking = enemy_units_in_range.empty() ? enemy_structures_in_range : enemy_units_in_range;
+    // if (enemy_units_in_range.empty()) {
+    //     // attack buildings if no units to attack
+    //     attacking = enemy_structures_in_range;
+    // }
+    
+    // default attack
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+        TankAttack({unit}, attacking);
+        return;
+    }
+    // attack with viking
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT ||
+        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
+        VikingAttack({unit}, attacking);
+        return;
+    }
+    // scv attack
+    // only attack with scvs holding mineral and isnt repairing
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
+        if (unit->buffs.size() > 0) {
+            sc2::BUFF_ID buff = unit->buffs.front();
+            if (buff != sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS &&
+                buff != sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
+                // scv cant attack
+                return;
+            }
+        }
+        if (unit->orders.size() > 0) {
+            sc2::UnitOrder order = unit->orders.front();
+            if (order.ability_id != sc2::ABILITY_ID::HARVEST_GATHER &&
+                order.ability_id != sc2::ABILITY_ID::HARVEST_RETURN) {
+                // scv cant attack
+                return;
+            }
+        }
+        // TODO: being overwritten in assign worker, fix
+        // std::cout << "attacking with scv \n";
+    }
+
+    // default attack
+    AttackWithUnit(unit, attacking);
+    return;
+    
+
+}
