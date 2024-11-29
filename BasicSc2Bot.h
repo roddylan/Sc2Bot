@@ -25,12 +25,12 @@ public:
     //!< \param unit The damaged unit.
     //!< \param health The change in health (damage is positive)
     //!< \param shields The change in shields (damage is positive)
-    virtual void OnUnitDamaged(const sc2::Unit*, float /*health*/, float /*shields*/);
+    void OnUnitDamaged(const sc2::Unit*, float /*health*/, float /*shields*/);
+	void OnUnitIdle(const sc2::Unit* unit) final;
+	void OnUnitCreated(const sc2::Unit* unit);
 
 	virtual bool AttackIntruders();
 	virtual bool LoadBunker(const sc2::Unit* marine);
-	virtual void OnUnitIdle(const sc2::Unit* unit) final;
-	virtual void OnUnitCreated(const sc2::Unit* unit);
 	virtual bool UpgradeFactoryTechLab(const sc2::Unit* factory);
 	virtual bool TryBuildSupplyDepot();
 	virtual bool TryBuildRefinery();
