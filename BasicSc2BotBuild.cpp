@@ -143,19 +143,24 @@ bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
 
 bool BasicSc2Bot::TryBuildThor() {
     const sc2::ObservationInterface* observation = Observation();
-
-    if (CountUnitType(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) < 1) {
-        return false;
-    }
+    
     if (observation->GetVespene() < 200 || observation->GetMinerals() < 300) {
         return false;
     }
-    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
+    sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORY));
     size_t marines_size = CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE);
     // TODO: Handle logic for Thor creation as in creating a speicifed amount to cover an area or something
     sc2::Units thors = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
     if (thors.size() >= (marines_size / 5)) return false;
     for (auto unit : units) {
+        const sc2::Unit *add_on = observation->GetUnit(unit->add_on_tag);
+        // if cant build tank
+        if (add_on == nullptr) {
+            continue;
+        }
+        if (add_on->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+            continue;
+        }
         
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
     }
