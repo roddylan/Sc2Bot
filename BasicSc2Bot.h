@@ -65,7 +65,7 @@ public:
 	
 	void BuildWorkers();
 	bool TryBuildThor();
-	virtual void AssignFusionCoreAction(const sc2::Unit& fusion_core);
+	void AssignFusionCoreAction(const sc2::Unit *fusion_core);
 	bool TryBuildFusionCore();
 	virtual void AssignStarportTechLabAction(const sc2::Unit& tech_lab);
 	const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);

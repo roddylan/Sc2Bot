@@ -207,7 +207,7 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
 /*
 * Gives the Fusion Core an action
 */
-void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit& fusion_core) {
+void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit *fusion_core) {
     const sc2::ObservationInterface* observation = Observation();
     const uint32_t& minerals = observation->GetMinerals();
     const uint32_t& gas = observation->GetVespene();
@@ -218,7 +218,7 @@ void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit& fusion_core) {
     const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
 
-   Actions()->UnitCommand(&fusion_core, sc2::ABILITY_ID::RESEARCH_MEDIVACENERGYUPGRADE);
+   Actions()->UnitCommand(fusion_core, sc2::ABILITY_ID::RESEARCH_MEDIVACENERGYUPGRADE);
 
 
     return;

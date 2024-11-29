@@ -355,7 +355,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
      
     case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
-        AssignFusionCoreAction(*unit);
+        AssignFusionCoreAction(unit);
         break;
        
     }
