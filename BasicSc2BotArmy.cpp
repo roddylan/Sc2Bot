@@ -309,6 +309,11 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit *starport) {
  * @param factory 
  */
 void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
+    // do nothing if building or idle
+    if (factory->build_progress < 1 || factory->orders.size() > 0) {
+        return;
+    }
+    
     TryBuildThor(factory);
     TryBuildSiegeTank(factory);
 }
