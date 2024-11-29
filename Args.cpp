@@ -1,3 +1,4 @@
+#pragma once
 #include "Args.h"
 
 Args::Args(int barrack_techlab_weight,
