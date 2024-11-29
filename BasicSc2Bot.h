@@ -60,7 +60,9 @@ public:
 	void HandleUpgrades();
 	void HandleBuild(); // logic for building instead of just trying on each step
 	
-	virtual void AssignWorkers(const sc2::Unit *);
+	void AssignIdleWorkers(const sc2::Unit *);
+	void AssignWorkers();
+	
 	virtual void BuildWorkers();
 	virtual bool TryBuildThor();
 	virtual void AssignFusionCoreAction(const sc2::Unit& fusion_core);
