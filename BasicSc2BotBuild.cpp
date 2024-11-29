@@ -525,16 +525,11 @@ void BasicSc2Bot::HandleBuild() {
             return;
         }
     }
-
-    // TODO: handle when multiple gas geysers possible
-    if (refineries.size() < bases.size() * 2) {
-        TryBuildRefinery();
-    }
-    
     // build barracks
     if (barracks.size() < N_BARRACKS * bases.size()) {
         TryBuildBarracks();
     }
+
 
     // build engg bay for missile turret
     // TODO: improve count
@@ -542,9 +537,18 @@ void BasicSc2Bot::HandleBuild() {
     if (engg_bays.size() < N_ENGG_TOTAL) {
         if (n_minerals > ENGG_COST) {
             //std::cout << "building engg bay\n\n";
-            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+            if (!TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY)) {
+                return;
+            }
         }
     }
+
+    // TODO: handle when multiple gas geysers possible
+    if (refineries.size() < bases.size() * 2) {
+        TryBuildRefinery();
+    }
+    
+
 
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
     // if (marines.size() < 20 && bases.size() < 3) {
