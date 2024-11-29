@@ -13,7 +13,11 @@ bool BasicSc2Bot::UpgradeStarportTechlab(const sc2::Unit &starport) {
 /*
  * Picks unit for the barrack to train and instructs it to train it
  */
-void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
+void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
+    // dont do anything if busy
+    if (barrack->build_progress < 1 || barrack->orders.size() > 0) {
+        return;
+    }
     /*
     * What should a barrack do?
     * - if it doesnt have an addon, build an addon
@@ -29,7 +33,7 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     * The addon for the barrack, either a tech lab or a reactor or none
     * - if there is no addon, we should make one
     */
-    const sc2::Unit* barrack_addon = observation->GetUnit(barrack.add_on_tag);
+    const sc2::Unit* barrack_addon = observation->GetUnit(barrack->add_on_tag);
     if (barrack_addon == nullptr) {
         // get ALL the barrack tech labs (not just for this one)
         // - only have 1 tech lab
@@ -42,13 +46,13 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
         * Costs 50 mineral, 25 gas
         */
         if (barrack_tech_labs.size() < 1 && mineral_count >= 50 && gas_count >= 25) {
-            Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
+            Actions()->UnitCommand(barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
             return;
         }
 
         // have a tech lab already, so build a reactor (costs 50 mineral, 50 gas)
         if (mineral_count >= 50 && gas_count >= 50) {
-            Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
+            Actions()->UnitCommand(barrack, sc2::ABILITY_ID::BUILD_REACTOR_BARRACKS);
             return;
         }
         return;
@@ -60,17 +64,17 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit& barrack) {
     // if it has a tech lab, train marauders constantly
     // marauders only cost 25 gas, use >= 100 so that there's a bit of a buffer for other things
     if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && Observation()->GetFoodUsed() < 100) {
-        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARAUDER);
+        Actions()->UnitCommand(barrack, sc2::ABILITY_ID::TRAIN_MARAUDER);
         return;
     }
 
     // if you have a reactor, you can build things twice as fast so you should spam train marines
     if (mineral_count >= 50 && marines.size() < 25 && Observation()->GetFoodUsed() < 100) {
-        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
+        Actions()->UnitCommand(barrack, sc2::ABILITY_ID::TRAIN_MARINE);
     }
     // train a second one, if you can afford it (reactors build at double speed)
     if (mineral_count >= 100 && Observation()->GetFoodUsed() < 100) {
-        Actions()->UnitCommand(&barrack, sc2::ABILITY_ID::TRAIN_MARINE);
+        Actions()->UnitCommand(barrack, sc2::ABILITY_ID::TRAIN_MARINE);
     }
 }
 
