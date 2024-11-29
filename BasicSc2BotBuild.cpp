@@ -145,6 +145,15 @@ bool BasicSc2Bot::TryBuildThor() {
 
 bool BasicSc2Bot::TryBuildThor(const sc2::Unit* factory) {
     const sc2::ObservationInterface* observation = Observation();
+    const sc2::Unit *add_on = observation->GetUnit(factory->add_on_tag);
+
+    // if cant build thor
+    if (add_on == nullptr) {
+        return false;
+    }
+    if (add_on->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
 
     if (observation->GetVespene() < 200 || observation->GetMinerals() < 300) {
         return false;
