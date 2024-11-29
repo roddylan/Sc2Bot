@@ -104,7 +104,7 @@ void BasicSc2Bot::OnStep() {
         }
         
     }
-    AssignWorkers();
+    // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
     HandleBuild();
@@ -120,7 +120,7 @@ void BasicSc2Bot::OnStep() {
 
     // LaunchAttack(); // TODO: fix implementation for final attack logic
 
-    HandleAttack();
+    // HandleAttack();
 
     // TODO: temporary, move
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
@@ -394,8 +394,8 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
-        // UpgradeFactoryTechLab(unit);
-        AssignFactoryAction(unit);
+        UpgradeFactoryTechLab(unit);
+        // AssignFactoryAction(unit);
     }
 
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {

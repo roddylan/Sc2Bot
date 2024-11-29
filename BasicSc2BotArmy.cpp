@@ -314,13 +314,13 @@ void BasicSc2Bot::AssignFactoryAction(const sc2::Unit *factory) {
         return;
     }
 
-    const sc2::ObservationInterface *obs = Observation();
+    // const sc2::ObservationInterface *obs = Observation();
 
-    if (obs->GetUnit(factory->add_on_tag) == nullptr) {
-        // build factory techlab
-        UpgradeFactoryTechLab(factory);
-        return;
-    }
+    // if (obs->GetUnit(factory->add_on_tag) == nullptr) {
+    //     // build factory techlab
+    //     UpgradeFactoryTechLab(factory);
+    //     return;
+    // }
     
     TryBuildThor(factory);
     TryBuildSiegeTank(factory);
