@@ -188,16 +188,25 @@ void BasicSc2Bot::SendSquad() {
         std::cout << "Resetting units_sent to 0 after 3 minutes" << std::endl;
     }
 
+    sc2::Point2D location{};
     // Add delay between sending units
     if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 11) {
         filter_units(marines, squad);
         if (!scout_died) {
-            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
+            location = closest_start_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
 
         }
         else {
-            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
-
+            location = *enemy_starting_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
+        }
+        
+        for (const auto &unit : squad) {
+            if (!unit->orders.empty()) {
+                continue;
+            }
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
         }
         
         // Update last send time
