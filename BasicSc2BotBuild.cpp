@@ -163,6 +163,11 @@ bool BasicSc2Bot::TryBuildThor(const sc2::Unit* factory) {
         return false;
     }
 
+    // up to 2 in production
+    if (factory->orders.size() > 1) {
+        return false;
+    }
+
     if (observation->GetVespene() < 200 || observation->GetMinerals() < 300) {
         return false;
     }
