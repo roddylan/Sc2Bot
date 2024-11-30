@@ -492,7 +492,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
     // attack range
     const float TANK_RANGE = 7;        // regular attack range
     const float TANK_SIEGE_RANGE = 13; // siege attack range
-    const float THRESHOLD = (TANK_RANGE + TANK_SIEGE_RANGE) / 2; // threshold distance to choose b/w modes
+    const float THRESHOLD = (TANK_RANGE + TANK_SIEGE_RANGE) / 2 + 1; // threshold distance to choose b/w modes
 
     
     // get siege tanks in squad
@@ -658,7 +658,7 @@ void BasicSc2Bot::LaunchAttack() {
                 act->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
             }
         }
-        else {
+        else if (!enemies.empty()){
             act->UnitCommand(unit, sc2::ABILITY_ID::SMART, enemies.front());
         }
     }
