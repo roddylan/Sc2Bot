@@ -362,6 +362,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             }
         }
         this->enemy_starting_location = new sc2::Point2D(closest_base_position.x, closest_base_position.y);
+        this->visited_start = false;
     }
 }
 

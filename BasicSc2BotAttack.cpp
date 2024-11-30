@@ -588,7 +588,8 @@ void BasicSc2Bot::LaunchAttack() {
     
     sc2::Units raid_squad{};
 
-    float ratio = static_cast<double>(2) / 3;
+    // float ratio = static_cast<double>(2) / 3;
+    float ratio = 1;
     
     const size_t split_marines = marines.size() * ratio;
     const size_t split_marauders = marauders.size() * ratio;
@@ -609,6 +610,11 @@ void BasicSc2Bot::LaunchAttack() {
     SquadSplit(split_liberators, liberators, raid_squad);
     SquadSplit(split_banshees, banshees, raid_squad);
     SquadSplit(split_battlecruisers, battlecruisers, raid_squad);
+    
+    // do nothing if raid squad dne
+    if (raid_squad.empty()) {
+        return;
+    }
 
     // do nothing if raid squad busy
     /*
@@ -619,40 +625,36 @@ void BasicSc2Bot::LaunchAttack() {
         }
     }
     */
-    // commented out ^^^ instead do this ? we dont return early if one of them has an order, we just pop them from the squad
-    raid_squad.erase(
-        std::remove_if(
-            raid_squad.begin(),
-            raid_squad.end(),
-            [](const auto& unit) { return unit->orders.size() > 0; }
-        ),
-        raid_squad.end()
-    );
+    // // commented out ^^^ instead do this ? we dont return early if one of them has an order, we just pop them from the squad
+    // raid_squad.erase(
+    //     std::remove_if(
+    //         raid_squad.begin(),
+    //         raid_squad.end(),
+    //         [](const auto& unit) { return unit->orders.size() > 0; }
+    //     ),
+    //     raid_squad.end()
+    // );
     
     // TODO: crashing here idk why
    // std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
     if (enemies.empty()) {
-       // std::cout << "no enemies, going to starting location\n";
-        // TODO: scout/search for enemy positions instead of just going to starting location
-        // act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy_starting_location);
+        // Find enemy base
+        std::cout << "no enemies, find one\n";
+        
         sc2::Point2D location{};
-        if (!enemy_bases.empty()) {
-           // std::cout << "enemy bases not empty\n";
-            location = (*(enemy_bases.begin()))->pos;
-           // std::cout << "location = (" << location.x << ", " << location.y << ")\n";
-        }
-        else {
-            // TODO: scout/search for base
-            //std::cout << "enemy bases empty\n";
-           // std::cout << "ptr=" << this->enemy_starting_location << std::endl;
-            if (this->enemy_starting_location != nullptr) {
-               // std::cout << "(" << this->enemy_starting_location->x << ", " << this->enemy_starting_location->y << ")\n";
-            }
-            if (this->enemy_starting_location != nullptr) {
-                location = *(this->enemy_starting_location);
+        
+        if (this->enemy_starting_location != nullptr && !this->visited_start) {
+            std::cout << "search starting location\n";
+            location = *(this->enemy_starting_location);
+            this->visited_start = true;
+            act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK_ATTACK, location);
+        } else {
+            if (ScoutRandom(raid_squad.front(), location)) {
+                act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, location);
             }
         }
-        act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK_ATTACK, location);
+
+        
     } else {
       //  std::cout << "found enemies\n";
       //  std::cout << enemy_bases.size() << " enemy townhalls found\n";

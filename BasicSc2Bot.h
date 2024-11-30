@@ -201,6 +201,7 @@ private:
 
 	// scout random location
 	bool ScoutRandom(const sc2::Unit *unit, sc2::Point2D &target);
+	bool visited_start;
 };
 
 
