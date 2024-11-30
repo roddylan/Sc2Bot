@@ -260,15 +260,18 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
     }
     
 }
-
+static int mineral_fields_destoryed;
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
-    static int mineral_fields_destoryed;
-
-    ++mineral_fields_destoryed;
-    // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-    if (mineral_fields_destoryed % 10) {
-        HandleExpansion(true);
+    if (unit->unit_type == sc2::UNIT_TYPEID::MINERALCRYSTAL) {
+        ++mineral_fields_destoryed;
+        // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+        if (mineral_fields_destoryed % 10) {
+            HandleExpansion(true);
+        }
     }
+   
+
+    
     // std::cout << "Minerals destroyed" << std::endl;
 
      // save last death location for sending attack
