@@ -93,6 +93,7 @@ public:
 	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies);
 
 	// handle attack for a battlecruiser
+	void BattlecruiserAttack(const sc2::Units &squad); // TODO: implement
 	void BattlecruiserAttack(const sc2::Units &squad, const sc2::Units &enemies);
 	
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
