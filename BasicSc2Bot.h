@@ -158,7 +158,7 @@ private:
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
 	std::vector<sc2::Point2DI> pinchpoints;
-
+	sc2::Units FindNearbyBuildings(const sc2::Point2D& reference_point, size_t max_buildings);
 	sc2::Point3D start_location;
 	sc2::Point3D base_location;
 	const sc2::Unit *scout;

@@ -151,8 +151,7 @@ void BasicSc2Bot::SendSquad() {
     sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
     sc2::Units battlecruisers = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
     sc2::Units thors = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
-    sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
-
+    
     // Create a squad of units with empty orders
     std::vector<const sc2::Unit*> squad;
     auto filter_units = [](const sc2::Units& units, std::vector<const sc2::Unit*>& squad) {
