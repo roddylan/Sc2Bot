@@ -152,18 +152,18 @@ void BasicSc2Bot::OnStep() {
 
     HandleAttack();
 
-    // TODO: temporary, move
-    sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
-        sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
-        sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
-    }));
-    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit &unit){
-        return unit.display_type == sc2::Unit::DisplayType::Visible;
-    });
+    // // TODO: temporary, move
+    // sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    //     sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
+    //     sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
+    // }));
+    // sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit &unit){
+    //     return unit.display_type == sc2::Unit::DisplayType::Visible;
+    // });
 
-    if (!enemies.empty() && !tanks.empty()) {
-        TankAttack(tanks, enemies);
-    }
+    // if (!enemies.empty() && !tanks.empty()) {
+    //     TankAttack(tanks, enemies);
+    // }
     
     // if (TryBuildSeigeTank()) {
     //     return;
