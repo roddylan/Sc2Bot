@@ -93,17 +93,32 @@ void BasicSc2Bot::SendSquadProtoss() {
 
     // Add delay between sending units
     if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 10) {
+        sc2::Point2D location{};
         if (!scout_died) {
             filter_units(marines, squad);
-            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
+            location = closest_start_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
             std::cout << "sending them to: " << closest_start_location.x << " " << closest_start_location.y  << std::endl;
 
         }
         else {
             filter_units(marines, squad);
-            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
-          
-            
+            location = *enemy_starting_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
+        }
+        // prevent units from leaving something they're already attacking
+        for (const auto &unit : squad) {
+            if (!unit->orders.empty()) {
+                sc2::UnitOrder order = unit->orders.front();
+                const sc2::Unit *target = Observation()->GetUnit(order.target_unit_tag);
+                if (target != nullptr) {
+                    if (target->alliance == sc2::Unit::Alliance::Enemy) {
+                        // dont assign unit if already engaged with enemy
+                        return;
+                    }
+                }
+            }
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
         }
 
         // Update last send time
