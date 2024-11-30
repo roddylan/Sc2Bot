@@ -86,11 +86,7 @@ void BasicSc2Bot::CheckScoutStatus() {
 
     if (!this->unexplored_enemy_starting_locations.empty()) {
         // get all known enemy bases
-        sc2::Units enemy_bases = Observation()->GetUnits(sc2::Unit::Enemy, [](const sc2::Unit& unit) {
-            return unit.unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
-                || unit.unit_type == sc2::UNIT_TYPEID::ZERG_HATCHERY
-                || unit.unit_type == sc2::UNIT_TYPEID::PROTOSS_NEXUS;
-            });
+        sc2::Units enemy_bases = Observation()->GetUnits(sc2::Unit::Enemy, sc2::IsTownHall());
         for (const sc2::Point2D starting_position : unexplored_enemy_starting_locations) {
             if (sc2::DistanceSquared2D(starting_position, this->scout->pos) < 25) {
                 unexplored_enemy_starting_locations.pop_back();
