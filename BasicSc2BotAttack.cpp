@@ -592,8 +592,8 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
         // if attackable air unit
         if (target_air != nullptr) {
             act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGFIGHTERMODE);
-            act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
-            // AttackWithUnit(viking, {target_air});
+            // act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
+            AttackWithUnit(viking, {target_air}, false);
             // dont check ground if already found an air target
             continue;
         }
