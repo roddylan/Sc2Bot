@@ -558,11 +558,11 @@ void BasicSc2Bot::OnGameEnd() {
     std::cout << "Score Type: " << score_type << std::endl;
     std::cout << "Score = " << score.score << std::endl;
 
-    std::cout << "\n\n-------------------------------------------------------------\n\n";
+    // std::cout << "\n\n-------------------------------------------------------------\n\n";
     
     // OUTPUT RESULT DETAILS
     
-    std::cout << "------------------------ GAME RESULTS -----------------------\n";
+    std::cout << "\n------------------------ GAME RESULTS -----------------------\n\n";
 
     uint32_t pid = obs->GetPlayerID();
     
