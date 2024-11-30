@@ -269,30 +269,30 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     static int mineral_fields_destoryed;
 
     ++mineral_fields_destoryed;
-   // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+    // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
     if (mineral_fields_destoryed % 10) {
-       HandleExpansion(true);
+        HandleExpansion(true);
     }
-   // std::cout << "Minerals destroyed" << std::endl;
-    
-    // save last death location for sending attack
+    // std::cout << "Minerals destroyed" << std::endl;
+
+     // save last death location for sending attack
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_LIBERATOR
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARAUDER
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) 
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV)
     {
         BasicSc2Bot::last_death_location.x = unit->pos.x;
         BasicSc2Bot::last_death_location.y = unit->pos.y;
         std::cout << "last death location: " << BasicSc2Bot::last_death_location.x << BasicSc2Bot::last_death_location.y << std::endl;
     }
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
@@ -314,42 +314,69 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
             || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV)
         {
+            /*
             if (sc2::Distance2D(unit->pos, start_location) > 70.0f) {
                 return;
             }
+            */
         }
+        auto filter_units = [&](sc2::Units& units) {
+            units.erase(std::remove_if(units.begin(), units.end(),
+                [&](const sc2::Unit* target_unit) {
+                    return sc2::Distance2D(target_unit->pos, unit->pos) > 70.0f;
+                }),
+                units.end());
+            };
+
         sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
+        filter_units(vikings);
+
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+        filter_units(marines);
+
         sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+        filter_units(marauders);
+
         sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-        
-            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-            sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
-            Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-            Actions()->UnitCommand(vikings, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-            Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-            sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
-            Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-            Actions()->UnitCommand(banshees, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
-            Actions()->UnitCommand(banshees, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-            sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
-            Actions()->UnitCommand(tanks, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-                    
-        
+        filter_units(banshees);
+
+        Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        Actions()->UnitCommand(vikings, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+
+        for (const auto& banshee : banshees) {
+            Actions()->UnitCommand(banshee, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
+            Actions()->UnitCommand(banshee, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+        }
+
+        sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+        filter_units(thors);
+        Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+
+        sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+        filter_units(liberators);
+        Actions()->UnitCommand(liberators, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+
+        sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+        filter_units(tanks);
+        Actions()->UnitCommand(tanks, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
 
         sc2::Units battlecruisers = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+        filter_units(battlecruisers);
         Actions()->UnitCommand(battlecruisers, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
+
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+        filter_units(medivacs);
+
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {
             Actions()->UnitCommand(medivac, sc2::ABILITY_ID::SMART, unit->pos);
             ++sent_medivacs;
-            if (sent_medivacs % 2) break;
+            if (sent_medivacs % 2 == 0) break;
         }
 
     }
-    
-   
+
    
     if (unit == this->scout) {
         scout_died = true;
