@@ -136,7 +136,7 @@ void BasicSc2Bot::OnStep() {
     //BuildArmy(); // TODO: use this
     
 
-    // LaunchAttack(); // TODO: fix implementation for final attack logic
+    LaunchAttack(); // TODO: fix implementation for final attack logic
 
  //   HandleAttack();
 
