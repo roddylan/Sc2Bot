@@ -617,14 +617,11 @@ void BasicSc2Bot::LaunchAttack() {
     }
 
     // do nothing if raid squad busy
-    /*
     for (const auto &unit : raid_squad) {
         if (unit->orders.size() > 0) {
-            
             return;
         }
     }
-    */
     // // commented out ^^^ instead do this ? we dont return early if one of them has an order, we just pop them from the squad
     // raid_squad.erase(
     //     std::remove_if(
@@ -654,8 +651,6 @@ void BasicSc2Bot::LaunchAttack() {
                 act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, location);
             }
         }
-
-        
     } else {
       //  std::cout << "found enemies\n";
       //  std::cout << enemy_bases.size() << " enemy townhalls found\n";
