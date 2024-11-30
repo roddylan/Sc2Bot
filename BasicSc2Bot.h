@@ -198,6 +198,9 @@ private:
 
 	void HandleAttack();
 	void HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs);
+
+	// scout random location
+	bool ScoutRandom(const sc2::Unit *unit, sc2::Point2D &target);
 };
 
 
