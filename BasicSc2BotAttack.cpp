@@ -635,6 +635,10 @@ void BasicSc2Bot::LaunchAttack() {
         ),
         raid_squad.end()
     );
+
+    if (raid_squad.size() < 11) {
+        return;
+    }
     
     // TODO: crashing here idk why
     std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
