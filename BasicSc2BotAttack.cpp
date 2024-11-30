@@ -75,7 +75,7 @@ void BasicSc2Bot::SendSquad() {
     static uint64_t last_reset_time = 0;
     // FPS
     const int frames_per_second = 22;
-    // 3 minutes in game loops (22 FPS × 60 seconds × 3)
+    // 3 minutes in game loops (22 FPS ï¿½ 60 seconds ï¿½ 3)
     const uint64_t reset_interval = 4032;
     // Keeps track of how many times units have been sent
     static int units_sent = 0;
@@ -753,8 +753,34 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     }
 
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    
+    // rocks
+    sc2::Units neutral{};
+
+    // no enemies, find rocks
     if (enemies.empty()) {
-        return;
+        // get destructible rocks
+        neutral = obs->GetUnits(sc2::Unit::Alliance::Neutral, [](const sc2::Unit &unit) {
+            // check for rocks
+            if (
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DEBRISRAMPLEFT ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DEBRISRAMPRIGHT ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLECITYDEBRIS6X6 ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6 ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEBLUR ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCK6X6 ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCKEX1DIAGONALHUGEBLUR
+            ) {
+                return true;
+            }
+            return false;
+        });
+
+        // no rocks or enemies, do nothing
+        if (neutral.empty()) {
+            return;
+        }
     }
 
     sc2::Units enemy_units_in_range{};
@@ -855,7 +881,7 @@ void BasicSc2Bot::BattlecruiserAttack(const sc2::Units &squad, const sc2::Units 
         return;
     }
 
-    // get fusion cores, check if yamato cannon available
+    // TODO: get fusion cores, check if yamato cannon available
     const sc2::ObservationInterface *obs = Observation();
     // const sc2::Upgrades &upgrades = obs->GetUpgrades();
 
