@@ -209,7 +209,7 @@ void BasicSc2Bot::SendSquad() {
                 if (target != nullptr) {
                     if (target->alliance == sc2::Unit::Alliance::Enemy) {
                         // dont assign unit if already engaged with enemy
-                        continue;
+                        return;
                     }
                 }
             }
