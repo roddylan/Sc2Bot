@@ -257,9 +257,10 @@ bool BasicSc2Bot::AttackIntruders() {
             sc2::UNIT_TYPEID::TERRAN_THOR, sc2::UNIT_TYPEID::TERRAN_THORAP, 
             sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER, sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT
         }));
-        for (const sc2::Unit* defending_unit : defending_units) {
-            Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_near_base);
-        }
+        // for (const sc2::Unit* defending_unit : defending_units) {
+        //     Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_near_base);
+        // }
+        Actions()->UnitCommand(defending_units, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_near_base);
 
         // move the medivacs to the battle so that they heal the units
         if (!defending_units.empty()) {
