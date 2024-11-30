@@ -598,8 +598,8 @@ void BasicSc2Bot::LaunchAttack() {
     const size_t split_vikings = vikings.size() * ratio;
     const size_t split_medivacs = medivacs.size() * ratio;
     const size_t split_liberators = liberators.size() * ratio;
-    const size_t split_banshees = liberators.size() * ratio;
-    const size_t split_battlecruisers = liberators.size() * ratio;
+    const size_t split_banshees = banshees.size() * ratio;
+    const size_t split_battlecruisers = battlecruisers.size() * ratio;
 
     SquadSplit(split_marines, marines, raid_squad);
     SquadSplit(split_marauders, marauders, raid_squad);
