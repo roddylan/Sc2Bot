@@ -147,7 +147,8 @@ bool BasicSc2Bot::TryBuildThor() {
     if (thors.size() >= (marines_size / 5)) return false;
     for (auto unit : units) {
         
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
+        TryBuildThor(unit);
+        // Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
     }
     return true;
 }
