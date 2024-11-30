@@ -201,10 +201,17 @@ void BasicSc2Bot::SendSquad() {
             location = *enemy_starting_location;
             // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
         }
-        
+        // prevent units from leaving something they're already attacking
         for (const auto &unit : squad) {
             if (!unit->orders.empty()) {
-                continue;
+                sc2::UnitOrder order = unit->orders.front();
+                const sc2::Unit *target = Observation()->GetUnit(order.target_unit_tag);
+                if (target != nullptr) {
+                    if (target->alliance == sc2::Unit::Alliance::Enemy) {
+                        // dont assign unit if already engaged with enemy
+                        continue;
+                    }
+                }
             }
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
         }
