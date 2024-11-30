@@ -951,7 +951,11 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     // default attack
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
         unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
-        TankAttack({unit}, enemies_in_range);
+        if (enemies_in_range.empty()) {
+            TankAttack({unit}, neutral_in_range);
+        } else {
+            TankAttack({unit}, enemies_in_range);
+        }
         // TankAttack({unit}, attacking);
         return;
     }
@@ -963,7 +967,7 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     }
     // attack with battlecruiser
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER) {
-        BattlecruiserAttack({unit}, enemies);
+        BattlecruiserAttack({unit}, enemies_in_range);
     }
 
     // // scv attack
