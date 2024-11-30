@@ -10,6 +10,8 @@
 #include <cstddef>
 #include <limits>
 #include <sc2api/sc2_common.h>
+#include <sc2api/sc2_data.h>
+#include <sc2api/sc2_map_info.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
@@ -743,5 +745,39 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
  * @param enemies attackable enemies
  */
 void BasicSc2Bot::BattlecruiserAttack(const sc2::Units &squad, const sc2::Units &enemies) {
+    // all enemies or squad dead
+    if (enemies.empty() || squad.empty()) {
+        return;
+    }
+    
+    // filter out battlecrusiers
+    sc2::Units battlecruisers{};
+
+    for (const auto &unit : squad) {
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER) {
+            battlecruisers.push_back(unit);
+        }
+    }
+
+    // do nothing if no battlecruisers selected
+    if (battlecruisers.empty()) {
+        return;
+    }
+
+    // get fusion cores, check if yamato cannon available
+    const sc2::ObservationInterface *obs = Observation();
+    // const sc2::Upgrades &upgrades = obs->GetUpgrades();
+
+
+    // sc2::Units fusion_cores = 
+    for (const auto &battlecruiser : battlecruisers) {
+        if (!battlecruiser->is_alive) {
+            // skip dead
+            continue;
+        }
+        
+        // if (battlecruiser->buffs)
+    }
+
 
 }
