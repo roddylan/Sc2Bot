@@ -90,7 +90,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start
     float distance = std::numeric_limits<float>::max();
     const sc2::Unit* target = nullptr;
     for (const auto& u : units) {
-        if (u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_VESPENEGEYSER) {
+        if (u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_VESPENEGEYSER || u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER) {
             float d = sc2::DistanceSquared2D(u->pos, start);
             if (d < distance) {
                 distance = d;
@@ -317,6 +317,12 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     int y_lo = -5, y_hi = 5;
 
     /*
+    * Maintain a smaller square of things we have searched before so we don't redundantly
+    * keep searching things we've seen before
+    */
+    int prev_x_lo = 10000, prev_x_hi = -10000;
+    int prev_y_lo = 10000, prev_y_hi = -10000;
+    /*
     * How much to change the lower & upper bounds if you don't find a suitable spot in the current search square
     */
     int x_step = 5;
@@ -335,8 +341,12 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
 
     size_t loop_count = 0;
     while (!found_pos_to_place_at) {
-        for (int x = x_lo; x <= x_hi; x += 3) {
-            for (int y = y_lo; y <= y_hi; y += 3) {
+        for (int x = x_lo; x <= x_hi; x += 1) {
+            for (int y = y_lo; y <= y_hi; y += 1) {
+                if (prev_x_lo < x || x < prev_x_hi ||
+                    prev_y_lo < y || y < prev_y_hi) {
+                    continue;
+                }
                 const sc2::Point2D current_pos = starting_point + sc2::Point2D(x, y);
                 sc2::QueryInterface* query = Query();
                 if (searched_points.find(current_pos) != searched_points.end()) {
@@ -352,18 +362,43 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 /*
                 * We need wiggle room left & right so that the buildings aren't packed and they have room to build addons
                 */
-                const bool can_wiggle_left = query->Placement(ability_to_place_building, sc2::Point2D(current_pos.x - 2, current_pos.y));
+                const sc2::Point2D wiggled_left = sc2::Point2D(current_pos.x - 3, current_pos.y);
+                const bool can_wiggle_left = query->Placement(ability_to_place_building, wiggled_left);
                 if (!can_wiggle_left) {
                     searched_points.insert(current_pos);
+                    searched_points.insert(wiggled_left);
                     continue;
                 }
-                const bool can_wiggle_right = query->Placement(ability_to_place_building, sc2::Point2D(current_pos.x + 2, current_pos.y));
+
+                const sc2::Point2D wiggled_right = sc2::Point2D(current_pos.x + 3, current_pos.y);
+                const bool can_wiggle_right = query->Placement(ability_to_place_building, wiggled_right);
                 if (!can_wiggle_right) {
                     searched_points.insert(current_pos);
+                    searched_points.insert(wiggled_right);
                     continue;
                 }
+
+                /*
+                * Check vertical as well so that we don't accidentally place buildings tightly & troops can't move through them
+                */
+                const sc2::Point2D wiggled_up = sc2::Point2D(current_pos.x, current_pos.y + 2);
+                const bool can_wiggle_up = query->Placement(ability_to_place_building, wiggled_up);
+                if (!can_wiggle_up) {
+                    searched_points.insert(current_pos);
+                    searched_points.insert(wiggled_up);
+                    continue;
+                }
+
+                const sc2::Point2D wiggled_down = sc2::Point2D(current_pos.x, current_pos.y - 2);
+                const bool can_wiggle_down = query->Placement(ability_to_place_building, wiggled_down);
+                if (!can_wiggle_down) {
+                    searched_points.insert(current_pos);
+                    searched_points.insert(wiggled_down);
+                    continue;
+                }
+
                 // we found a valid position to place at, don't iterate again
-                found_pos_to_place_at = true;
+                
                 // TODO: Find a way to speed this up
                 // ensures we dont build at expansion location
                 bool is_expansion_location = false;
@@ -376,18 +411,24 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 }
 
                 if (!is_expansion_location) {
+                    found_pos_to_place_at = true;
                     pos_to_place_at = current_pos;
                 }
 
             }
         }
+
+        prev_x_lo = x_lo;
+        prev_x_hi = x_hi;
+        prev_y_lo = y_lo;
+        prev_y_hi = y_hi;
         // increase the search space
         x_lo -= x_step;
         x_hi += x_step;
         y_lo -= y_step;
         x_hi += y_step;
 
-        if (loop_count++ > 5) { // todo: change back to 10 (?)
+        if (loop_count++ > 8) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
             return sc2::Point2D(0, 0);
             /*
