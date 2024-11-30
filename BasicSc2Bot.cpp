@@ -292,15 +292,27 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV && unit != this->scout) {
 
         /*
         for (const auto& marine : marines) {
             Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, unit->pos);
         }
         */
-        if ((Observation()->GetGameLoop() < 13200 && Distance2D(unit->pos, start_location) > 50.0f) && unit != this->scout) {
+        if ((Observation()->GetGameLoop() < 13200 && Distance2D(unit->pos, start_location) > 50.0f)) {
             return;
+        }
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_LIBERATOR
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARAUDER
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV)
+        {
+            if (sc2::Distance2D(unit->pos, start_location) > 70.0f) {
+                return;
+            }
         }
         sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
