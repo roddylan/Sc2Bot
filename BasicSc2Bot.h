@@ -76,7 +76,7 @@ public:
 	const sc2::Unit* FindInjuredMarine();
 	const sc2::Point2D FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit);
 	const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
-	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
+	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units& cluster = sc2::Units());
 	bool HandleExpansion(bool resources_depleted);
 	int CountNearbySeigeTanks(const sc2::Unit* factory);
 	const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);

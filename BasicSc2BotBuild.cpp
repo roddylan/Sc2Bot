@@ -285,7 +285,6 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
             }
 
         }
-    }
 
     // TODO: bring back build logic
 
@@ -295,7 +294,7 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     //float rx = sc2::GetRandomScalar() * 5.0f;
     // float ry = sc2::GetRandomScalar() * 10.0f;
     // float rx = sc2::GetRandomScalar() * 10.0f;
-    sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);
+    sc2::Point2D nearest_command_center = BasicSc2Bot::FindNearestCommandCenter(unit_to_build->pos, true);
     sc2::Point2D starting_point = sc2::Point2D(base_location.x + rx, base_location.y + ry);
     
     sc2::Point2D pos_to_place_at = FindPlaceablePositionNear(starting_point, ability_type_for_structure);
@@ -352,8 +351,8 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         
             unit_to_build = worker;
             break;
-        }
     }
+
     // todo: this as possible fix?
     float rx = sc2::GetRandomScalar();
     float ry = sc2::GetRandomScalar();

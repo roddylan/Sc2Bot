@@ -46,7 +46,7 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
         *     - stimpacks let you sacrifice 10hp for bonus combat stats, pairs well with medivacs
         * Costs 50 mineral, 25 gas
         */
-        if (barrack_tech_labs.size() < 1 && mineral_count >= 50 && gas_count >= 25) {
+        if (barrack_techlabs.size() < 1 && mineral_count >= 50 && gas_count >= 25) {
             Actions()->UnitCommand(barrack, sc2::ABILITY_ID::BUILD_TECHLAB_BARRACKS);
             return;
         }

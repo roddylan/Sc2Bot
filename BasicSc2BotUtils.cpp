@@ -155,7 +155,7 @@ const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
 
 
 // Counts how many marines are nearby
-int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units &cluster = sc2::Units()) {
+int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units &cluster) {
     cluster.clear();
     int num_nearby_marines = 0;
     const float distance_threshold_sq = 25.0f;
@@ -176,6 +176,7 @@ int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& ma
 
     return num_nearby_marines;
 }
+
 const sc2::Unit* BasicSc2Bot::FindInjuredMarine() {
     const sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
     
