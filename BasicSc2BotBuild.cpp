@@ -229,7 +229,7 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     if (observation->GetMinerals() < 100) {
         return false;
     }
-    std::cout << "gonna build supply" << std::endl;
+   // std::cout << "gonna build supply" << std::endl;
     // bool check;
     // check = TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
     // std::cout << "built supply depot: " << check << std::endl;
