@@ -109,7 +109,7 @@ void BasicSc2Bot::OnStep() {
     ));
     
 
-   SendSquad();
+    // SendSquad();
     // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
@@ -124,7 +124,7 @@ void BasicSc2Bot::OnStep() {
     //BuildArmy(); // TODO: use this
     
 
-    LaunchAttack(); // TODO: fix implementation for final attack logic
+    // LaunchAttack(); // TODO: fix implementation for final attack logic
 
  //   HandleAttack();
 
