@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include "Betweenness.h"
+#include <sc2api/sc2_typeenums.h>
 #include <unordered_map>
 #include <functional>
 
@@ -317,4 +318,34 @@ bool IsStructure(const sc2::Unit &unit) {
     const sc2::UNIT_TYPEID unit_type = unit.unit_type;
 
     return IsStructure(unit_type);
+}
+
+/**
+ * @brief Check if unit is neutral
+ * 
+ * @param unit_type 
+ * @return true 
+ * @return false 
+ */
+bool IsNeutral(const sc2::UNIT_TYPEID &unit_type) {
+    switch (unit_type) {
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLECITYDEBRIS6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEBLUR: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCK6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCKEX1DIAGONALHUGEBLUR: return true;
+    default: return false;
+    }
+}
+
+/**
+ * @brief Check if unit is neutral
+ * 
+ * @param unit 
+ * @return true 
+ * @return false 
+ */
+bool IsNeutral(const sc2::Unit &unit) {
+    return IsNeutral(unit.unit_type);
 }

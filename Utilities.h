@@ -1,6 +1,7 @@
 // Utilities.h
 #pragma once
 #include "sc2api/sc2_api.h"
+#include <sc2api/sc2_typeenums.h>
 
 // returns string corresponding to the input race
 std::string GetStringFromRace(const sc2::Race RaceIn);
@@ -44,3 +45,7 @@ struct NotStructure {
         return !IsStructure(unit);
     }
 };
+
+
+bool IsNeutral(const sc2::UNIT_TYPEID &unit_type);
+bool IsNeutral(const sc2::Unit &unit);
