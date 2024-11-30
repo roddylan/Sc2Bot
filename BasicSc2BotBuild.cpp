@@ -204,7 +204,7 @@ bool BasicSc2Bot::TryBuildBarracks() {
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
     // Lower + normal supply depots = total # of depots
-
+    
 
     size_t n_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)).size();
     size_t n_lower_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED)).size();
@@ -215,7 +215,7 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     uint32_t current_supply_use = observation->GetFoodUsed();
     uint32_t cur_max_supply = observation->GetFoodCap();
 
-    if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply && (n_supply_depots + n_lower_supply_depots) > 0) {
+    if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply && (n_lower_supply_depots + n_supply_depots) > 0) {
         // do not build if current_supply_use/max_suply < 2/3 or reached max supply
         return false;
     }
@@ -229,7 +229,7 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     if (observation->GetMinerals() < 100) {
         return false;
     }
-
+   // std::cout << "gonna build supply" << std::endl;
     // bool check;
     // check = TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
     // std::cout << "built supply depot: " << check << std::endl;
@@ -291,8 +291,8 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
     float ry = sc2::GetRandomScalar() * 15.0f;
     float rx = sc2::GetRandomScalar() * 15.0f;
-    // float ry = sc2::GetRandomScalar() * 5.0f;
-    // float rx = sc2::GetRandomScalar() * 5.0f;
+    //float ry = sc2::GetRandomScalar() * 5.0f;
+    //float rx = sc2::GetRandomScalar() * 5.0f;
     // float ry = sc2::GetRandomScalar() * 10.0f;
     // float rx = sc2::GetRandomScalar() * 10.0f;
     sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);

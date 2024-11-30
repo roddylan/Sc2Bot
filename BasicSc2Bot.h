@@ -89,12 +89,12 @@ public:
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
 
 	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
-	
+	void SendSquad();
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 	void AttackWithUnit(const sc2::Unit *unit);
 	
 	void LaunchAttack();
-
+	static sc2::Point2D last_death_location;
 	void BuildArmy(); // handle army build
 
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
@@ -161,7 +161,6 @@ private:
 	void AssignEngineeringBayAction(const sc2::Unit& engineering_bay);
 	void AssignFactoryAction(const sc2::Unit *factory);
 	void RecheckUnitIdle();
-	void AssignScvToRefineries();
 	sc2::Point2D FindPlaceablePositionNear(const sc2::Point2D& starting_point, const sc2::ABILITY_ID& ability_to_place_building);
 	bool EnemyNearBase(const sc2::Unit *base);
 	

@@ -29,10 +29,11 @@ void BasicSc2Bot::OnGameStart() {
 void BasicSc2Bot::OnGameFullStart() {
 	this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
 	PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
+    
 	return;
 }
 
-
+sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
 // This is never called
 void BasicSc2Bot::CheckRefineries() {
     if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
@@ -82,6 +83,11 @@ void BasicSc2Bot::CheckRefineries() {
     }
 }
 
+
+
+
+
+
 void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
     const sc2::ObservationInterface *obs = Observation();
@@ -98,12 +104,9 @@ void BasicSc2Bot::OnStep() {
     sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
         sc2::UNIT_TYPEID::TERRAN_MARINE
     ));
-    if (marines.size() > 10) {
-        if (scvs[0]->orders.empty()) {
-            TryScoutingForAttack(scvs[0], false);
-        }
-        
-    }
+    
+
+   SendSquad();
     // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
@@ -115,12 +118,12 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
 
-    // BuildArmy(); // TODO: use this
+    //BuildArmy(); // TODO: use this
     
 
-    // LaunchAttack(); // TODO: fix implementation for final attack logic
+    LaunchAttack(); // TODO: fix implementation for final attack logic
 
-    // HandleAttack();
+ //   HandleAttack();
 
     // TODO: temporary, move
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
@@ -141,10 +144,12 @@ void BasicSc2Bot::OnStep() {
     // if (TryBuildMissileTurret()) {
     //     return;
     // }
-    if (obs->GetMinerals() - 100 >= 400 || obs->GetFoodUsed() - obs->GetFoodCap() < 30) {
+    /*
+    if (obs->GetMinerals() - 100 >= 400 || current_supply_use < ((1 / 2) * obs->get)) {
         TryBuildSupplyDepot();
         return;
-    }    
+    } 
+    */
     
     
 
@@ -236,16 +241,29 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     static int mineral_fields_destoryed;
 
     ++mineral_fields_destoryed;
-    std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+   // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
     if (mineral_fields_destoryed % 10) {
        HandleExpansion(true);
     }
-    std::cout << "Minerals destroyed" << std::endl;
+   // std::cout << "Minerals destroyed" << std::endl;
     
-    // send marines to attack intruders
-   
+    // save last death location for sending attack
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_LIBERATOR
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARAUDER
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) 
+    {
+        BasicSc2Bot::last_death_location.x = unit->pos.x;
+        BasicSc2Bot::last_death_location.y = unit->pos.y;
+        std::cout << "last death location: " << BasicSc2Bot::last_death_location.x << BasicSc2Bot::last_death_location.y << std::endl;
+    }
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
@@ -257,6 +275,9 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, unit->pos);
         }
         */
+        if ((Observation()->GetGameLoop() < 13200 && Distance2D(unit->pos, start_location) > 50.0f) && unit != this->scout) {
+            return;
+        }
         sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
         sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
