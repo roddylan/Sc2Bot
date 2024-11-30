@@ -621,59 +621,20 @@ void BasicSc2Bot::LaunchAttack() {
         return;
     }
 
-    // do nothing if raid squad busy
-    // for (const auto &unit : raid_squad) {
-    //     if (unit->orders.size() > 0) {
-    //         return;
-    //     }
-    // }
-    // commented out ^^^ instead do this ? we dont return early if one of them has an order, we just pop them from the squad
-    raid_squad.erase(
-        std::remove_if(
-            raid_squad.begin(),
-            raid_squad.end(),
-            [](const auto& unit) { return unit->orders.size() > 0; }
-        ),
-        raid_squad.end()
-    );
-
-    if (raid_squad.size() < 11) {
-        return;
-    }
-    
-    // TODO: crashing here idk why
-    std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
-    std::cout << "n_battlecruisers=" << battlecruisers.size() << "\n";
-    if (enemies.empty()) {
-        // Find enemy base
-        std::cout << "no enemies, find one\n";
-        
-        sc2::Point2D location{};
-        
-        if (this->enemy_starting_location != nullptr && !this->visited_start) {
-            std::cout << "search starting location\n";
-            location = *(this->enemy_starting_location);
-            this->visited_start = true;
-            act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, location);
-        } else {
+    for (const auto &unit : raid_squad) {
+        if (enemies.empty()) {
+            if (!unit->orders.empty()) {
+                continue;
+            }
+            sc2::Point2D location{};
             bool check = ScoutRandom(raid_squad.front(), location);
             std::cout << "Scout Random: " << check << std::endl;
             if (check) {
                 std::cout << "search random location\n";
                 std::cout << "(" << location.x << ", " << location.y << ")\n";
-                act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, location);
+                act->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
             }
         }
-    } else {
-       std::cout << "found enemies\n";
-      //  std::cout << enemy_bases.size() << " enemy townhalls found\n";
-        for (const auto &enemy : enemies) {
-            if (enemy->is_alive) {
-                act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, enemy->pos);
-                return;
-            }
-        }
-      //  std::cout << "failed to find enemy\n";
     }
 
     
