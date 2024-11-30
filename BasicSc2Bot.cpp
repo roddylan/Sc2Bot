@@ -29,10 +29,11 @@ void BasicSc2Bot::OnGameStart() {
 void BasicSc2Bot::OnGameFullStart() {
 	this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
 	PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
+    
 	return;
 }
 
-
+sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
 // This is never called
 void BasicSc2Bot::CheckRefineries() {
     if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
@@ -82,6 +83,11 @@ void BasicSc2Bot::CheckRefineries() {
     }
 }
 
+
+
+
+
+
 void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
     const sc2::ObservationInterface *obs = Observation();
@@ -98,30 +104,9 @@ void BasicSc2Bot::OnStep() {
     sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
         sc2::UNIT_TYPEID::TERRAN_MARINE
     ));
-    std::vector<sc2::Point2D> enemy_locations = obs->GetGameInfo().enemy_start_locations;
-    const int64_t twenty_minutes_in_loops = 26880;
-    if (obs->GetGameLoop() > 20160) {
-        
-    }
-    const float frames_per_second = 22.4;
-    static int marines_sent = 0; 
-    static uint64_t last_send_time = 0; 
+    
 
-    if (marines.size() > 10) {
-        for (const auto& marine : marines) {
-            if (marine->orders.empty() && enemy_locations.size() > marines_sent) {
-                uint64_t current_time = obs->GetGameLoop();
-
-                // Add a delay between sending marines (e.g., 120 game loops).
-                if (current_time > last_send_time + 15 * frames_per_second) {
-                    Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, enemy_locations[marines_sent++]);
-                    last_send_time = current_time; 
-                }
-            }
-
-            if (marines_sent == 4) break;
-        }
-    }
+   SendSquad();
     // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
@@ -260,10 +245,23 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     }
    // std::cout << "Minerals destroyed" << std::endl;
     
-    // send marines to attack intruders
-   
+    // save last death location for sending attack
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_LIBERATOR
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARAUDER
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) 
+    {
+        BasicSc2Bot::last_death_location.x = unit->pos.x;
+        BasicSc2Bot::last_death_location.y = unit->pos.y;
+        std::cout << "last death location: " << BasicSc2Bot::last_death_location.x << BasicSc2Bot::last_death_location.y << std::endl;
+    }
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER 
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY 
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
