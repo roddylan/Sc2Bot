@@ -111,14 +111,21 @@ void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
 */
 void BasicSc2Bot::AssignArmoryAction(const sc2::Unit *armory) {
     const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
+    const bool has_vehicle_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL1) != upgrades.end();
+    const bool has_vehicle_weapons_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL2) != upgrades.end();
+    const bool has_vehicle_weapons_3 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL3) != upgrades.end();
+    if ((!has_vehicle_weapons_1 || !has_vehicle_weapons_2 || !has_vehicle_weapons_3)) {
 
+        Actions()->UnitCommand(armory, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONS);
+        
+    }
     const bool has_ship_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL1) != upgrades.end();
     const bool has_ship_weapons_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL2) != upgrades.end();
     const bool has_ship_weapons_3 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL3) != upgrades.end();
     if ((!has_ship_weapons_1 || !has_ship_weapons_2 || !has_ship_weapons_3)) {
 
         Actions()->UnitCommand(armory, sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONS);
-        return;
+       
     }
     const bool has_ship_armor_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPARMORSLEVEL1) != upgrades.end();
     const bool has_ship_armor_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPARMORSLEVEL2) != upgrades.end();
@@ -126,8 +133,9 @@ void BasicSc2Bot::AssignArmoryAction(const sc2::Unit *armory) {
     if ((!has_ship_armor_1 || !has_ship_armor_2 || !has_ship_armor_3)) {
 
         Actions()->UnitCommand(armory, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATING);
-        return;
+       
     }
+    
 }
 /*
 * Make sure the starport tech lab is researching things
@@ -198,6 +206,15 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     
     return;
 }
+/*
+* Make sure the factory tech lab is researching things
+*/
+void BasicSc2Bot::AssignFactoryTechlabAction(const sc2::Unit& tech_lab) {
+    if(Observation()->GetMinerals() - 100 > 400) Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_SMARTSERVOS);
+    
+
+    return;
+}
 
 /*
 * Gives the Fusion Core an action
@@ -207,6 +224,7 @@ void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit *fusion_core) {
     const uint32_t& minerals = observation->GetMinerals();
     const uint32_t& gas = observation->GetVespene();
 
+    
 
     const sc2::Units& medivacs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
     const sc2::Units& fusion_cores = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));

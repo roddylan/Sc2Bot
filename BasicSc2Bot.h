@@ -78,13 +78,15 @@ public:
 	const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
 	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines, sc2::Units& cluster = sc2::Units());
 	bool HandleExpansion(bool resources_depleted);
+	void BasicSc2Bot::AssignFactoryTechlabAction(const sc2::Unit& tech_lab);
 	int CountNearbySeigeTanks(const sc2::Unit* factory);
 	const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
 	bool TryBuildMissileTurret();
 	bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure); // TODO: not finished
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
-	
+	void ProtossBuild();
+	void SendSquadProtoss();
 	void TankAttack(const sc2::Units &squad);
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
 
@@ -99,7 +101,7 @@ public:
 
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
-	
+	static bool scout_died;
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
 	const Args args;
@@ -145,7 +147,7 @@ private:
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
 	std::vector<sc2::Point2DI> pinchpoints;
-
+	sc2::Units FindNearbyBuildings(const sc2::Point2D& reference_point, size_t max_buildings);
 	sc2::Point3D start_location;
 	sc2::Point3D base_location;
 	const sc2::Unit *scout;
