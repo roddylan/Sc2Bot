@@ -137,7 +137,7 @@ void BasicSc2Bot::OnStep() {
         
     }
     */
-    //SendSquad();
+    SendSquad();
     HandleBuild();
     BuildWorkers();
     RecheckUnitIdle();

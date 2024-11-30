@@ -556,7 +556,7 @@ void BasicSc2Bot::LaunchAttack() {
     //     return;
     // }
     // if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
-    if (obs->GetFoodArmy() < (150 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (130 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (120 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
@@ -628,12 +628,16 @@ void BasicSc2Bot::LaunchAttack() {
             }
             sc2::Point2D location{};
             bool check = ScoutRandom(raid_squad.front(), location);
-            std::cout << "Scout Random: " << check << std::endl;
+            
             if (check) {
+                std::cout << "Scout Random: " << check << std::endl;
                 std::cout << "search random location\n";
                 std::cout << "(" << location.x << ", " << location.y << ")\n";
                 act->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
             }
+        }
+        else {
+            act->UnitCommand(unit, sc2::ABILITY_ID::SMART, enemies.front());
         }
     }
 
