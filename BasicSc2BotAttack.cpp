@@ -827,6 +827,8 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
 
             neutral_in_range.push_back(rock);
         }
+
+        attacking = neutral_in_range;
     }
 
     
