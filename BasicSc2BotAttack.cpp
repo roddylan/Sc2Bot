@@ -783,26 +783,53 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         }
     }
 
-    sc2::Units enemy_units_in_range{};
-    sc2::Units enemy_structures_in_range{};
+    sc2::Units attacking{};
+    sc2::Units enemies_in_range{};
+    sc2::Units neutral_in_range{};
+    
+    // set attacking as enemy if possible
+    if (enemies.size() > 0) {
+        sc2::Units enemy_units_in_range{};
+        sc2::Units enemy_structures_in_range{};
 
-    for (const auto &enemy : enemies) {
-        float dist = sc2::Distance2D(enemy->pos, unit->pos);
+        for (const auto &enemy : enemies) {
+            float dist = sc2::Distance2D(enemy->pos, unit->pos);
 
-        // dont include enemy if not in range
-        if (dist > range) {
-            continue;
+            // dont include enemy if not in range
+            if (dist > range) {
+                continue;
+            }
+
+            if (IsStructure(enemy->unit_type)) {
+                enemy_structures_in_range.push_back(enemy);
+            } else {
+                enemy_units_in_range.push_back(enemy);
+            }
+            
+            enemies_in_range.push_back((enemy));
         }
+        
+        // TODO: townhall, turret check
+        // set units to attack
+        attacking = enemy_units_in_range.empty() ? enemy_structures_in_range : enemy_units_in_range;
 
-        if (IsStructure(enemy->unit_type)) {
-            enemy_structures_in_range.push_back(enemy);
-        } else {
-            enemy_units_in_range.push_back(enemy);
+
+    } else if (neutral.size() > 0) {
+        // set attacking to rocks in range
+
+        for (const auto &rock : neutral) {
+            float dist = sc2::Distance2D(rock->pos, unit->pos);
+
+            // dont include enemy if not in range
+            if (dist > range) {
+                continue;
+            }
+
+            neutral_in_range.push_back(rock);
         }
     }
 
-    // attack units
-    const sc2::Units &attacking = enemy_units_in_range.empty() ? enemy_structures_in_range : enemy_units_in_range;
+    
     // if (enemy_units_in_range.empty()) {
     //     // attack buildings if no units to attack
     //     attacking = enemy_structures_in_range;
