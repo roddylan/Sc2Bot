@@ -701,6 +701,11 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         VikingAttack({unit}, attacking);
         return;
     }
+    // attack with battlecruiser
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER) {
+        BattlecruiserAttack({unit}, enemies);
+    }
+
     // scv attack
     // only attack with scvs holding mineral and isnt repairing
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
@@ -728,5 +733,15 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     AttackWithUnit(unit, attacking);
     return;
     
+
+}
+
+/**
+ * @brief Handle attack for squad with battlecruisers
+ * 
+ * @param squad with battlecruisers
+ * @param enemies attackable enemies
+ */
+void BasicSc2Bot::BattlecruiserAttack(const sc2::Units &squad, const sc2::Units &enemies) {
 
 }
