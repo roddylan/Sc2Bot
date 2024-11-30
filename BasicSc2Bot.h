@@ -96,7 +96,7 @@ public:
 	void BattlecruiserAttack(const sc2::Units &squad); // TODO: implement
 	void BattlecruiserAttack(const sc2::Units &squad, const sc2::Units &enemies);
 	
-	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies, const bool &atk_pos = true);
 	void AttackWithUnit(const sc2::Unit *unit);
 	
 	void LaunchAttack();

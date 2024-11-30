@@ -249,7 +249,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
         if (min_dist > TANK_SIEGE_RANGE) {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
         }
-        AttackWithUnit(tank, enemies_in_range);
+        AttackWithUnit(tank, enemies_in_range, false);
     }
 }
 
@@ -310,7 +310,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
         if (min_dist > TANK_SIEGE_RANGE) {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
         }
-        AttackWithUnit(tank, enemies);
+        AttackWithUnit(tank, enemies, false);
     }
 }
 
@@ -319,14 +319,19 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
  * 
  * @param unit 
  * @param enemies in range
+ * @param atk_pos flag for attacking position instead of enemy (default true)
  */
-void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies) {
+void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies, const bool &atk_pos) {
     if (enemies.empty()) {
         return;
     }
 
     // attack enemy
-    Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+    if (atk_pos) {
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+    } else {
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front());
+    }
 }
 
 
