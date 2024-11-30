@@ -85,7 +85,8 @@ public:
 	bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure); // TODO: not finished
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
-	
+	void ProtossBuild();
+	void SendSquadProtoss();
 	void TankAttack(const sc2::Units &squad);
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
 

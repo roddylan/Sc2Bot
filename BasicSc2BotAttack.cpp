@@ -97,7 +97,8 @@ void BasicSc2Bot::SendSquadProtoss() {
 
         }
         else {
-            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
+            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
+          
             
         }
 
@@ -190,8 +191,8 @@ void BasicSc2Bot::SendSquad() {
             Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
         }
         else {
-            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *this->enemy_starting_location);
-            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, *this->enemy_starting_location);
+            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
+            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
         }
         
         // Update last send time

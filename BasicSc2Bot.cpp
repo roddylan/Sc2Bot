@@ -25,13 +25,27 @@ void BasicSc2Bot::OnGameStart() {
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     enemy_starting_location = nullptr;  // we use a scout to find this
 }
-
+static bool protoss_enemy = false;
 void BasicSc2Bot::OnGameFullStart() {
 	this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
 	PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
     
-	return;
+    const sc2::GameInfo game_info = Observation()->GetGameInfo();
+    for (const auto& player : game_info.player_info) {
+        if (player.race_actual == sc2::Race::Protoss) {
+            protoss_enemy = true;
+            std::cout << "protoss" << std::endl;
+        }
+        
+    }
+    
+
+
+
+    return;
 }
+	
+
 
 sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
 // This is never called
@@ -106,12 +120,18 @@ void BasicSc2Bot::OnStep() {
     ));
     
 
-   SendSquad();
+   //SendSquad();
     // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
-    HandleBuild();
-    
+    if (protoss_enemy) {
+        SendSquadProtoss();
+        ProtossBuild();
+    }
+    else {
+        SendSquad();
+        HandleBuild();
+    }
     BuildWorkers();
     RecheckUnitIdle();
 
@@ -322,7 +342,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
                 closest_base_position = position;
             }
         }
-        this->enemy_starting_location = &closest_base_position;
+        this->enemy_starting_location = new sc2::Point2D(closest_base_position.x, closest_base_position.y);
     }
 }
 
@@ -469,7 +489,7 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
         return;
     }
 
-
+   
     const sc2::Units allies = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_MARINE,
         sc2::UNIT_TYPEID::TERRAN_MARAUDER,
