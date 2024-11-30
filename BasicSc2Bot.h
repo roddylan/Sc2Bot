@@ -85,10 +85,15 @@ public:
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
 	
+	// handle attack for tank
 	void TankAttack(const sc2::Units &squad);
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
 
-	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
+	// handle attack for a viking
+	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies);
+
+	// handle attack for a battlecruiser
+	void BattlecruiserAttack(const sc2::Units &squad);
 	
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 	void AttackWithUnit(const sc2::Unit *unit);
