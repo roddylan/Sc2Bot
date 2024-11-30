@@ -70,7 +70,8 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
 
             build = true;
           //  std::cout << "Building siege tank\n";
-            Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+            TryBuildSiegeTank(factory);
+            // Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
         }
     }
 
