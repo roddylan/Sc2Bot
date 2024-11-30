@@ -1000,8 +1000,8 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     //     // std::cout << "attacking with scv \n";
     // }
 
-    // // default attack
-    // AttackWithUnit(unit, attacking);
+    // default attack
+    AttackWithUnit(unit, attacking);
     return;
     
 
