@@ -42,14 +42,26 @@ void BasicSc2Bot::SendSquadProtoss() {
 
     // Create a squad of units with empty orders
     std::vector<const sc2::Unit*> squad;
-    auto filter_units = [](const sc2::Units& units, std::vector<const sc2::Unit*>& squad) {
+
+    const sc2::ObservationInterface *obs = Observation();
+    auto filter_units = [&obs](const sc2::Units& units, std::vector<const sc2::Unit*>& squad) {
         for (const auto& unit : units) {
             if (unit->orders.empty()) {
                 squad.push_back(unit);
+                continue;
+            }
+
+            sc2::UnitOrder order = unit->orders.front();
+            const sc2::Unit *target = obs->GetUnit(order.target_unit_tag);
+            if (target != nullptr) {
+                if (target->alliance != sc2::Unit::Alliance::Enemy) {
+                    // dont assign unit if already engaged with enemy
+                    squad.push_back(unit);
+                    continue;
+                }
             }
         }
-
-        };
+    };
     // Filter out units that have orders already
     filter_units(thors, squad);
     
@@ -106,20 +118,7 @@ void BasicSc2Bot::SendSquadProtoss() {
             location = *enemy_starting_location;
             // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
         }
-        // prevent units from leaving something they're already attacking
-        for (const auto &unit : squad) {
-            if (!unit->orders.empty()) {
-                sc2::UnitOrder order = unit->orders.front();
-                const sc2::Unit *target = Observation()->GetUnit(order.target_unit_tag);
-                if (target != nullptr) {
-                    if (target->alliance == sc2::Unit::Alliance::Enemy) {
-                        // dont assign unit if already engaged with enemy
-                        return;
-                    }
-                }
-            }
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
-        }
+        Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, location);
 
         // Update last send time
         last_send_time = current_time;
@@ -154,14 +153,25 @@ void BasicSc2Bot::SendSquad() {
     
     // Create a squad of units with empty orders
     std::vector<const sc2::Unit*> squad;
-    auto filter_units = [](const sc2::Units& units, std::vector<const sc2::Unit*>& squad) {
+    const sc2::ObservationInterface *obs = Observation();
+    auto filter_units = [&obs](const sc2::Units& units, std::vector<const sc2::Unit*>& squad) {
         for (const auto& unit : units) {
             if (unit->orders.empty()) {
                 squad.push_back(unit);
+                continue;
+            }
+
+            sc2::UnitOrder order = unit->orders.front();
+            const sc2::Unit *target = obs->GetUnit(order.target_unit_tag);
+            if (target != nullptr) {
+                if (target->alliance != sc2::Unit::Alliance::Enemy) {
+                    // dont assign unit if already engaged with enemy
+                    squad.push_back(unit);
+                    continue;
+                }
             }
         }
-
-        };
+    };
     // Filter out units that have orders already
     filter_units(thors, squad);
     filter_units(battlecruisers, squad);
@@ -215,20 +225,8 @@ void BasicSc2Bot::SendSquad() {
             location = *enemy_starting_location;
             // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
         }
-        // prevent units from leaving something they're already attacking
-        for (const auto &unit : squad) {
-            if (!unit->orders.empty()) {
-                sc2::UnitOrder order = unit->orders.front();
-                const sc2::Unit *target = Observation()->GetUnit(order.target_unit_tag);
-                if (target != nullptr) {
-                    if (target->alliance == sc2::Unit::Alliance::Enemy) {
-                        // dont assign unit if already engaged with enemy
-                        return;
-                    }
-                }
-            }
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
-        }
+
+        Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, location);
         
         // Update last send time
         last_send_time = current_time;
