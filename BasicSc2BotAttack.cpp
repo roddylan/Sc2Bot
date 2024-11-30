@@ -425,6 +425,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
         }
     }
     if (enemies_in_range.empty()) {
+        Actions()->UnitCommand(tanks, sc2::ABILITY_ID::MORPH_UNSIEGE);
         return;
     }
 
@@ -467,7 +468,8 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
     const sc2::ObservationInterface *obs = Observation();
 
     sc2::Units tanks{};
-    if (enemies.empty() || squad.empty()) {
+    // if (enemies.empty() || squad.empty()) {
+    if (squad.empty()) {
         return;
     }
 
@@ -486,6 +488,11 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
     }
 
     if (tanks.empty()) {
+        return;
+    }
+    
+    if (enemies.empty()) {
+        Actions()->UnitCommand(tanks, sc2::ABILITY_ID::MORPH_UNSIEGE);
         return;
     }
 
@@ -633,7 +640,7 @@ void BasicSc2Bot::LaunchAttack() {
     // );
     
     // TODO: crashing here idk why
-   // std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
+    std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
     if (enemies.empty()) {
         // Find enemy base
         std::cout << "no enemies, find one\n";
@@ -652,7 +659,7 @@ void BasicSc2Bot::LaunchAttack() {
             }
         }
     } else {
-      //  std::cout << "found enemies\n";
+       std::cout << "found enemies\n";
       //  std::cout << enemy_bases.size() << " enemy townhalls found\n";
         for (const auto &enemy : enemies) {
             if (enemy->is_alive) {
