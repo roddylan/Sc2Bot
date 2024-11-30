@@ -637,6 +637,7 @@ void BasicSc2Bot::LaunchAttack() {
     
     // TODO: crashing here idk why
     std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
+    std::cout << "n_battlecruisers=" << battlecruisers.size() << "\n";
     if (enemies.empty()) {
         // Find enemy base
         std::cout << "no enemies, find one\n";
@@ -647,10 +648,13 @@ void BasicSc2Bot::LaunchAttack() {
             std::cout << "search starting location\n";
             location = *(this->enemy_starting_location);
             this->visited_start = true;
-            act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK_ATTACK, location);
+            act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, location);
         } else {
-            if (ScoutRandom(raid_squad.front(), location)) {
+            bool check = ScoutRandom(raid_squad.front(), location);
+            std::cout << "Scout Random: " << check << std::endl;
+            if (check) {
                 std::cout << "search random location\n";
+                std::cout << "(" << location.x << ", " << location.y << ")\n";
                 act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, location);
             }
         }
@@ -659,7 +663,7 @@ void BasicSc2Bot::LaunchAttack() {
       //  std::cout << enemy_bases.size() << " enemy townhalls found\n";
         for (const auto &enemy : enemies) {
             if (enemy->is_alive) {
-                act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK_ATTACK, enemy->pos);
+                act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, enemy->pos);
                 return;
             }
         }
