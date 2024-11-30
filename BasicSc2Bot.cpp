@@ -150,7 +150,7 @@ void BasicSc2Bot::OnStep() {
 
     // LaunchAttack(); // TODO: fix implementation for final attack logic
 
-    // HandleAttack();
+    HandleAttack();
 
     // TODO: temporary, move
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
