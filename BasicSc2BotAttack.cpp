@@ -650,6 +650,7 @@ void BasicSc2Bot::LaunchAttack() {
             act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK_ATTACK, location);
         } else {
             if (ScoutRandom(raid_squad.front(), location)) {
+                std::cout << "search random location\n";
                 act->UnitCommand(raid_squad, sc2::ABILITY_ID::SMART, location);
             }
         }
