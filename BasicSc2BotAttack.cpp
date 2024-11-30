@@ -90,7 +90,6 @@ void BasicSc2Bot::SendSquad() {
     if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 11) {
         Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
         Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
-        std::cout << "Sent squad to enemy location: " << this->enemy_starting_location->x << " " << this->enemy_starting_location->y << std::endl;
         // Update last send time
         last_send_time = current_time;
         units_sent++;
