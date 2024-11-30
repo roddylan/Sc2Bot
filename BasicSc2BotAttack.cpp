@@ -1046,6 +1046,11 @@ void BasicSc2Bot::BattlecruiserAttack(const sc2::Units &squad, const sc2::Units 
         }
         
         // if (battlecruiser->buffs)
+        
+        // use yamato cannon when enemy
+        // townhall
+        // > 200 health
+        // near death (15 health)
     }
 
 
