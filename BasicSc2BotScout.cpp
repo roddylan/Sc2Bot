@@ -41,7 +41,6 @@ bool BasicSc2Bot::TryScoutingForAttack(const sc2::Unit *unit_to_scout, bool refi
 
     // if we haven't discovered the enemy's base location, try and find it
     if (!unexplored_enemy_starting_locations.empty()) {
-
         const sc2::GameInfo& info = Observation()->GetGameInfo();
         // start from the back so we can .pop_back() (no pop_front equivalent)
         sc2::Point2D target = unexplored_enemy_starting_locations.back();
@@ -50,6 +49,9 @@ bool BasicSc2Bot::TryScoutingForAttack(const sc2::Unit *unit_to_scout, bool refi
         // send 
         Actions()->UnitCommand(unit_to_scout, sc2::ABILITY_ID::ATTACK_ATTACK, target);
         return true;
+    } else {
+        // search random point
+        
     }
     return false;
 }
