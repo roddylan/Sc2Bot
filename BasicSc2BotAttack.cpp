@@ -88,9 +88,9 @@ void BasicSc2Bot::SendSquad() {
 
     // Add delay between sending units
     if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 11) {
-        Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
-        Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
-        std::cout << "Sent squad to enemy location: " << closest_start_location.x << " " << closest_start_location.y << std::endl;
+        Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
+        Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
+        std::cout << "Sent squad to enemy location: " << this->enemy_starting_location << " " << this->enemy_starting_location << std::endl;
         // Update last send time
         last_send_time = current_time;
         units_sent++;

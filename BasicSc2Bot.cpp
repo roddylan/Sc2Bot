@@ -273,6 +273,9 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, unit->pos);
         }
         */
+        if (Observation()->GetGameLoop() < 13200 && Distance2D(unit->pos, start_location) > 50.0f && unit->unit_type != sc2::UNIT_TYPEID::TERRAN_SCV) {
+            return;
+        }
         sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
         sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
