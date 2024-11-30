@@ -100,9 +100,17 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
  */
 bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
     const sc2::ObservationInterface* observation = Observation();
-    
+    const sc2::Unit *add_on = observation->GetUnit(factory->add_on_tag);
     // if cant build tank
-    if (factory->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+    if (add_on == nullptr) {
+        return false;
+    }
+    if (add_on->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
+
+    // up to 2 in production
+    if (factory->orders.size() > 1) {
         return false;
     }
 
@@ -113,12 +121,12 @@ bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
         Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
     }
     // TODO: get rid of couts here 
-    if (build){
-        sc2::Units tank = observation->GetUnits(
-            sc2::Unit::Alliance::Self, 
-            sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
-       // std::cout << "n_siegetanks=" << tank.size() << std::endl;
-    }
+    // if (build){
+    //     sc2::Units tank = observation->GetUnits(
+    //         sc2::Unit::Alliance::Self, 
+    //         sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
+    //    // std::cout << "n_siegetanks=" << tank.size() << std::endl;
+    // }
     return true;
 }
 
