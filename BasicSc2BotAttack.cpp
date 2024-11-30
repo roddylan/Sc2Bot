@@ -1000,7 +1000,7 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     // }
 
     // default attack
-    AttackWithUnit(unit, attacking);
+    AttackWithUnit(unit, enemies_in_range);
     return;
     
 
