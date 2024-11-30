@@ -89,12 +89,12 @@ public:
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
 
 	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
-	
+	void SendSquad();
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
 	void AttackWithUnit(const sc2::Unit *unit);
 	
 	void LaunchAttack();
-
+	static sc2::Point2D last_death_location;
 	void BuildArmy(); // handle army build
 
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
@@ -102,6 +102,7 @@ public:
 	
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
+	
 	const size_t n_tanks = 3;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
