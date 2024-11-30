@@ -556,7 +556,8 @@ void BasicSc2Bot::LaunchAttack() {
     //     return;
     // }
     // if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
-    if (obs->GetFoodArmy() < (150 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (150 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    if (obs->GetFoodArmy() < (130 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (120 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
     }
