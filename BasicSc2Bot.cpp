@@ -98,11 +98,29 @@ void BasicSc2Bot::OnStep() {
     sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
         sc2::UNIT_TYPEID::TERRAN_MARINE
     ));
-    if (marines.size() > 10) {
-        if (scvs[0]->orders.empty()) {
-            TryScoutingForAttack(scvs[0], false);
-        }
+    std::vector<sc2::Point2D> enemy_locations = obs->GetGameInfo().enemy_start_locations;
+    const int64_t twenty_minutes_in_loops = 26880;
+    if (obs->GetGameLoop() > 20160) {
         
+    }
+    const float frames_per_second = 22.4;
+    static int marines_sent = 0; 
+    static uint64_t last_send_time = 0; 
+
+    if (marines.size() > 10) {
+        for (const auto& marine : marines) {
+            if (marine->orders.empty() && enemy_locations.size() > marines_sent) {
+                uint64_t current_time = obs->GetGameLoop();
+
+                // Add a delay between sending marines (e.g., 120 game loops).
+                if (current_time > last_send_time + 15 * frames_per_second) {
+                    Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, enemy_locations[marines_sent++]);
+                    last_send_time = current_time; 
+                }
+            }
+
+            if (marines_sent == 4) break;
+        }
     }
     // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
@@ -115,12 +133,12 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
 
-    // BuildArmy(); // TODO: use this
+    //BuildArmy(); // TODO: use this
     
 
-    // LaunchAttack(); // TODO: fix implementation for final attack logic
+    LaunchAttack(); // TODO: fix implementation for final attack logic
 
-    // HandleAttack();
+ //   HandleAttack();
 
     // TODO: temporary, move
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
@@ -236,11 +254,11 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     static int mineral_fields_destoryed;
 
     ++mineral_fields_destoryed;
-    std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+   // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
     if (mineral_fields_destoryed % 10) {
        HandleExpansion(true);
     }
-    std::cout << "Minerals destroyed" << std::endl;
+   // std::cout << "Minerals destroyed" << std::endl;
     
     // send marines to attack intruders
    
