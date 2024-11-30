@@ -426,7 +426,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
     }
     if (enemies_in_range.empty()) {
         // TODO: add buffer timer (ie. 3s since enemy in view)
-        Actions()->UnitCommand(tanks, sc2::ABILITY_ID::MORPH_UNSIEGE);
+        // Actions()->UnitCommand(tanks, sc2::ABILITY_ID::MORPH_UNSIEGE);
         return;
     }
 
@@ -469,8 +469,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
     const sc2::ObservationInterface *obs = Observation();
 
     sc2::Units tanks{};
-    // if (enemies.empty() || squad.empty()) {
-    if (squad.empty()) {
+    if (enemies.empty() || squad.empty()) {
         return;
     }
 
@@ -492,10 +491,6 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
         return;
     }
     
-    if (enemies.empty()) {
-        Actions()->UnitCommand(tanks, sc2::ABILITY_ID::MORPH_UNSIEGE);
-        return;
-    }
 
     // if there is enemy in range
     for (const auto &tank : tanks) {
