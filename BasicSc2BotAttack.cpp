@@ -862,9 +862,9 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK || 
         unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK) {
-        range = 13;
+        range = 13 + 2;
     } else {
-        range = unit->detect_range;
+        range = unit->detect_range + 2;
     }
 
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
@@ -921,7 +921,7 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
                 enemy_units_in_range.push_back(enemy);
             }
             
-            enemies_in_range.push_back((enemy));
+            enemies_in_range.push_back(enemy);
         }
         
         // TODO: townhall, turret check
