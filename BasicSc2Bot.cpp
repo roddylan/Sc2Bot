@@ -18,7 +18,7 @@
 #include <cmath>
 #include <string>
 
-
+bool BasicSc2Bot::scout_died = false;
 void BasicSc2Bot::OnGameStart() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::QueryInterface *query = Query();
@@ -29,12 +29,27 @@ void BasicSc2Bot::OnGameStart() {
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     enemy_starting_location = nullptr;  // we use a scout to find this
 }
-
+static bool protoss_enemy = false;
 void BasicSc2Bot::OnGameFullStart() {
 	// this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
 	// PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
-	return;
+    
+    const sc2::GameInfo game_info = Observation()->GetGameInfo();
+    for (const auto& player : game_info.player_info) {
+        if (player.race_actual == sc2::Race::Protoss) {
+            protoss_enemy = true;
+            std::cout << "protoss" << std::endl;
+        }
+        
+    }
+    
+
+
+
+    return;
 }
+	
+
 
 sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
 // This is never called
@@ -110,11 +125,20 @@ void BasicSc2Bot::OnStep() {
     
 
     // SendSquad();
-    AssignWorkers();
+    // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
+    /*
+    if (protoss_enemy) {
+        SendSquadProtoss();
+        ProtossBuild();
+    }
+    else {
+        
+    }
+    */
+    SendSquad();
     HandleBuild();
-    
     BuildWorkers();
     RecheckUnitIdle();
 
@@ -147,10 +171,12 @@ void BasicSc2Bot::OnStep() {
     // if (TryBuildMissileTurret()) {
     //     return;
     // }
-    if (obs->GetMinerals() - 100 >= 400 || obs->GetFoodUsed() - obs->GetFoodCap() < 30) {
+    /*
+    if (obs->GetMinerals() - 100 >= 400 || current_supply_use < ((1 / 2) * obs->get)) {
         TryBuildSupplyDepot();
         return;
-    }    
+    } 
+    */
     
     
 
@@ -232,6 +258,7 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
         break;
     }
+
     default: 
         break;
     }
@@ -269,18 +296,33 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
-        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
+        || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV && unit != this->scout) {
 
         /*
         for (const auto& marine : marines) {
             Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, unit->pos);
         }
         */
+        if ((Observation()->GetGameLoop() < 13200 && Distance2D(unit->pos, start_location) > 50.0f)) {
+            return;
+        }
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_LIBERATOR
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARAUDER
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
+            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV)
+        {
+            if (sc2::Distance2D(unit->pos, start_location) > 70.0f) {
+                return;
+            }
+        }
         sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
         sc2::Units marines = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
         sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
         sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-        if (marines.size() + marauders.size()  + banshees.size() + vikings.size() > 15) {
+        
             Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
             sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
             Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
@@ -293,7 +335,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
             Actions()->UnitCommand(tanks, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
                     
-        }
+        
 
         sc2::Units battlecruisers = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
         Actions()->UnitCommand(battlecruisers, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
@@ -310,6 +352,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
    
    
     if (unit == this->scout) {
+        scout_died = true;
         // the scout was destroyed, so we found the base!
         const sc2::GameInfo& info = Observation()->GetGameInfo();
         sc2::Point2D closest_base_position = info.enemy_start_locations[0];
@@ -318,7 +361,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
                 closest_base_position = position;
             }
         }
-        this->enemy_starting_location = &closest_base_position;
+        this->enemy_starting_location = new sc2::Point2D(closest_base_position.x, closest_base_position.y);
     }
 }
 
@@ -339,6 +382,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignStarportAction(unit);
         break;
     }
+
     case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB: {
         AssignStarportTechLabAction(unit);
         break;
@@ -418,6 +462,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
 
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
+        AssignFactoryTechlabAction(*unit);
         AssignFactoryAction(unit); // TODO: techlab should only be upgrading (not the actual factory)
     }
     case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
@@ -463,7 +508,7 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
         return;
     }
 
-
+   
     const sc2::Units allies = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_MARINE,
         sc2::UNIT_TYPEID::TERRAN_MARAUDER,

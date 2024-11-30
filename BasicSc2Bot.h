@@ -80,12 +80,16 @@ public:
 	const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
 	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
 	bool HandleExpansion(bool resources_depleted);
+	void AssignFactoryTechlabAction(const sc2::Unit& tech_lab);
 	int CountNearbySeigeTanks(const sc2::Unit* factory);
 	const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
 	bool TryBuildMissileTurret();
 	bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure); // TODO: not finished
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
+	
+	void ProtossBuild();
+	void SendSquadProtoss();
 	
 	// handle attack for tank
 	void TankAttack(const sc2::Units &squad);
@@ -109,7 +113,7 @@ public:
 
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
-	
+	static bool scout_died;
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
 	
