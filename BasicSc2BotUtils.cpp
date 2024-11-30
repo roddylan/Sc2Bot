@@ -294,6 +294,98 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     * - though this does seem to be a bit slow sometimes
     */
 
+    // Get all existing structures
+    sc2::Units all_buildings = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER,
+        sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND, 
+        sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS, 
+        sc2::UNIT_TYPEID::TERRAN_REFINERY, 
+        sc2::UNIT_TYPEID::TERRAN_FACTORY, 
+        sc2::UNIT_TYPEID::TERRAN_BARRACKS, 
+        sc2::UNIT_TYPEID::TERRAN_STARPORT, 
+        sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY, 
+        sc2::UNIT_TYPEID::TERRAN_ARMORY } ));
+
+    // Sort buildings by distance to the starting point
+    std::sort(all_buildings.begin(), all_buildings.end(),
+        [&starting_point](const sc2::Unit* a, const sc2::Unit* b) {
+            float dist_a = sc2::DistanceSquared2D(starting_point, a->pos);
+            float dist_b = sc2::DistanceSquared2D(starting_point, b->pos);
+            return dist_a < dist_b; 
+        });
+
+    // Start by using nearest structures
+    for (int i = 0; i < all_buildings.size(); i++) {
+        if ((i + 1) < all_buildings.size()) {
+            const sc2::Unit* a = all_buildings[i];
+            const sc2::Unit* b = all_buildings[i + 1];
+
+            // Initial height of the triangle
+            float height_of_triangle = 5.0f;
+            // Used to increment height if placement fails
+            const float height_increment = 2.0f;
+            sc2::Point2D midpoint = sc2::Point2D((a->pos.x + b->pos.x) / 2, (a->pos.y + b->pos.y) / 2);
+            // Drection vector from building a to b
+            sc2::Point2D direction = sc2::Point2D(b->pos.x - a->pos.x, b->pos.y - a->pos.y);
+            float magnitude = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+            sc2::Point2D normalized_direction = sc2::Point2D(direction.x / magnitude, direction.y / magnitude);
+
+            // First perpendicular vector 
+            sc2::Point2D perpendicular = sc2::Point2D(-normalized_direction.y, normalized_direction.x);
+            // How many times we failed to seach search -> 4 = done
+            int direction_changes = 0;
+
+            sc2::Point2D new_point;
+            const sc2::Unit* placing_unit = nullptr; 
+
+            while (true) {
+                new_point = midpoint + perpendicular * height_of_triangle;
+
+                // Check placement with add on
+                if (Query()->Placement(ability_to_place_building, new_point, placing_unit)) {
+                    // Check for wiggle room for techlab/reactor
+                    bool can_wiggle_left = Query()->Placement(ability_to_place_building, sc2::Point2D(new_point.x - 2, new_point.y), placing_unit);
+                    bool can_wiggle_right = Query()->Placement(ability_to_place_building, sc2::Point2D(new_point.x + 2, new_point.y), placing_unit);
+
+                    if (can_wiggle_left && can_wiggle_right) {
+                        break;
+                    }
+                }
+
+                // Increment the height and retry
+                height_of_triangle += height_increment;
+                // Change direction if height exceeds 20
+                if (height_of_triangle > 20.0f) {
+                    direction_changes++;
+                    // Alternate between two perpendicular directions
+                    perpendicular = (direction_changes % 2 == 0)
+                        // Rotate other way
+                        ? sc2::Point2D(normalized_direction.y, -normalized_direction.x) 
+                        // First direction
+                        : sc2::Point2D(-normalized_direction.y, normalized_direction.x); 
+
+                    // Reset height and continue searching
+                    height_of_triangle = 5.0f;
+
+                    // Stop searching if we cannot find a point before threshold -> use old way
+                    if (direction_changes > 4) {
+                        std::cout << "Unable to find placement point" << std::endl;
+                        new_point = sc2::Point2D(0, 0); 
+                        break;
+                    }
+                }
+            }
+            // If we found a placement point
+            if (new_point != sc2::Point2D(0, 0)) {
+                return new_point;
+            }
+        }
+    }
+
+
+
+
+
+  
     /*
     * Starting lower & upper bounds for x
     */
