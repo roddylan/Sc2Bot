@@ -27,8 +27,6 @@ void BasicSc2Bot::OnGameStart() {
 }
 static bool protoss_enemy = false;
 void BasicSc2Bot::OnGameFullStart() {
-	this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
-	PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
     
     const sc2::GameInfo game_info = Observation()->GetGameInfo();
     for (const auto& player : game_info.player_info) {
