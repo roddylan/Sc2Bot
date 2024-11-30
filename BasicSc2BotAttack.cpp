@@ -58,15 +58,18 @@ void BasicSc2Bot::SendSquad() {
     filter_units(liberators, squad);
     filter_units(vikings, squad);
     sc2::Point2D closest_start_location;
-    // Get enemy start location closest to last death location to prevent from sending to empty location
-    float min_distance = std::numeric_limits<float>::max();
-    for (const auto& start_location : enemy_locations) {
-        float distance = sc2::Distance2D(start_location, BasicSc2Bot::last_death_location);
-        if (distance < min_distance) {
-            min_distance = distance;
-            closest_start_location = start_location;
+    if (!scout_died) {
+        // Get enemy start location closest to last death location to prevent from sending to empty location
+        float min_distance = std::numeric_limits<float>::max();
+        for (const auto& start_location : enemy_locations) {
+            float distance = sc2::Distance2D(start_location, BasicSc2Bot::last_death_location);
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_start_location = start_location;
+            }
         }
     }
+    
     // Tracks the game loop when the last unit was sent
     static uint64_t last_send_time = 0;
     // Tracks the game loop of the last reset
@@ -88,8 +91,15 @@ void BasicSc2Bot::SendSquad() {
 
     // Add delay between sending units
     if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 11) {
-        Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
-        Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
+        if (!scout_died) {
+            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
+            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
+        }
+        else {
+            Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
+            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, this->enemy_starting_location);
+        }
+        
         // Update last send time
         last_send_time = current_time;
         units_sent++;

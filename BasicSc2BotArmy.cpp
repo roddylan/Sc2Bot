@@ -207,6 +207,14 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     }
     return;
 }
+/*
+* Make sure the factory tech lab is researching things
+*/
+void BasicSc2Bot::AssignFactoryTechlabAction(const sc2::Unit& tech_lab) {
+    Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_SMARTSERVOS);
+
+    return;
+}
 
 /*
 * Gives the Fusion Core an action

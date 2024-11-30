@@ -14,7 +14,7 @@
 #include <iostream>
 #include <cmath>
 
-
+bool BasicSc2Bot::scout_died = false;
 void BasicSc2Bot::OnGameStart() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::QueryInterface *query = Query();
@@ -231,6 +231,7 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
         break;
     }
+
     default: 
         break;
     }
@@ -312,6 +313,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
    
    
     if (unit == this->scout) {
+        scout_died = true;
         // the scout was destroyed, so we found the base!
         const sc2::GameInfo& info = Observation()->GetGameInfo();
         sc2::Point2D closest_base_position = info.enemy_start_locations[0];
@@ -341,6 +343,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignStarportAction(unit);
         break;
     }
+
     case sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB: {
         AssignStarportTechLabAction(unit);
         break;
@@ -420,6 +423,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
 
     case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
+        AssignFactoryTechlabAction(*unit);
         AssignFactoryAction(unit); // TODO: techlab should only be upgrading (not the actual factory)
     }
     case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
