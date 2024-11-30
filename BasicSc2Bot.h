@@ -29,6 +29,8 @@ public:
 	void OnUnitIdle(const sc2::Unit* unit) final;
 	void OnUnitCreated(const sc2::Unit* unit);
 
+	void OnGameEnd(); // game end
+
 	bool AttackIntruders();
 	bool LoadBunker(const sc2::Unit* marine);
 	bool UpgradeFactoryTechLab(const sc2::Unit* factory);
