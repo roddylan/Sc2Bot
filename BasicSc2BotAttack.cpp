@@ -425,6 +425,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
         }
     }
     if (enemies_in_range.empty()) {
+        // TODO: add buffer timer (ie. 3s since enemy in view)
         Actions()->UnitCommand(tanks, sc2::ABILITY_ID::MORPH_UNSIEGE);
         return;
     }
