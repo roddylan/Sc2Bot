@@ -286,6 +286,11 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
     }
 
+    // nullptr check, no units available
+    if (unit_to_build == nullptr) {
+        return false;
+    }
+
     // TODO: bring back build logic
 
     float ry = sc2::GetRandomScalar() * 15.0f;
@@ -351,6 +356,11 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         
         unit_to_build = worker;
         break;
+    }
+
+    // nullptr check, no units available
+    if (unit_to_build == nullptr) {
+        return false;
     }
     // todo: this as possible fix?
     float rx = sc2::GetRandomScalar();
