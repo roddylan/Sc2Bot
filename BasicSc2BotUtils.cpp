@@ -183,14 +183,15 @@ const sc2::Unit* BasicSc2Bot::FindInjuredMarine() {
         
         if (marine->health < marine->health_max) {
             sc2::Units medivacs = SortMedivacsAccordingToDistance(marine->pos);
-            // medivacs[0] because first element is closest
-            if (medivacs.size() == 0) {
-                std::cout << "ABOUT TO CRASH!!!!!" << std::endl;
+            if (!medivacs.empty()) {
+                // medivacs[0] because first element is closest
+                if (sc2::Distance2D(medivacs[0]->pos, marine->pos) < 5.0f) {
+                    continue;
+                }
+                return marine;
             }
-            if (sc2::Distance2D(medivacs[0]->pos, marine->pos) < 5.0f) {
-                continue;
-            }
-            return marine;
+            
+            
         }
     }
     return nullptr;
@@ -387,7 +388,12 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
 
         if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
-            return sc2::Point2D(starting_point.x + sc2::GetRandomScalar() * 10.0f, starting_point.y + sc2::GetRandomScalar() * 10.0f);
+            return sc2::Point2D(0, 0);
+            /*
+            float rand_x = sc2::GetRandomScalar() * 5.0f;
+            float rand_y = sc2::GetRandomScalar() * 5.0f;
+            return this->FindPlaceablePositionNear(starting_point + sc2::Point2D(rand_x, rand_y), ability_to_place_building);
+            */
         }
 
     }
@@ -464,4 +470,93 @@ const sc2::Unit* BasicSc2Bot::FindNearestWorker(const sc2::Point2D& pos, bool is
     }
 
     return res;
+}
+
+
+/**
+ * @brief Count units that have spawned in + in production
+ * 
+ * @param obs 
+ * @param unit_type 
+ * @param prod_unit 
+ * @param ability 
+ * @return size_t 
+ */
+size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
+                      sc2::UNIT_TYPEID unit_type, sc2::UNIT_TYPEID prod_unit,
+                      sc2::ABILITY_ID ability) {
+    // count existing
+    size_t existing = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(unit_type)).size();
+    // size_t in_production = 0;
+
+    // sc2::Units production_units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(prod_unit));
+    size_t in_production = obs->GetUnits(sc2::Unit::Alliance::Self, [&prod_unit, &ability](const sc2::Unit &unit) {
+        bool is_unit = (unit.unit_type == prod_unit);
+        bool is_producing = false;
+
+        for (const auto &order : unit.orders) {
+            if (order.ability_id == ability) {
+                is_producing = true;
+                break;
+            }
+        }
+
+        return is_unit && is_producing;
+    }).size();
+
+    return existing + in_production;
+}
+
+
+/**
+ * @brief Count units that have spawned in + in production
+ * 
+ * @param obs 
+ * @param unit_type 
+ * @param prod_unit 
+ * @param ability 
+ * @return size_t 
+ */
+size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
+                      const std::vector<sc2::UNIT_TYPEID> &unit_type,
+                      const std::vector<sc2::UNIT_TYPEID> &prod_unit,
+                      sc2::ABILITY_ID ability) {
+    // count existing
+    size_t existing = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(unit_type)).size();
+    size_t in_production = 0;
+
+    sc2::Units production_units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(prod_unit));
+
+    for (const auto &unit : production_units) {
+        if (unit->orders.empty()) {
+            continue;
+        }
+        
+        for (const auto &order : unit->orders) {
+            if (order.ability_id == ability) {
+                ++in_production;
+            }
+        }
+    }
+
+    return existing + in_production;
+}
+
+
+/**
+ * @brief Add partition of units to squad
+ * 
+ * @param split_sz number of units to take from units (partition size)
+ * @param units units that can be moved into squad
+ * @param squad squad vector
+ */
+void BasicSc2Bot::SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad) {
+    for (size_t i = 0; i < split_sz; ++i) {
+        if (units.empty()) {
+            return;
+        }
+
+        squad.push_back(units.back());
+        units.pop_back();
+    }
 }
