@@ -730,10 +730,13 @@ void BasicSc2Bot::ProtossBuild() {
         }
     }
     // 400 = command center cost
-    if (obs->GetMinerals() - 150 >= 400 && tanks.size() * bases.size() < bases.size()) {
+    if (obs->GetMinerals() - 150 >= 400) {
         TryBuildSiegeTank();
     }
-
+    // 400 = command center cost
+    if (obs->GetMinerals() - 150 >= 400) {
+        TryBuildThor();
+    }
     // Handle Orbital Command
 
     if (!barracks.empty()) {
@@ -775,7 +778,7 @@ void BasicSc2Bot::ProtossBuild() {
     }
     
     // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
-    if (marines.size() < 20 || tanks.size() < 5) {
+    if (factory.size() < 2) {
         // HandleExpansion(true);
         return;
     }

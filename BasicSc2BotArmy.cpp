@@ -110,14 +110,21 @@ void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
 */
 void BasicSc2Bot::AssignArmoryAction(const sc2::Unit *armory) {
     const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
+    const bool has_vehicle_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL1) != upgrades.end();
+    const bool has_vehicle_weapons_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL2) != upgrades.end();
+    const bool has_vehicle_weapons_3 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL3) != upgrades.end();
+    if ((!has_vehicle_weapons_1 || !has_vehicle_weapons_2 || !has_vehicle_weapons_3)) {
 
+        Actions()->UnitCommand(armory, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEWEAPONS);
+        
+    }
     const bool has_ship_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL1) != upgrades.end();
     const bool has_ship_weapons_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL2) != upgrades.end();
     const bool has_ship_weapons_3 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPWEAPONSLEVEL3) != upgrades.end();
     if ((!has_ship_weapons_1 || !has_ship_weapons_2 || !has_ship_weapons_3)) {
 
         Actions()->UnitCommand(armory, sc2::ABILITY_ID::RESEARCH_TERRANSHIPWEAPONS);
-        return;
+       
     }
     const bool has_ship_armor_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPARMORSLEVEL1) != upgrades.end();
     const bool has_ship_armor_2 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANSHIPARMORSLEVEL2) != upgrades.end();
@@ -125,8 +132,9 @@ void BasicSc2Bot::AssignArmoryAction(const sc2::Unit *armory) {
     if ((!has_ship_armor_1 || !has_ship_armor_2 || !has_ship_armor_3)) {
 
         Actions()->UnitCommand(armory, sc2::ABILITY_ID::RESEARCH_TERRANVEHICLEANDSHIPPLATING);
-        return;
+       
     }
+    
 }
 /*
 * Make sure the starport tech lab is researching things

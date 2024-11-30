@@ -50,7 +50,7 @@ void BasicSc2Bot::SendSquadProtoss() {
         };
     // Filter out units that have orders already
     filter_units(thors, squad);
-    filter_units(marines, squad);
+    
     filter_units(battlecruisers, squad);
     filter_units(tanks, squad);
     filter_units(banshees, squad);
@@ -92,11 +92,13 @@ void BasicSc2Bot::SendSquadProtoss() {
     // Add delay between sending units
     if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 10) {
         if (!scout_died) {
+            filter_units(marines, squad);
             Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
             std::cout << "sending them to: " << closest_start_location.x << " " << closest_start_location.y  << std::endl;
 
         }
         else {
+            filter_units(marines, squad);
             Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
           
             
@@ -186,13 +188,14 @@ void BasicSc2Bot::SendSquad() {
 
     // Add delay between sending units
     if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 11) {
+        filter_units(marines, squad);
         if (!scout_died) {
             Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
-            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
+
         }
         else {
             Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
-            Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
+
         }
         
         // Update last send time
