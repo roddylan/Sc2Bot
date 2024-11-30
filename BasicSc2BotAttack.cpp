@@ -78,7 +78,7 @@ void BasicSc2Bot::SendSquadProtoss() {
     static uint64_t last_reset_time = 0;
     // FPS
     const int frames_per_second = 22;
-    // 3 minutes in game loops (22 FPS × 60 seconds × 3)
+    // 3 minutes in game loops (22 FPS ï¿½ 60 seconds ï¿½ 3)
     const uint64_t reset_interval = 4032;
     // Keeps track of how many times units have been sent
     static int units_sent = 0;
@@ -489,6 +489,10 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
         float min_dist = std::numeric_limits<float>::max();
  
         for (const auto &enemy : enemies) {
+            // cant attack flying
+            if (enemy->is_flying) {
+                continue;
+            }
             float dist = sc2::Distance2D(tank->pos, enemy->pos);
             if (dist < min_dist) {
                 min_dist = dist;
@@ -947,7 +951,8 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     // default attack
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
         unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
-        TankAttack({unit}, attacking);
+        TankAttack({unit}, enemies_in_range);
+        // TankAttack({unit}, attacking);
         return;
     }
     // attack with viking
@@ -961,31 +966,33 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         BattlecruiserAttack({unit}, enemies);
     }
 
-    // scv attack
-    // only attack with scvs holding mineral and isnt repairing
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
-        if (unit->buffs.size() > 0) {
-            sc2::BUFF_ID buff = unit->buffs.front();
-            if (buff != sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS &&
-                buff != sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
-                // scv cant attack
-                return;
-            }
-        }
-        if (unit->orders.size() > 0) {
-            sc2::UnitOrder order = unit->orders.front();
-            if (order.ability_id != sc2::ABILITY_ID::HARVEST_GATHER &&
-                order.ability_id != sc2::ABILITY_ID::HARVEST_RETURN) {
-                // scv cant attack
-                return;
-            }
-        }
-        // TODO: being overwritten in assign worker, fix
-        // std::cout << "attacking with scv \n";
-    }
+    // // scv attack
+    // // only attack with scvs holding mineral and isnt repairing
+    // if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
+    //     return;
+    //     // TODO: fix
+    //     if (unit->buffs.size() > 0) {
+    //         sc2::BUFF_ID buff = unit->buffs.front();
+    //         if (buff != sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS &&
+    //             buff != sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
+    //             // scv cant attack
+    //             return;
+    //         }
+    //     }
+    //     if (unit->orders.size() > 0) {
+    //         sc2::UnitOrder order = unit->orders.front();
+    //         if (order.ability_id != sc2::ABILITY_ID::HARVEST_GATHER &&
+    //             order.ability_id != sc2::ABILITY_ID::HARVEST_RETURN) {
+    //             // scv cant attack
+    //             return;
+    //         }
+    //     }
+    //     // TODO: being overwritten in assign worker, fix
+    //     // std::cout << "attacking with scv \n";
+    // }
 
-    // default attack
-    AttackWithUnit(unit, attacking);
+    // // default attack
+    // AttackWithUnit(unit, attacking);
     return;
     
 
