@@ -28,6 +28,7 @@ void BasicSc2Bot::OnGameStart() {
     scout = nullptr; // no scout initially
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     enemy_starting_location = nullptr;  // we use a scout to find this
+    sent = false;
 }
 static bool protoss_enemy = false;
 void BasicSc2Bot::OnGameFullStart() {

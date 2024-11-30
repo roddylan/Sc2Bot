@@ -556,11 +556,16 @@ void BasicSc2Bot::LaunchAttack() {
     //     return;
     // }
     // if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
-    if (obs->GetFoodArmy() < (195 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (195 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    if (obs->GetFoodArmy() < (175 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (130 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (120 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
     }
+
+    // if (!sent) {
+    //     return;
+    // }
     
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
     sc2::Units enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
@@ -622,12 +627,13 @@ void BasicSc2Bot::LaunchAttack() {
     }
 
     for (const auto &unit : raid_squad) {
-        if (enemies.empty()) {
+        if (enemies.empty() && unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
             if (!unit->orders.empty()) {
                 continue;
             }
             sc2::Point2D location{};
-            bool check = ScoutRandom(raid_squad.front(), location);
+            // bool check = ScoutRandom(raid_squad.front(), location);
+            bool check = ScoutRandom(unit, location);
             
             if (check) {
                 std::cout << "Scout Random: " << check << std::endl;
