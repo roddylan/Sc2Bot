@@ -113,3 +113,13 @@ void BasicSc2Bot::RepairBase() {
     
 
 }
+
+
+/**
+ * @brief Walling
+ * 
+ */
+
+void BasicSc2Bot::Wall() {
+    
+}

@@ -206,6 +206,8 @@ private:
 
 	void RepairBase();
 
+	void Wall(); // rise supply depots when enemy near
+
 	// bool CheckVisited();
 	bool visited_start;
 
