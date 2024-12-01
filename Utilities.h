@@ -1,6 +1,7 @@
 // Utilities.h
 #pragma once
 #include "sc2api/sc2_api.h"
+#include <sc2api/sc2_typeenums.h>
 
 // returns string corresponding to the input race
 std::string GetStringFromRace(const sc2::Race RaceIn);
@@ -43,4 +44,48 @@ struct NotStructure {
     bool operator()(const sc2::Unit &unit) const {
         return !IsStructure(unit);
     }
+};
+
+
+bool IsRock(const sc2::UNIT_TYPEID &unit_type);
+bool IsRock(const sc2::Unit &unit);
+
+
+// IsArmy filter 
+struct IsArmy {
+    IsArmy(const sc2::ObservationInterface* obs) : observation_(obs) {
+    }
+
+    bool operator()(const sc2::Unit& unit) {
+        auto attributes = observation_->GetUnitTypeData().at(unit.unit_type).attributes;
+        for (const auto& attribute : attributes) {
+            if (attribute == sc2::Attribute::Structure) {
+                return false;
+            }
+        }
+        switch (unit.unit_type.ToType()) {
+            case sc2::UNIT_TYPEID::ZERG_OVERLORD:
+                return false;
+            case sc2::UNIT_TYPEID::PROTOSS_PROBE:
+                return false;
+            case sc2::UNIT_TYPEID::ZERG_DRONE:
+                return false;
+            case sc2::UNIT_TYPEID::TERRAN_SCV:
+                return false;
+            case sc2::UNIT_TYPEID::ZERG_QUEEN:
+                return false;
+            case sc2::UNIT_TYPEID::ZERG_LARVA:
+                return false;
+            case sc2::UNIT_TYPEID::ZERG_EGG:
+                return false;
+            case sc2::UNIT_TYPEID::TERRAN_MULE:
+                return false;
+            case sc2::UNIT_TYPEID::TERRAN_NUKE:
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    const sc2::ObservationInterface* observation_;
 };

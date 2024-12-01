@@ -39,17 +39,24 @@ bool BasicSc2Bot::TryScoutingForAttack(const sc2::Unit *unit_to_scout, bool refi
         unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     }
 
+    sc2::Point2D target{};
+
     // if we haven't discovered the enemy's base location, try and find it
     if (!unexplored_enemy_starting_locations.empty()) {
-
         const sc2::GameInfo& info = Observation()->GetGameInfo();
         // start from the back so we can .pop_back() (no pop_front equivalent)
-        sc2::Point2D target = unexplored_enemy_starting_locations.back();
+        target = unexplored_enemy_starting_locations.back();
         // remove point
         unexplored_enemy_starting_locations.pop_back();
         // send 
         Actions()->UnitCommand(unit_to_scout, sc2::ABILITY_ID::ATTACK_ATTACK, target);
         return true;
+    } else {
+        // search random point
+        if (ScoutRandom(unit_to_scout, target)) {
+            Actions()->UnitCommand(unit_to_scout, sc2::ABILITY_ID::SMART, target);
+            return true;
+        }
     }
     return false;
 }
@@ -86,11 +93,7 @@ void BasicSc2Bot::CheckScoutStatus() {
 
     if (!this->unexplored_enemy_starting_locations.empty()) {
         // get all known enemy bases
-        sc2::Units enemy_bases = Observation()->GetUnits(sc2::Unit::Enemy, [](const sc2::Unit& unit) {
-            return unit.unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
-                || unit.unit_type == sc2::UNIT_TYPEID::ZERG_HATCHERY
-                || unit.unit_type == sc2::UNIT_TYPEID::PROTOSS_NEXUS;
-            });
+        sc2::Units enemy_bases = Observation()->GetUnits(sc2::Unit::Enemy, sc2::IsTownHall());
         for (const sc2::Point2D starting_position : unexplored_enemy_starting_locations) {
             if (sc2::DistanceSquared2D(starting_position, this->scout->pos) < 25) {
                 unexplored_enemy_starting_locations.pop_back();
