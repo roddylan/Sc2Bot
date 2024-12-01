@@ -71,8 +71,8 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
 
     // if it has a tech lab, train marauders constantly
     // marauders only cost 25 gas, use >= 100 so that there's a bit of a buffer for other things
-    // if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && Observation()->GetFoodUsed() < 100) {
-    if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && marauder_count < N_MARAUDERS * bases.size()) {
+    // if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && marauder_count < N_MARAUDERS * bases.size()) {
+    if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && Observation()->GetFoodUsed() < 100) {
         Actions()->UnitCommand(barrack, sc2::ABILITY_ID::TRAIN_MARAUDER);
         return;
     }
