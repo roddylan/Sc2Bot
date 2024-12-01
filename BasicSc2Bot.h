@@ -204,6 +204,8 @@ private:
 
 	void Retreat(const sc2::Unit *unit, const sc2::Point2D location = sc2::Point2D{0, 0});
 
+	void RepairBase();
+
 	// bool CheckVisited();
 	bool visited_start;
 
