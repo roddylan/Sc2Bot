@@ -126,7 +126,7 @@ private:
 	const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 2; // goal no. mules per base
 	const size_t n_marines = 8; // per base
-	const size_t n_marauders = 5; // per base
+	const size_t N_MARAUDERS = 5; // per base
 	const size_t n_bunkers = 6;
 	
 	const size_t N_ARMY_THRESHOLD = 30; // 200 - workers - threshold -> attack; allow bot to keep making units while attacking
