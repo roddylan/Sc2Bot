@@ -340,9 +340,16 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
 
             while (true) {
                 new_point = midpoint + perpendicular * height_of_triangle;
-
+                bool is_expansion_location = false;
+                for (const auto& expansion_location : expansion_locations) {
+                    float distance = sc2::Distance2D(new_point, expansion_location);
+                    if (distance <= 5.0f) {
+                        is_expansion_location = true;
+                        break;
+                    }
+                }
                 // Check placement with add on
-                if (Query()->Placement(ability_to_place_building, new_point, placing_unit)) {
+                if (Query()->Placement(ability_to_place_building, new_point, placing_unit) && !is_expansion_location) {
                     // Check for wiggle room for techlab/reactor
                     bool can_wiggle_left = Query()->Placement(ability_to_place_building, sc2::Point2D(new_point.x - 2, new_point.y), placing_unit);
                     bool can_wiggle_right = Query()->Placement(ability_to_place_building, sc2::Point2D(new_point.x + 2, new_point.y), placing_unit);
@@ -370,7 +377,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                     // Stop searching if we cannot find a point before threshold -> use old way
                     if (direction_changes > 4) {
                         new_point = sc2::Point2D(0, 0); 
-                        break;
+                        return new_point;
                     }
                 }
             }
