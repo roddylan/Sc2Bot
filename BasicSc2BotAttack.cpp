@@ -139,7 +139,7 @@ void BasicSc2Bot::SendSquad() {
     const uint64_t minute = 1344;
     // Dont continue if less than 13 mins has elapsed (build order not ready yet)
     // if (Observation()->GetGameLoop() < 13 * minute) {
-    if (Observation()->GetFoodUsed() > 130) {
+    if (Observation()->GetFoodUsed() > ATTACK_FOOD) {
         return;
     }
     std::vector<sc2::Point2D> enemy_locations = Observation()->GetGameInfo().enemy_start_locations;
@@ -580,6 +580,22 @@ void BasicSc2Bot::LaunchAttack() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::ActionInterface *act = Actions();
 
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+
+    if (enemies.empty() && obs->GetFoodUsed() < ATTACK_FOOD) {
+        sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, IsArmy(obs));
+        for (const auto &unit : units) {
+            if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+                act->UnitCommand(unit, sc2::ABILITY_ID::MORPH_UNSIEGE);
+            }
+            Retreat(unit);
+        }
+        // leave if retreating
+        return;
+    } else if (obs->GetFoodUsed() >= ATTACK_FOOD) {
+        SendSquad();
+    }
+
     // TODO: army composition requirements
 
     // dont attack if not ready
@@ -598,7 +614,7 @@ void BasicSc2Bot::LaunchAttack() {
     //     return;
     // }
     
-    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    // sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
     sc2::Units enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
 
     // TODO: decide if keep some at base or send all to attack

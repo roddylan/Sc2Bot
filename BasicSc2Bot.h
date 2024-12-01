@@ -208,6 +208,8 @@ private:
 	bool visited_start;
 
 	bool sent;
+
+	const size_t ATTACK_FOOD = 130;
 };
 
 
