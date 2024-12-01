@@ -138,7 +138,8 @@ void BasicSc2Bot::OnStep() {
         
     }
     */
-    SendSquad();
+    // SendSquad();
+    LaunchAttack(); // TODO: fix implementation for final attack logic
     HandleBuild();
     BuildWorkers();
     RecheckUnitIdle();
