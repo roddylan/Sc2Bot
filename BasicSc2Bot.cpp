@@ -163,8 +163,22 @@ void BasicSc2Bot::OnStep() {
         return unit.display_type == sc2::Unit::DisplayType::Visible;
     });
 
+
+    // prevent tanks from getting stuck
+    const size_t RANGE = 16;
     if (!enemies.empty() && !tanks.empty()) {
-        TankAttack(tanks, enemies);
+        for (const auto &tank : tanks) {
+            float min_dist = std::numeric_limits<float>::max();
+            for (const auto& enemy : enemies) {
+                float dist = sc2::Distance2D(enemy->pos, tank->pos);
+                if (dist < min_dist) {
+                    min_dist = dist;
+                }
+            }
+            if (min_dist > RANGE) {
+                Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
+            }
+        }
     }
     
     // if (TryBuildSeigeTank()) {
