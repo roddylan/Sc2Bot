@@ -70,7 +70,12 @@ void BasicSc2Bot::TurretDefend(const sc2::Unit *turret) {
 }
 
 
-
+/**
+ * @brief Retreat unit to location or nearest base
+ * 
+ * @param unit 
+ * @param location 
+ */
 void BasicSc2Bot::Retreat(const sc2::Unit *unit, sc2::Point2D location) {
     if (location == sc2::Point2D{0, 0}) {
         location = FindNearestCommandCenter(unit->pos);
@@ -80,5 +85,7 @@ void BasicSc2Bot::Retreat(const sc2::Unit *unit, sc2::Point2D location) {
         return;
     }
 
-    
+    Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
+    return;
+
 }
