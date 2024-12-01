@@ -877,10 +877,11 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK || 
         unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK) {
-        range = 13 + 2;
+        range = 13;
     } else {
-        range = unit->detect_range + 2;
+        range = unit->detect_range;
     }
+    range += 2;
 
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
     
