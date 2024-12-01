@@ -138,7 +138,8 @@ void BasicSc2Bot::SendSquad() {
     
     const uint64_t minute = 1344;
     // Dont continue if less than 13 mins has elapsed (build order not ready yet)
-    if (Observation()->GetGameLoop() < 13 * minute) {
+    // if (Observation()->GetGameLoop() < 13 * minute) {
+    if (Observation()->GetFoodUsed() > 130) {
         return;
     }
     std::vector<sc2::Point2D> enemy_locations = Observation()->GetGameInfo().enemy_start_locations;
