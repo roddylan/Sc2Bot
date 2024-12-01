@@ -7,7 +7,9 @@
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
+#include <limits>
 #include <sc2api/sc2_common.h>
+#include <sc2api/sc2_map_info.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
@@ -102,7 +104,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start
 
 const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location) {
 
-    sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    sc2::Units bases = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     float distance = std::numeric_limits<float>::max();
     const sc2::Unit* target = nullptr;
 
@@ -127,6 +129,29 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
     }
 }
 
+const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
+
+    sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    float distance = std::numeric_limits<float>::max();
+    const sc2::Unit* target = nullptr;
+
+    for (const auto& refinery : refineries) {
+
+        float d = sc2::DistanceSquared2D(refinery->pos, start);
+        if (d < distance) {
+            distance = d;
+            target = refinery;
+        }
+        
+    }
+
+    if (target != nullptr) {
+        return target->pos;
+    }
+    else {
+        return sc2::Point2D(0, 0);
+    }
+}
 
 
 // checks that marine is nearby atleast size other marines
@@ -155,11 +180,15 @@ const sc2::Unit* BasicSc2Bot::FindInjuredMarine() {
         
         if (marine->health < marine->health_max) {
             sc2::Units medivacs = SortMedivacsAccordingToDistance(marine->pos);
-            // medivacs[0] because first element is closest
-            if (sc2::Distance2D(medivacs[0]->pos, marine->pos) < 5.0f) {
-                continue;
+            if (!medivacs.empty()) {
+                // medivacs[0] because first element is closest
+                if (sc2::Distance2D(medivacs[0]->pos, marine->pos) < 5.0f) {
+                    continue;
+                }
+                return marine;
             }
-            return marine;
+            
+            
         }
     }
     return nullptr;
@@ -266,6 +295,104 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
     * - though this does seem to be a bit slow sometimes
     */
 
+    // Get all existing structures
+    sc2::Units all_buildings = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER,
+        sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND, 
+        sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS, 
+        sc2::UNIT_TYPEID::TERRAN_REFINERY, 
+        sc2::UNIT_TYPEID::TERRAN_FACTORY, 
+        sc2::UNIT_TYPEID::TERRAN_BARRACKS, 
+        sc2::UNIT_TYPEID::TERRAN_STARPORT, 
+        sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY, 
+        sc2::UNIT_TYPEID::TERRAN_ARMORY } ));
+
+    // Sort buildings by distance to the starting point
+    std::sort(all_buildings.begin(), all_buildings.end(),
+        [&starting_point](const sc2::Unit* a, const sc2::Unit* b) {
+            float dist_a = sc2::DistanceSquared2D(starting_point, a->pos);
+            float dist_b = sc2::DistanceSquared2D(starting_point, b->pos);
+            return dist_a < dist_b; 
+        });
+
+    // Start by using nearest structures
+    for (int i = 0; i < all_buildings.size(); i++) {
+        if ((i + 1) < all_buildings.size()) {
+            const sc2::Unit* a = all_buildings[i];
+            const sc2::Unit* b = all_buildings[i + 1];
+
+            // Initial height of the triangle
+            float height_of_triangle = 5.0f;
+            // Used to increment height if placement fails
+            const float height_increment = 2.0f;
+            sc2::Point2D midpoint = sc2::Point2D((a->pos.x + b->pos.x) / 2, (a->pos.y + b->pos.y) / 2);
+            // Drection vector from building a to b
+            sc2::Point2D direction = sc2::Point2D(b->pos.x - a->pos.x, b->pos.y - a->pos.y);
+            float magnitude = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+            sc2::Point2D normalized_direction = sc2::Point2D(direction.x / magnitude, direction.y / magnitude);
+
+            // First perpendicular vector 
+            sc2::Point2D perpendicular = sc2::Point2D(-normalized_direction.y, normalized_direction.x);
+            // How many times we failed to seach search -> 4 = done
+            int direction_changes = 0;
+
+            sc2::Point2D new_point;
+            const sc2::Unit* placing_unit = nullptr; 
+
+            while (true) {
+                new_point = midpoint + perpendicular * height_of_triangle;
+                bool is_expansion_location = false;
+                for (const auto& expansion_location : expansion_locations) {
+                    float distance = sc2::Distance2D(new_point, expansion_location);
+                    if (distance <= 5.0f) {
+                        is_expansion_location = true;
+                        break;
+                    }
+                }
+                // Check placement with add on
+                if (Query()->Placement(ability_to_place_building, new_point, placing_unit) && !is_expansion_location) {
+                    // Check for wiggle room for techlab/reactor
+                    bool can_wiggle_left = Query()->Placement(ability_to_place_building, sc2::Point2D(new_point.x - 2, new_point.y), placing_unit);
+                    bool can_wiggle_right = Query()->Placement(ability_to_place_building, sc2::Point2D(new_point.x + 2, new_point.y), placing_unit);
+
+                    if (can_wiggle_left && can_wiggle_right) {
+                        break;
+                    }
+                }
+
+                // Increment the height and retry
+                height_of_triangle += height_increment;
+                // Change direction if height exceeds 20
+                if (height_of_triangle > 20.0f) {
+                    direction_changes++;
+                    // Alternate between two perpendicular directions
+                    perpendicular = (direction_changes % 2 == 0)
+                        // Rotate other way
+                        ? sc2::Point2D(normalized_direction.y, -normalized_direction.x) 
+                        // First direction
+                        : sc2::Point2D(-normalized_direction.y, normalized_direction.x); 
+
+                    // Reset height and continue searching
+                    height_of_triangle = 5.0f;
+
+                    // Stop searching if we cannot find a point before threshold -> use old way
+                    if (direction_changes > 4) {
+                        new_point = sc2::Point2D(0, 0); 
+                        return new_point;
+                    }
+                }
+            }
+            // If we found a placement point
+            if (new_point != sc2::Point2D(0, 0)) {
+                return new_point;
+            }
+        }
+    }
+
+
+
+
+
+  
     /*
     * Starting lower & upper bounds for x
     */
@@ -323,7 +450,22 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                 }
                 // we found a valid position to place at, don't iterate again
                 found_pos_to_place_at = true;
-                pos_to_place_at = current_pos;
+                // TODO: Find a way to speed this up
+                // ensures we dont build at expansion location
+                bool is_expansion_location = false;
+                for (const auto& expansion_location : expansion_locations) {
+                    float distance = std::sqrt(std::pow(expansion_location.x - current_pos.x, 2) +
+                        std::pow(expansion_location.y - current_pos.y, 2));
+                    if (distance <= 10.f) {
+                        is_expansion_location = true;
+                        break;
+                    }
+                }
+
+                if (!is_expansion_location) {
+                    pos_to_place_at = current_pos;
+                }
+                
             }
         }
         // increase the search space
@@ -332,7 +474,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
         y_lo -= y_step;
         x_hi += y_step;
         
-        if (loop_count++ > 10) {
+        if (loop_count++ > 5) { // todo: change back to 10 (?)
             std::cout << "LOTS OF LOOPS OOPS " << loop_count << std::endl;
             return sc2::Point2D(0, 0);
             /*
@@ -364,4 +506,175 @@ bool BasicSc2Bot::EnemyNearBase(const sc2::Unit *base) {
         }
     }
     return false;
+}
+
+/**
+ * @brief Find nearest worker
+ * 
+ * @param pos position to search from
+ * @param is_busy allow selecting busy workers
+ * @param mineral allow selecting workers holding minerals (use if implement mineral walk)
+ * @return const sc2::Unit* 
+ */
+const sc2::Unit* BasicSc2Bot::FindNearestWorker(const sc2::Point2D& pos, bool is_busy, bool mineral) {
+    const sc2::ObservationInterface *obs = Observation();
+    
+    sc2::Units workers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+    if (workers.empty()) {
+        return nullptr;
+    }
+
+    float min_dist = std::numeric_limits<float>::max();
+
+    const sc2::Unit *res = nullptr;
+    for (auto &scv : workers) {
+        // if worker busy
+        if (!scv->orders.empty() && !is_busy) {
+            continue;
+        }
+
+        bool carrying_mineral = false;
+        for (const auto &buff : scv->buffs) {
+            // if scv carrying minerals or gas
+            if (buff == sc2::BUFF_ID::CARRYHARVESTABLEVESPENEGEYSERGAS ||
+                buff == sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS ||
+                buff == sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
+                
+                carrying_mineral = true;
+                break;
+            } 
+        }
+
+        if (carrying_mineral && !mineral) {
+            continue;
+        }
+
+        float dist = sc2::Distance2D(scv->pos, pos);
+
+        if (dist < min_dist) {
+            min_dist = dist;
+            res = scv;
+        }
+    }
+
+    return res;
+}
+
+
+/**
+ * @brief Count units that have spawned in + in production
+ * 
+ * @param obs 
+ * @param unit_type 
+ * @param prod_unit 
+ * @param ability 
+ * @return size_t 
+ */
+size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
+                      sc2::UNIT_TYPEID unit_type, sc2::UNIT_TYPEID prod_unit,
+                      sc2::ABILITY_ID ability) {
+    // count existing
+    size_t existing = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(unit_type)).size();
+    // size_t in_production = 0;
+
+    // sc2::Units production_units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(prod_unit));
+    size_t in_production = obs->GetUnits(sc2::Unit::Alliance::Self, [&prod_unit, &ability](const sc2::Unit &unit) {
+        bool is_unit = (unit.unit_type == prod_unit);
+        bool is_producing = false;
+
+        for (const auto &order : unit.orders) {
+            if (order.ability_id == ability) {
+                is_producing = true;
+                break;
+            }
+        }
+
+        return is_unit && is_producing;
+    }).size();
+
+    return existing + in_production;
+}
+
+
+/**
+ * @brief Count units that have spawned in + in production
+ * 
+ * @param obs 
+ * @param unit_type 
+ * @param prod_unit 
+ * @param ability 
+ * @return size_t 
+ */
+size_t BasicSc2Bot::CountUnitTotal(const sc2::ObservationInterface *obs,
+                      const std::vector<sc2::UNIT_TYPEID> &unit_type,
+                      const std::vector<sc2::UNIT_TYPEID> &prod_unit,
+                      sc2::ABILITY_ID ability) {
+    // count existing
+    size_t existing = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(unit_type)).size();
+    size_t in_production = 0;
+
+    sc2::Units production_units = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits(prod_unit));
+
+    for (const auto &unit : production_units) {
+        if (unit->orders.empty()) {
+            continue;
+        }
+        
+        for (const auto &order : unit->orders) {
+            if (order.ability_id == ability) {
+                ++in_production;
+            }
+        }
+    }
+
+    return existing + in_production;
+}
+
+
+/**
+ * @brief Add partition of units to squad
+ * 
+ * @param split_sz number of units to take from units (partition size)
+ * @param units units that can be moved into squad
+ * @param squad squad vector
+ */
+void BasicSc2Bot::SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Units &squad) {
+    for (size_t i = 0; i < split_sz; ++i) {
+        if (units.empty()) {
+            return;
+        }
+
+        squad.push_back(units.back());
+        units.pop_back();
+    }
+}
+
+/**
+ * @brief Find random scout location with unit
+ * 
+ * @param unit unit to scout
+ * @param target 
+ * @return true 
+ * @return false 
+ */
+bool BasicSc2Bot::ScoutRandom(const sc2::Unit *unit, sc2::Point2D &target) {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::GameInfo gin = obs->GetGameInfo();
+
+    float playable_w = gin.playable_max.x - gin.playable_min.x;
+    float playable_h = gin.playable_max.y - gin.playable_min.y;
+
+    // if game info data invalid
+    if (playable_w == 0 || playable_h == 0) {
+        // default dims
+        playable_w = 236;
+        playable_h = 228;
+    }
+
+    target.x = playable_w * sc2::GetRandomFraction() + gin.playable_min.x;
+    target.y = playable_h * sc2::GetRandomFraction() + gin.playable_min.y;
+
+    // check if valid
+    float dist = Query()->PathingDistance(unit, target);
+    return dist > 0.1F;
 }

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include "Betweenness.h"
+#include <sc2api/sc2_typeenums.h>
 #include <unordered_map>
 #include <functional>
 
@@ -222,4 +223,186 @@ std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch
         }
     }
     return best_points;
+}
+
+
+/**
+ * @brief Check if unit_type is structure
+ * 
+ * @param unit_type
+ * @return true if unit_type is structure
+ * @return false if unit_type is not structure
+ */
+bool IsStructure(const sc2::UNIT_TYPEID &unit_type) {
+    return (
+        // TERRAN UNITS
+        unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERY ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_REFINERYRICH ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_BUNKER ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_MISSILETURRET ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_SENSORTOWER ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_ARMORY ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB ||
+        unit_type == sc2::UNIT_TYPEID::TERRAN_FUSIONCORE ||
+        // PROTOSS UNITS
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_NEXUS ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_ASSIMILATORRICH ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_PYLON ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_PYLONOVERCHARGED ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_GATEWAY ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_FORGE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_CYBERNETICSCORE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_PHOTONCANNON ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_SHIELDBATTERY ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_STARGATE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_DARKSHRINE ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_FLEETBEACON ||
+        unit_type == sc2::UNIT_TYPEID::PROTOSS_ROBOTICSBAY ||
+        // ZERG UNITS
+        unit_type == sc2::UNIT_TYPEID::ZERG_HATCHERY ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_EXTRACTOR ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_EXTRACTORRICH ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPAWNINGPOOL ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_EVOLUTIONCHAMBER ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_LAIR ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_ROACHWARREN ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_BANELINGNEST ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPINECRAWLER ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPINECRAWLERUPROOTED ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPORECRAWLER ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPORECRAWLERUPROOTED ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_HYDRALISKDEN ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_INFESTATIONPIT ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_SPIRE ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_NYDUSNETWORK ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_LURKERDENMP ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_HIVE ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_NYDUSCANAL ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_ULTRALISKCAVERN ||
+        unit_type == sc2::UNIT_TYPEID::ZERG_GREATERSPIRE
+    );
+}
+
+
+/**
+ * @brief Check if unit is structure
+ * 
+ * @param unit
+ * @return true if unit is structure
+ * @return false if unit is not structure
+ */
+bool IsStructure(const sc2::Unit &unit) {
+    const sc2::UNIT_TYPEID unit_type = unit.unit_type;
+
+    return IsStructure(unit_type);
+}
+
+/**
+ * @brief Check if unit is neutral
+ * 
+ * @param unit_type 
+ * @return true 
+ * @return false 
+ */
+bool IsRock(const sc2::UNIT_TYPEID &unit_type) {
+    switch (unit_type) {
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLECITYDEBRIS6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEBLUR: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCK6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCKEX1DIAGONALHUGEBLUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS2X4HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS2X4VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS2X6HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS2X6VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS4X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRISHUGEDIAGONALBLUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRISHUGEDIAGONALULBR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEDEBRIS4X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE2X4HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE2X4VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE2X6HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE2X6VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE4X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE6X6: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICEDIAGONALHUGEBLUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICEDIAGONALHUGEULBR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICEHORIZONTALHUGE: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICEVERTICALHUGE: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK2X4VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK2X6HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK2X6VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK4X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK6X6WEAK: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX12X4HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX12X4VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX12X6HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX12X6VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX14X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX16X6: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX1HORIZONTALHUGE: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX1VERTICALHUGE: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLESANDBAGS: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45BL90R: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45BR90T: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45UL90B: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45ULBL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45ULUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45UR90L: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45URBR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90B45UR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90BR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90L45BR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90LB: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90LT: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90R45UL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90T45BL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90TR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLDIAGONALBLUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLDIAGONALBLURLF: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLDIAGONALULBR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLDIAGONALULBRLF: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLSTRAIGHTHORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLSTRAIGHTHORIZONTALBF: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLSTRAIGHTVERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLVERTICALLF: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEZERGINFESTATION3X3: return true;
+    default: return false;
+    }
+}
+
+/**
+ * @brief Check if unit is neutral
+ * 
+ * @param unit 
+ * @return true 
+ * @return false 
+ */
+bool IsRock(const sc2::Unit &unit) {
+    return IsRock(unit.unit_type);
 }
