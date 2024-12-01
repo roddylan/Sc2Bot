@@ -68,3 +68,17 @@ void BasicSc2Bot::TurretDefend(const sc2::Unit *turret) {
 
 
 }
+
+
+
+void BasicSc2Bot::Retreat(const sc2::Unit *unit, sc2::Point2D location) {
+    if (location == sc2::Point2D{0, 0}) {
+        location = FindNearestCommandCenter(unit->pos);
+    }
+
+    if (location == sc2::Point2D{0, 0}) {
+        return;
+    }
+
+    
+}
