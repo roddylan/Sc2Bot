@@ -228,11 +228,13 @@ void BasicSc2Bot::SendSquad() {
                     }
                 }
             }
-            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
+          //  Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
         }
-        
+        // send squad
+        Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, location);
         // Update last send time
         last_send_time = current_time;
+        // Units sent just means the number of times we sent them 
         units_sent++;
     }
 
