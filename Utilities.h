@@ -47,5 +47,5 @@ struct NotStructure {
 };
 
 
-bool IsNeutral(const sc2::UNIT_TYPEID &unit_type);
-bool IsNeutral(const sc2::Unit &unit);
+bool IsRock(const sc2::UNIT_TYPEID &unit_type);
+bool IsRock(const sc2::Unit &unit);
