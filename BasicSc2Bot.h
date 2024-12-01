@@ -29,6 +29,8 @@ public:
 	void OnUnitIdle(const sc2::Unit* unit) final;
 	void OnUnitCreated(const sc2::Unit* unit);
 
+	void OnGameEnd(); // game end
+
 	bool AttackIntruders();
 	bool LoadBunker(const sc2::Unit* marine);
 	bool UpgradeFactoryTechLab(const sc2::Unit* factory);
@@ -78,6 +80,7 @@ public:
 	const sc2::Units SortMedivacsAccordingToDistance(const sc2::Point2D start);
 	int MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines);
 	bool HandleExpansion(bool resources_depleted);
+	void AssignFactoryTechlabAction(const sc2::Unit& tech_lab);
 	int CountNearbySeigeTanks(const sc2::Unit* factory);
 	const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
 	bool TryBuildMissileTurret();
@@ -85,23 +88,35 @@ public:
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
 	
+	void ProtossBuild();
+	void SendSquadProtoss();
+	
+	// handle attack for tank
 	void TankAttack(const sc2::Units &squad);
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
 
-	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies); // handle attack for a viking
+	// handle attack for a viking
+	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies);
+
+	// handle attack for a battlecruiser
+	void BattlecruiserAttack(const sc2::Units &squad); // TODO: implement
+	void BattlecruiserAttack(const sc2::Units &squad, const sc2::Units &enemies);
 	
-	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies);
+	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies, const bool &atk_pos = true);
 	void AttackWithUnit(const sc2::Unit *unit);
 	
+	void SendSquad();
 	void LaunchAttack();
-
+	
+	static sc2::Point2D last_death_location;
 	void BuildArmy(); // handle army build
 
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
-	
+	static bool scout_died;
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
+	
 	const size_t n_tanks = 3;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
@@ -111,7 +126,7 @@ private:
 	const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 2; // goal no. mules per base
 	const size_t n_marines = 8; // per base
-	const size_t n_marauders = 5; // per base
+	const size_t N_MARAUDERS = 5; // per base
 	const size_t n_bunkers = 6;
 	
 	const size_t N_ARMY_THRESHOLD = 30; // 200 - workers - threshold -> attack; allow bot to keep making units while attacking
@@ -143,14 +158,14 @@ private:
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
 	std::vector<sc2::Point2DI> pinchpoints;
-
+	sc2::Units FindNearbyBuildings(const sc2::Point2D& reference_point, size_t max_buildings);
 	sc2::Point3D start_location;
 	sc2::Point3D base_location;
 	const sc2::Unit *scout;
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
 	sc2::Point2D *enemy_starting_location;
 	bool TryScouting(const sc2::Unit&);
-	bool TryScoutingForAttack(const sc2::Unit* unit_to_scout, bool refill_enemy_locations);
+	bool TryScoutingForAttack(const sc2::Unit* unit_to_scout, bool refill_enemy_locations=false);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
 	void AssignBarrackAction(const sc2::Unit *barrack);
@@ -183,6 +198,18 @@ private:
 
 	void HandleAttack();
 	void HandleAttack(const sc2::Unit *unit, const sc2::ObservationInterface *obs);
+
+	// scout random location
+	bool ScoutRandom(const sc2::Unit *unit, sc2::Point2D &target);
+
+	void Retreat(const sc2::Unit *unit, const sc2::Point2D location = sc2::Point2D{0, 0});
+
+	// bool CheckVisited();
+	bool visited_start;
+
+	bool sent;
+
+	const size_t ATTACK_FOOD = 130;
 };
 
 

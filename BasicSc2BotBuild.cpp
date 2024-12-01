@@ -70,7 +70,8 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
 
             build = true;
           //  std::cout << "Building siege tank\n";
-            Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+            TryBuildSiegeTank(factory);
+            // Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
         }
     }
 
@@ -100,9 +101,17 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
  */
 bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
     const sc2::ObservationInterface* observation = Observation();
-    
+    const sc2::Unit *add_on = observation->GetUnit(factory->add_on_tag);
     // if cant build tank
-    if (factory->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+    if (add_on == nullptr) {
+        return false;
+    }
+    if (add_on->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
+
+    // up to 2 in production
+    if (factory->orders.size() > 1) {
         return false;
     }
 
@@ -113,12 +122,12 @@ bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
         Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
     }
     // TODO: get rid of couts here 
-    if (build){
-        sc2::Units tank = observation->GetUnits(
-            sc2::Unit::Alliance::Self, 
-            sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
-       // std::cout << "n_siegetanks=" << tank.size() << std::endl;
-    }
+    // if (build){
+    //     sc2::Units tank = observation->GetUnits(
+    //         sc2::Unit::Alliance::Self, 
+    //         sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
+    //    // std::cout << "n_siegetanks=" << tank.size() << std::endl;
+    // }
     return true;
 }
 
@@ -138,7 +147,8 @@ bool BasicSc2Bot::TryBuildThor() {
     if (thors.size() >= (marines_size / 5)) return false;
     for (auto unit : units) {
         
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
+        TryBuildThor(unit);
+        // Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
     }
     return true;
 }
@@ -152,6 +162,11 @@ bool BasicSc2Bot::TryBuildThor(const sc2::Unit* factory) {
         return false;
     }
     if (add_on->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
+
+    // up to 2 in production
+    if (factory->orders.size() > 1) {
         return false;
     }
 
@@ -204,7 +219,7 @@ bool BasicSc2Bot::TryBuildBarracks() {
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
     // Lower + normal supply depots = total # of depots
-
+    
 
     size_t n_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT)).size();
     size_t n_lower_supply_depots = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED)).size();
@@ -215,7 +230,7 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     uint32_t current_supply_use = observation->GetFoodUsed();
     uint32_t cur_max_supply = observation->GetFoodCap();
 
-    if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply && (n_supply_depots + n_lower_supply_depots) > 0) {
+    if (current_supply_use == 200 || 3 * current_supply_use < 2 * cur_max_supply && (n_lower_supply_depots + n_supply_depots) > 0) {
         // do not build if current_supply_use/max_suply < 2/3 or reached max supply
         return false;
     }
@@ -229,7 +244,7 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     if (observation->GetMinerals() < 100) {
         return false;
     }
-
+   // std::cout << "gonna build supply" << std::endl;
     // bool check;
     // check = TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
     // std::cout << "built supply depot: " << check << std::endl;
@@ -286,12 +301,17 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
     }
 
+    // nullptr check, no units available
+    if (unit_to_build == nullptr) {
+        return false;
+    }
+
     // TODO: bring back build logic
 
     float ry = sc2::GetRandomScalar() * 15.0f;
     float rx = sc2::GetRandomScalar() * 15.0f;
-    // float ry = sc2::GetRandomScalar() * 5.0f;
-    // float rx = sc2::GetRandomScalar() * 5.0f;
+    //float ry = sc2::GetRandomScalar() * 5.0f;
+    //float rx = sc2::GetRandomScalar() * 5.0f;
     // float ry = sc2::GetRandomScalar() * 10.0f;
     // float rx = sc2::GetRandomScalar() * 10.0f;
     sc2::Point2D nearest_command_center = FindNearestCommandCenter(unit_to_build->pos, true);
@@ -351,6 +371,11 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         
         unit_to_build = worker;
         break;
+    }
+
+    // nullptr check, no units available
+    if (unit_to_build == nullptr) {
+        return false;
     }
     // todo: this as possible fix?
     float rx = sc2::GetRandomScalar();
@@ -656,6 +681,252 @@ void BasicSc2Bot::HandleBuild() {
     
 
    
+}
+
+/**
+ * @brief Handle building logic
+ *
+ */
+void BasicSc2Bot::ProtossBuild() {
+    // mineral costs
+    static const uint32_t SUPPLY_DEPOT_COST = 100;
+    static const uint32_t REFINERY_COST = 75;
+    static const uint32_t FACTORY_MINERAL_COST = 150;
+    static const uint32_t BUNKER_COST = 100;
+    static const uint32_t BARRACKS_COST = 150;
+    static const uint32_t ORBITAL_COMMAND_COST = 150;
+    static const uint32_t STARPORT_COST = 150;
+    static const uint32_t ARMORY_MINERAL_COST = 150;
+
+    // vespene gas costs
+    static const uint32_t ARMORY_GAS_COST = 100;
+    static const uint32_t FACTORY_GAS_COST = 100;
+    static const uint32_t STARPORT_GAS_COST = 100;
+
+    const sc2::ObservationInterface* obs = Observation();
+
+    // track each type of unit
+    sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    // TODO: separate barracks, factory, starports from techlab
+    sc2::Units barracks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING }));
+    sc2::Units factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_FACTORY, sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING, sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR, sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB }));
+    sc2::Units starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_STARPORT, sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING, sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR, sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB }));
+    sc2::Units engg_bays = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY));
+    sc2::Units bunkers = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
+    sc2::Units techlab_factory = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
+    sc2::Units techlab_starports = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
+    sc2::Units armorys = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ARMORY));
+    sc2::Units fusion_cores = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_FUSIONCORE));
+
+    // TODO: handle other building
+
+
+    // current counts
+    uint32_t n_minerals = obs->GetMinerals();
+    uint32_t n_gas = obs->GetMinerals();
+
+    // goal amnts
+    // TODO: change target amounts
+    const size_t n_barracks_target = 2;
+    const size_t n_factory_target = 1;
+    const size_t n_armory_target = 1;
+    const size_t n_engg_target = 2;
+    const size_t n_bunkers_target = 8;
+    const size_t n_starports_target = 1;
+    // const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
+   //  const bool has_infantry_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1) != upgrades.end();
+
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units tanks = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+    sc2::Units refineries = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    if (refineries.size() < bases.size() * 2) {
+        TryBuildRefinery();
+    }
+
+    if (barracks.size() < 2 * bases.size()) {
+        TryBuildBarracks();
+    }
+
+    // build factory
+    if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
+        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST && n_minerals - FACTORY_MINERAL_COST >= 400) {
+            //std::cout << "building factory\n\n";
+            TryBuildFactory();
+        }
+    }
+    // 400 = command center cost
+    if (obs->GetMinerals() - 150 >= 400) {
+        TryBuildSiegeTank();
+    }
+    // 400 = command center cost
+    if (obs->GetMinerals() - 150 >= 400) {
+        TryBuildThor();
+    }
+    // Handle Orbital Command
+
+    if (!barracks.empty()) {
+        for (const auto& base : bases) {
+            if (base->build_progress != 1) {
+                continue;
+            }
+            sc2::Units orbital_commands = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND));
+
+            //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
+            if (obs->GetMinerals() - 150 >= 400) {
+                if (orbital_commands.size() >= (bases.size() / 3)) {
+                    Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
+                }
+                else {
+                    Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_ORBITALCOMMAND);
+                }
+
+                //std::cout << "\nORBITAL COMMAND\n\n";
+            }
+        }
+    }
+    if (bases.size() < 2) {
+        sc2::Units command_centers = Observation()->GetUnits(
+            sc2::Unit::Alliance::Self,
+            sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER)
+        );
+        bool cc_in_progress = false;
+        for (auto& command_center : command_centers) {
+            if (command_center->build_progress < 1.0f) {
+                // The second Command Center is already being built
+                cc_in_progress = true;
+
+            }
+            if (!cc_in_progress) {
+                HandleExpansion(true);
+            }
+        }
+    }
+    
+    // Dont do anything until we have enough marines to defend and enough bases to start so we dont run out of resources
+    if (factory.size() < 2) {
+        // HandleExpansion(true);
+        return;
+    }
+    /*
+
+        **PHASE ONE DONE**
+
+    */
+    if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
+        TryBuildArmory();
+    }
+    // build a starport
+    if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
+        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
+        }
+    }
+    if (starports.size() > 0) {
+        for (const auto& starport : starports) {
+            if (starport->add_on_tag != 0) {
+                // Get the add-on unit using its tag
+                const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
+                if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB && fusion_cores.size() < 1) {
+                    TryBuildFusionCore();
+                    return;
+                }
+            }
+        }
+    }
+
+    /*
+    for (const auto& starport : starports) {
+        if (starport) {
+            const sc2::Unit* add_on = obs->GetUnit(starport->add_on_tag);
+            if (add_on->unit_type.ToType() == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB && fusion_cores.size() < 1) {
+                TryBuildFusionCore();
+            }
+        }
+
+    }
+    */
+
+    /*
+    if (barracks.size() < 2 * bases.size()) {
+        TryBuildBarracks();
+    }
+    */
+    //if (!has_infantry_weapons_1) return;
+    if (n_minerals >= 400 && bases.size() <= 1) {
+        HandleExpansion(false);
+    }
+    /*
+    if (barracks.size() >= bases.size()) {
+        HandleExpansion(true);
+    }
+    */
+    // build barracks
+    /*
+    if (barracks.size() < n_barracks_target * bases.size()) {
+        for (const auto &base : bases) {
+
+            if (n_minerals > BARRACKS_COST) {
+                TryBuildBarracks();
+            }
+            // if (base->assigned_harvesters >= n_workers_init) {
+            //     // std::cout << "building barracks\n\n";
+            //     TryBuildBarracks();
+            // }
+        }
+    }
+    */
+    /*
+    if (bunkers.size() < n_bunkers_target * bases.size() && n_minerals >= BUNKER_COST) {
+        TryBuildBunker();
+
+        sc2::Units scvs = obs->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+        bool bunker_built = false;
+        for (auto& scv : scvs) {
+            bool is_building_scv = false;
+            for (const auto& order : scv->orders) {
+                if (order.ability_id == sc2::ABILITY_ID::TRAIN_SCV) {
+                    is_building_scv = true;
+                    break;
+                }
+            }
+
+            if (scv->orders.empty() && !is_building_scv) {
+
+                bunker_built = true;
+                break;
+            }
+        }
+
+        if (bunker_built) {
+            // SCV already assigned to build bunker
+        }
+
+    }
+    */
+    // build engg bay for missile turret
+    // TODO: improve count
+    // Only need 2 engineering bays
+    if (engg_bays.size() < n_engg_target) {
+        if (n_minerals > 150 && n_gas > 100) {
+            //std::cout << "building engg bay\n\n";
+            TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
+        }
+    }
+
+
+
+
+    //  TryBuildSiegeTank();
+
+    TryBuildMissileTurret();
+    if (obs->GetVespene() - 150 >= 200) {
+        TryBuildThor();
+    }
+
+    // build refinery
+
+
+
 }
 
 

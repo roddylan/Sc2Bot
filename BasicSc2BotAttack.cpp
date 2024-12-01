@@ -10,11 +10,237 @@
 #include <cstddef>
 #include <limits>
 #include <sc2api/sc2_common.h>
+#include <sc2api/sc2_data.h>
+#include <sc2api/sc2_map_info.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
 #include <iostream>
 #include <cmath>
+
+/*
+    Sends squad of units to protoss start location that is closest to the last death location of a unit
+*/
+void BasicSc2Bot::SendSquadProtoss() {
+
+    const uint64_t minute = 1344;
+    // Dont continue if less than 13 mins has elapsed (build order not ready yet)
+    if (Observation()->GetGameLoop() < 5 * minute) {
+        return;
+    }
+    std::vector<sc2::Point2D> enemy_locations = Observation()->GetGameInfo().enemy_start_locations;
+    // Get Army units
+    sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+    sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+    sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+    sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
+    sc2::Units battlecruisers = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+    sc2::Units thors = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+    sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+
+    // Create a squad of units with empty orders
+    std::vector<const sc2::Unit*> squad;
+    auto filter_units = [](const sc2::Units& units, std::vector<const sc2::Unit*>& squad) {
+        for (const auto& unit : units) {
+            if (unit->orders.empty()) {
+                squad.push_back(unit);
+            }
+        }
+
+        };
+    // Filter out units that have orders already
+    filter_units(thors, squad);
+    
+    filter_units(battlecruisers, squad);
+    filter_units(tanks, squad);
+    filter_units(banshees, squad);
+    filter_units(marauders, squad);
+    filter_units(liberators, squad);
+    filter_units(vikings, squad);
+    sc2::Point2D closest_start_location;
+    if (!scout_died) {
+        // Get enemy start location closest to last death location to prevent from sending to empty location
+        float min_distance = std::numeric_limits<float>::max();
+        for (const auto& start_location : enemy_locations) {
+            float distance = sc2::Distance2D(start_location, BasicSc2Bot::last_death_location);
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_start_location = start_location;
+            }
+        }
+    }
+
+    // Tracks the game loop when the last unit was sent
+    static uint64_t last_send_time = 0;
+    // Tracks the game loop of the last reset
+    static uint64_t last_reset_time = 0;
+    // FPS
+    const int frames_per_second = 22;
+    // 3 minutes in game loops (22 FPS � 60 seconds � 3)
+    const uint64_t reset_interval = 4032;
+    // Keeps track of how many times units have been sent
+    static int units_sent = 0;
+
+    // Reset units_sent every 3 minutes
+    uint64_t current_time = Observation()->GetGameLoop();
+    if (current_time > last_reset_time + reset_interval) {
+        units_sent = 0;
+        last_reset_time = current_time;
+        std::cout << "Resetting units_sent to 0 after 3 minutes" << std::endl;
+    }
+
+    // Add delay between sending units
+    if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 10) {
+        sc2::Point2D location{};
+        if (!scout_died) {
+            filter_units(marines, squad);
+            location = closest_start_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
+            std::cout << "sending them to: " << closest_start_location.x << " " << closest_start_location.y  << std::endl;
+
+        }
+        else {
+            filter_units(marines, squad);
+            location = *enemy_starting_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
+        }
+        // prevent units from leaving something they're already attacking
+        for (const auto &unit : squad) {
+            if (!unit->orders.empty()) {
+                sc2::UnitOrder order = unit->orders.front();
+                const sc2::Unit *target = Observation()->GetUnit(order.target_unit_tag);
+                if (target != nullptr) {
+                    if (target->alliance == sc2::Unit::Alliance::Enemy) {
+                        // dont assign unit if already engaged with enemy
+                        return;
+                    }
+                }
+            }
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
+        }
+
+        // Update last send time
+        last_send_time = current_time;
+        units_sent++;
+    }
+
+    // Stop sending more units if all enemy locations are covered
+    if (units_sent >= enemy_locations.size()) {
+        return;
+    }
+}
+/*
+    Sends squad of units to enemy start location that is closest to the last death location of a unit
+*/
+void BasicSc2Bot::SendSquad() {
+    
+    const uint64_t minute = 1344;
+    // Dont continue if less than 13 mins has elapsed (build order not ready yet)
+    // if (Observation()->GetGameLoop() < 13 * minute) {
+    if (Observation()->GetFoodUsed() > ATTACK_FOOD) {
+        return;
+    }
+    std::vector<sc2::Point2D> enemy_locations = Observation()->GetGameInfo().enemy_start_locations;
+    // Get Army units
+    sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+    sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+    sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+    sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
+    sc2::Units battlecruisers = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+    sc2::Units thors = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+    
+    // Create a squad of units with empty orders
+    std::vector<const sc2::Unit*> squad;
+    auto filter_units = [](const sc2::Units& units, std::vector<const sc2::Unit*>& squad) {
+        for (const auto& unit : units) {
+            if (unit->orders.empty()) {
+                squad.push_back(unit);
+            }
+        }
+
+        };
+    // Filter out units that have orders already
+    filter_units(thors, squad);
+    filter_units(battlecruisers, squad);
+    filter_units(tanks, squad);
+    filter_units(banshees, squad);
+    filter_units(marauders, squad);
+    filter_units(liberators, squad);
+    filter_units(vikings, squad);
+    sc2::Point2D closest_start_location;
+    if (!scout_died) {
+        // Get enemy start location closest to last death location to prevent from sending to empty location
+        float min_distance = std::numeric_limits<float>::max();
+        for (const auto& start_location : enemy_locations) {
+            float distance = sc2::Distance2D(start_location, BasicSc2Bot::last_death_location);
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_start_location = start_location;
+            }
+        }
+    }
+    
+    // Tracks the game loop when the last unit was sent
+    static uint64_t last_send_time = 0;
+    // Tracks the game loop of the last reset
+    static uint64_t last_reset_time = 0;
+    // FPS
+    const int frames_per_second = 22;
+    // 3 minutes in game loops (22 FPS � 60 seconds � 3)
+    const uint64_t reset_interval = 4032;
+    // Keeps track of how many times units have been sent
+    static int units_sent = 0;
+
+    // Reset units_sent every 3 minutes
+    uint64_t current_time = Observation()->GetGameLoop();
+    if (current_time > last_reset_time + reset_interval) {
+        units_sent = 0;
+        last_reset_time = current_time;
+        std::cout << "Resetting units_sent to 0 after 3 minutes" << std::endl;
+    }
+
+    sc2::Point2D location{};
+    // Add delay between sending units
+    if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 11) {
+        filter_units(marines, squad);
+        if (!scout_died) {
+            location = closest_start_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
+
+        }
+        else {
+            location = *enemy_starting_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
+        }
+        // prevent units from leaving something they're already attacking
+        for (const auto &unit : squad) {
+            if (!unit->orders.empty()) {
+                sc2::UnitOrder order = unit->orders.front();
+                const sc2::Unit *target = Observation()->GetUnit(order.target_unit_tag);
+                if (target != nullptr) {
+                    if (target->alliance == sc2::Unit::Alliance::Enemy) {
+                        // dont assign unit if already engaged with enemy
+                        return;
+                    }
+                }
+            }
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
+        }
+        
+        // Update last send time
+        last_send_time = current_time;
+        units_sent++;
+    }
+
+    // Stop sending more units if all enemy locations are covered
+    if (units_sent >= enemy_locations.size()) {
+        return;
+    }
+}
 
 bool BasicSc2Bot::AttackIntruders() {
     /*
@@ -56,10 +282,16 @@ bool BasicSc2Bot::AttackIntruders() {
             continue;
         }
 
-        const sc2::Units& defending_units = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_MARINE, sc2::UNIT_TYPEID::TERRAN_MARAUDER }));
-        for (const sc2::Unit* defending_unit : defending_units) {
-            Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_near_base);
-        }
+        const sc2::Units& defending_units = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({ 
+            sc2::UNIT_TYPEID::TERRAN_MARINE, sc2::UNIT_TYPEID::TERRAN_MARAUDER,
+            sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED,
+            sc2::UNIT_TYPEID::TERRAN_THOR, sc2::UNIT_TYPEID::TERRAN_THORAP, 
+            sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER, sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT
+        }));
+        // for (const sc2::Unit* defending_unit : defending_units) {
+        //     Actions()->UnitCommand(defending_unit, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_near_base);
+        // }
+        Actions()->UnitCommand(defending_units, sc2::ABILITY_ID::ATTACK_ATTACK, enemy_near_base);
 
         // move the medivacs to the battle so that they heal the units
         if (!defending_units.empty()) {
@@ -199,7 +431,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
     // attack range
     const float TANK_RANGE = 7;        // regular attack range
     const float TANK_SIEGE_RANGE = 13; // siege attack range
-    const float THRESHOLD = (TANK_RANGE + TANK_SIEGE_RANGE) / 2; // threshold distance to choose b/w modes
+    const float THRESHOLD = (TANK_RANGE + TANK_SIEGE_RANGE) / 2 + 1; // threshold distance to choose b/w modes
 
     
     // get siege tanks in squad
@@ -224,6 +456,8 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
         }
     }
     if (enemies_in_range.empty()) {
+        // TODO: add buffer timer (ie. 3s since enemy in view)
+        // Actions()->UnitCommand(tanks, sc2::ABILITY_ID::MORPH_UNSIEGE);
         return;
     }
 
@@ -247,7 +481,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad) {
         if (min_dist > TANK_SIEGE_RANGE) {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
         }
-        AttackWithUnit(tank, enemies_in_range);
+        AttackWithUnit(tank, enemies_in_range, false);
     }
 }
 
@@ -273,7 +507,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
     // attack range
     const float TANK_RANGE = 7;        // regular attack range
     const float TANK_SIEGE_RANGE = 13; // siege attack range
-    const float THRESHOLD = (TANK_RANGE + TANK_SIEGE_RANGE) / 2; // threshold distance to choose b/w modes
+    const float THRESHOLD = (TANK_RANGE + TANK_SIEGE_RANGE) / 2 + 1; // threshold distance to choose b/w modes
 
     
     // get siege tanks in squad
@@ -287,6 +521,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
     if (tanks.empty()) {
         return;
     }
+    
 
     // if there is enemy in range
     for (const auto &tank : tanks) {
@@ -294,6 +529,10 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
         float min_dist = std::numeric_limits<float>::max();
  
         for (const auto &enemy : enemies) {
+            // cant attack flying
+            if (enemy->is_flying) {
+                continue;
+            }
             float dist = sc2::Distance2D(tank->pos, enemy->pos);
             if (dist < min_dist) {
                 min_dist = dist;
@@ -308,7 +547,7 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
         if (min_dist > TANK_SIEGE_RANGE) {
             Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
         }
-        AttackWithUnit(tank, enemies);
+        AttackWithUnit(tank, enemies, false);
     }
 }
 
@@ -317,14 +556,19 @@ void BasicSc2Bot::TankAttack(const sc2::Units &squad, const sc2::Units &enemies)
  * 
  * @param unit 
  * @param enemies in range
+ * @param atk_pos flag for attacking position instead of enemy (default true)
  */
-void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies) {
+void BasicSc2Bot::AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies, const bool &atk_pos) {
     if (enemies.empty()) {
         return;
     }
 
     // attack enemy
-    Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+    if (atk_pos) {
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+    } else {
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front());
+    }
 }
 
 
@@ -336,18 +580,41 @@ void BasicSc2Bot::LaunchAttack() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::ActionInterface *act = Actions();
 
+    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+
+    if (enemies.empty() && obs->GetFoodUsed() < ATTACK_FOOD) {
+        sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, IsArmy(obs));
+        for (const auto &unit : units) {
+            if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
+                act->UnitCommand(unit, sc2::ABILITY_ID::MORPH_UNSIEGE);
+            }
+            Retreat(unit);
+        }
+        // leave if retreating
+        return;
+    } else if (obs->GetFoodUsed() >= ATTACK_FOOD) {
+        SendSquad();
+    }
+
     // TODO: army composition requirements
 
     // dont attack if not ready
     // if (obs->GetFoodArmy() < (200 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     //     return;
     // }
-    if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (195 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    if (obs->GetFoodArmy() < (175 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    // if (obs->GetFoodArmy() < (130 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (120 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
     }
+
+    // if (!sent) {
+    //     return;
+    // }
     
-    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    // sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
     sc2::Units enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
 
     // TODO: decide if keep some at base or send all to attack
@@ -378,7 +645,8 @@ void BasicSc2Bot::LaunchAttack() {
     
     sc2::Units raid_squad{};
 
-    float ratio = static_cast<double>(2) / 3;
+    // float ratio = static_cast<double>(2) / 3;
+    float ratio = 1;
     
     const size_t split_marines = marines.size() * ratio;
     const size_t split_marauders = marauders.size() * ratio;
@@ -387,8 +655,8 @@ void BasicSc2Bot::LaunchAttack() {
     const size_t split_vikings = vikings.size() * ratio;
     const size_t split_medivacs = medivacs.size() * ratio;
     const size_t split_liberators = liberators.size() * ratio;
-    const size_t split_banshees = liberators.size() * ratio;
-    const size_t split_battlecruisers = liberators.size() * ratio;
+    const size_t split_banshees = banshees.size() * ratio;
+    const size_t split_battlecruisers = battlecruisers.size() * ratio;
 
     SquadSplit(split_marines, marines, raid_squad);
     SquadSplit(split_marauders, marauders, raid_squad);
@@ -399,48 +667,34 @@ void BasicSc2Bot::LaunchAttack() {
     SquadSplit(split_liberators, liberators, raid_squad);
     SquadSplit(split_banshees, banshees, raid_squad);
     SquadSplit(split_battlecruisers, battlecruisers, raid_squad);
-
-    // do nothing if raid squad busy
-    for (const auto &unit : raid_squad) {
-        if (unit->orders.size() > 0) {
-            return;
-        }
+    
+    // do nothing if raid squad dne
+    if (raid_squad.empty()) {
+        return;
     }
 
-    // TODO: crashing here idk why
-    std::cout << "ATTACK TIME WITH A SQUAD OF " << raid_squad.size() << "\n";
-    if (enemies.empty()) {
-        std::cout << "no enemies, going to starting location\n";
-        // TODO: scout/search for enemy positions instead of just going to starting location
-        // act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy_starting_location);
-        sc2::Point2D location{};
-        if (!enemy_bases.empty()) {
-            std::cout << "enemy bases not empty\n";
-            location = (*(enemy_bases.begin()))->pos;
-            std::cout << "location = (" << location.x << ", " << location.y << ")\n";
-        }
-        else {
-            // TODO: scout/search for base
-            std::cout << "enemy bases empty\n";
-            std::cout << "ptr=" << this->enemy_starting_location << std::endl;
-            if (this->enemy_starting_location != nullptr) {
-                std::cout << "(" << this->enemy_starting_location->x << ", " << this->enemy_starting_location->y << ")\n";
+    for (const auto &unit : raid_squad) {
+        if (enemies.empty() && unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER) {
+            if (!unit->orders.empty()) {
+                continue;
             }
-            if (this->enemy_starting_location != nullptr) {
-                location = *(this->enemy_starting_location);
+            sc2::Point2D location{};
+            // bool check = ScoutRandom(raid_squad.front(), location);
+            bool check = ScoutRandom(unit, location);
+            
+            if (check) {
+                std::cout << "Scout Random: " << check << std::endl;
+                std::cout << "search random location\n";
+                std::cout << "(" << location.x << ", " << location.y << ")\n";
+                act->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
             }
         }
-        act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, location);
-    } else {
-        std::cout << "found enemies\n";
-        std::cout << enemy_bases.size() << " enemy townhalls found\n";
-        for (const auto &enemy : enemies) {
-            if (enemy->is_alive) {
-                act->UnitCommand(raid_squad, sc2::ABILITY_ID::ATTACK, enemy->pos);
-                return;
+        else if (!enemies.empty()){
+            if (!unit->orders.empty()) {
+                continue;
             }
+            act->UnitCommand(unit, sc2::ABILITY_ID::SMART, enemies.front());
         }
-        std::cout << "failed to find enemy\n";
     }
 
     
@@ -573,8 +827,8 @@ void BasicSc2Bot::VikingAttack(const sc2::Units &squad, const sc2::Units &enemie
         // if attackable air unit
         if (target_air != nullptr) {
             act->UnitCommand(viking, sc2::ABILITY_ID::MORPH_VIKINGFIGHTERMODE);
-            act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
-            // AttackWithUnit(viking, {target_air});
+            // act->UnitCommand(viking, sc2::ABILITY_ID::ATTACK, target_air);
+            AttackWithUnit(viking, {target_air}, false);
             // dont check ground if already found an air target
             continue;
         }
@@ -646,32 +900,88 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     } else {
         range = unit->detect_range;
     }
+    range += 2;
 
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    
+    // rocks
+    sc2::Units neutral{};
+
+    // no enemies, find rocks
     if (enemies.empty()) {
-        return;
+        // get destructible rocks
+        neutral = obs->GetUnits(sc2::Unit::Alliance::Neutral, [](const sc2::Unit &unit) {
+            // check for rocks
+            if (
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DEBRISRAMPLEFT ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DEBRISRAMPRIGHT ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLECITYDEBRIS6X6 ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6 ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEBLUR ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCK6X6 ||
+                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCKEX1DIAGONALHUGEBLUR
+            ) {
+                return true;
+            }
+            return false;
+        });
+
+        // no rocks or enemies, do nothing
+        if (neutral.empty()) {
+            return;
+        }
     }
 
-    sc2::Units enemy_units_in_range{};
-    sc2::Units enemy_structures_in_range{};
+    sc2::Units attacking{};
+    sc2::Units enemies_in_range{};
+    sc2::Units neutral_in_range{};
+    
+    // set attacking as enemy if possible
+    if (enemies.size() > 0) {
+        sc2::Units enemy_units_in_range{};
+        sc2::Units enemy_structures_in_range{};
 
-    for (const auto &enemy : enemies) {
-        float dist = sc2::Distance2D(enemy->pos, unit->pos);
+        for (const auto &enemy : enemies) {
+            float dist = sc2::Distance2D(enemy->pos, unit->pos);
 
-        // dont include enemy if not in range
-        if (dist > range) {
-            continue;
+            // dont include enemy if not in range
+            if (dist > range) {
+                continue;
+            }
+
+            if (IsStructure(enemy->unit_type)) {
+                enemy_structures_in_range.push_back(enemy);
+            } else {
+                enemy_units_in_range.push_back(enemy);
+            }
+            
+            enemies_in_range.push_back(enemy);
+        }
+        
+        // TODO: townhall, turret check
+        // set units to attack
+        attacking = enemy_units_in_range.empty() ? enemy_structures_in_range : enemy_units_in_range;
+
+
+    } else if (neutral.size() > 0) {
+        // set attacking to rocks in range
+
+        for (const auto &rock : neutral) {
+            float dist = sc2::Distance2D(rock->pos, unit->pos);
+
+            // dont include enemy if not in range
+            if (dist > range) {
+                continue;
+            }
+
+            neutral_in_range.push_back(rock);
         }
 
-        if (IsStructure(enemy->unit_type)) {
-            enemy_structures_in_range.push_back(enemy);
-        } else {
-            enemy_units_in_range.push_back(enemy);
-        }
+        attacking = neutral_in_range;
     }
 
-    // attack units
-    const sc2::Units &attacking = enemy_units_in_range.empty() ? enemy_structures_in_range : enemy_units_in_range;
+    
     // if (enemy_units_in_range.empty()) {
     //     // attack buildings if no units to attack
     //     attacking = enemy_structures_in_range;
@@ -680,7 +990,12 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     // default attack
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK ||
         unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED) {
-        TankAttack({unit}, attacking);
+        if (enemies_in_range.empty()) {
+            TankAttack({unit}, neutral_in_range);
+        } else {
+            TankAttack({unit}, enemies_in_range);
+        }
+        // TankAttack({unit}, attacking);
         return;
     }
     // attack with viking
@@ -689,32 +1004,88 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         VikingAttack({unit}, attacking);
         return;
     }
-    // scv attack
-    // only attack with scvs holding mineral and isnt repairing
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
-        if (unit->buffs.size() > 0) {
-            sc2::BUFF_ID buff = unit->buffs.front();
-            if (buff != sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS &&
-                buff != sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
-                // scv cant attack
-                return;
-            }
-        }
-        if (unit->orders.size() > 0) {
-            sc2::UnitOrder order = unit->orders.front();
-            if (order.ability_id != sc2::ABILITY_ID::HARVEST_GATHER &&
-                order.ability_id != sc2::ABILITY_ID::HARVEST_RETURN) {
-                // scv cant attack
-                return;
-            }
-        }
-        // TODO: being overwritten in assign worker, fix
-        // std::cout << "attacking with scv \n";
+    // attack with battlecruiser
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER) {
+        BattlecruiserAttack({unit}, enemies_in_range);
     }
 
+    // // scv attack
+    // // only attack with scvs holding mineral and isnt repairing
+    // if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV) {
+    //     return;
+    //     // TODO: fix
+    //     if (unit->buffs.size() > 0) {
+    //         sc2::BUFF_ID buff = unit->buffs.front();
+    //         if (buff != sc2::BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS &&
+    //             buff != sc2::BUFF_ID::CARRYMINERALFIELDMINERALS) {
+    //             // scv cant attack
+    //             return;
+    //         }
+    //     }
+    //     if (unit->orders.size() > 0) {
+    //         sc2::UnitOrder order = unit->orders.front();
+    //         if (order.ability_id != sc2::ABILITY_ID::HARVEST_GATHER &&
+    //             order.ability_id != sc2::ABILITY_ID::HARVEST_RETURN) {
+    //             // scv cant attack
+    //             return;
+    //         }
+    //     }
+    //     // TODO: being overwritten in assign worker, fix
+    //     // std::cout << "attacking with scv \n";
+    // }
+
     // default attack
-    AttackWithUnit(unit, attacking);
+    AttackWithUnit(unit, enemies_in_range);
     return;
     
+
+}
+
+/**
+ * @brief Handle attack for squad with battlecruisers
+ * 
+ * @param squad with battlecruisers
+ * @param enemies attackable enemies
+ */
+void BasicSc2Bot::BattlecruiserAttack(const sc2::Units &squad, const sc2::Units &enemies) {
+    // all enemies or squad dead
+    if (enemies.empty() || squad.empty()) {
+        return;
+    }
+    
+    // filter out battlecrusiers
+    sc2::Units battlecruisers{};
+
+    for (const auto &unit : squad) {
+        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER) {
+            battlecruisers.push_back(unit);
+        }
+    }
+
+    // do nothing if no battlecruisers selected
+    if (battlecruisers.empty()) {
+        return;
+    }
+
+    // TODO: get fusion cores, check if yamato cannon available
+    const sc2::ObservationInterface *obs = Observation();
+    // const sc2::Upgrades &upgrades = obs->GetUpgrades();
+
+
+    // sc2::Units fusion_cores = 
+    for (const auto &battlecruiser : battlecruisers) {
+        if (!battlecruiser->is_alive) {
+            // skip dead
+            continue;
+        }
+        
+        // if (battlecruiser->buffs)
+        
+        // use yamato cannon when enemy
+        // townhall
+        // > 200 health
+        // near death (15 health)
+    }
+
 
 }
