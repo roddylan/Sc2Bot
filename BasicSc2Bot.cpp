@@ -302,7 +302,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     {
         BasicSc2Bot::last_death_location.x = unit->pos.x;
         BasicSc2Bot::last_death_location.y = unit->pos.y;
-        std::cout << "last death location: " << BasicSc2Bot::last_death_location.x << BasicSc2Bot::last_death_location.y << std::endl;
+        // std::cout << "last death location: " << BasicSc2Bot::last_death_location.x << BasicSc2Bot::last_death_location.y << std::endl;
     }
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER

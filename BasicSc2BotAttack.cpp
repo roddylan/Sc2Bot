@@ -592,9 +592,10 @@ void BasicSc2Bot::LaunchAttack() {
         }
         // leave if retreating
         return;
-    } else if (obs->GetFoodUsed() >= ATTACK_FOOD) {
-        SendSquad();
-    }
+    } 
+    // else if (obs->GetFoodUsed() >= ATTACK_FOOD) {
+    //     SendSquad();
+    // }
 
     // TODO: army composition requirements
 
@@ -604,9 +605,9 @@ void BasicSc2Bot::LaunchAttack() {
     // }
     // if (obs->GetFoodArmy() < (170 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (195 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
-    if (obs->GetFoodArmy() < (175 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (130 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
     // if (obs->GetFoodArmy() < (120 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
+    if (obs->GetFoodArmy() < (175 - obs->GetFoodWorkers() - N_ARMY_THRESHOLD)) {
         return;
     }
 
@@ -614,59 +615,60 @@ void BasicSc2Bot::LaunchAttack() {
     //     return;
     // }
     
-    // sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
-    sc2::Units enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
+    // // sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    // sc2::Units enemy_bases = obs->GetUnits(sc2::Unit::Alliance::Enemy, sc2::IsTownHall());
 
-    // TODO: decide if keep some at base or send all to attack
+    // // TODO: decide if keep some at base or send all to attack
 
-    // basic ground troops (marine, marauder)
-    sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
-    sc2::Units marauders = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    // // basic ground troops (marine, marauder)
+    // sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    // sc2::Units marauders = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
     
-    // basic air troops
-    sc2::Units medivacs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+    // // basic air troops
+    // sc2::Units medivacs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
 
-    // mech ground troops
-    sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
-        sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
-    }));
-    sc2::Units thors = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
-        sc2::UNIT_TYPEID::TERRAN_THOR, sc2::UNIT_TYPEID::TERRAN_THORAP
-    }));
+    // // mech ground troops
+    // sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    //     sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
+    // }));
+    // sc2::Units thors = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    //     sc2::UNIT_TYPEID::TERRAN_THOR, sc2::UNIT_TYPEID::TERRAN_THORAP
+    // }));
 
-    // mech air troops
-    sc2::Units vikings = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
-        sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
-    }));
-    sc2::Units liberators = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
-    sc2::Units banshees = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
-    sc2::Units battlecruisers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+    // // mech air troops
+    // sc2::Units vikings = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    //     sc2::UNIT_TYPEID::TERRAN_VIKINGASSAULT, sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
+    // }));
+    // sc2::Units liberators = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+    // sc2::Units banshees = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+    // sc2::Units battlecruisers = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
 
     
-    sc2::Units raid_squad{};
+    // sc2::Units raid_squad{};
 
-    // float ratio = static_cast<double>(2) / 3;
-    float ratio = 1;
+    // // float ratio = static_cast<double>(2) / 3;
+    // float ratio = 1;
     
-    const size_t split_marines = marines.size() * ratio;
-    const size_t split_marauders = marauders.size() * ratio;
-    const size_t split_siege_tanks = siege_tanks.size() * ratio;
-    const size_t split_thors = thors.size() * ratio;
-    const size_t split_vikings = vikings.size() * ratio;
-    const size_t split_medivacs = medivacs.size() * ratio;
-    const size_t split_liberators = liberators.size() * ratio;
-    const size_t split_banshees = banshees.size() * ratio;
-    const size_t split_battlecruisers = battlecruisers.size() * ratio;
+    // const size_t split_marines = marines.size() * ratio;
+    // const size_t split_marauders = marauders.size() * ratio;
+    // const size_t split_siege_tanks = siege_tanks.size() * ratio;
+    // const size_t split_thors = thors.size() * ratio;
+    // const size_t split_vikings = vikings.size() * ratio;
+    // const size_t split_medivacs = medivacs.size() * ratio;
+    // const size_t split_liberators = liberators.size() * ratio;
+    // const size_t split_banshees = banshees.size() * ratio;
+    // const size_t split_battlecruisers = battlecruisers.size() * ratio;
 
-    SquadSplit(split_marines, marines, raid_squad);
-    SquadSplit(split_marauders, marauders, raid_squad);
-    SquadSplit(split_siege_tanks, siege_tanks, raid_squad);
-    SquadSplit(split_thors, thors, raid_squad);
-    SquadSplit(split_vikings, vikings, raid_squad);
-    SquadSplit(split_medivacs, medivacs, raid_squad);
-    SquadSplit(split_liberators, liberators, raid_squad);
-    SquadSplit(split_banshees, banshees, raid_squad);
-    SquadSplit(split_battlecruisers, battlecruisers, raid_squad);
+    // SquadSplit(split_marines, marines, raid_squad);
+    // SquadSplit(split_marauders, marauders, raid_squad);
+    // SquadSplit(split_siege_tanks, siege_tanks, raid_squad);
+    // SquadSplit(split_thors, thors, raid_squad);
+    // SquadSplit(split_vikings, vikings, raid_squad);
+    // SquadSplit(split_medivacs, medivacs, raid_squad);
+    // SquadSplit(split_liberators, liberators, raid_squad);
+    // SquadSplit(split_banshees, banshees, raid_squad);
+    // SquadSplit(split_battlecruisers, battlecruisers, raid_squad);
+    const sc2::Units raid_squad = obs->GetUnits(sc2::Unit::Alliance::Self, IsArmy(obs));
     
     // do nothing if raid squad dne
     if (raid_squad.empty()) {
