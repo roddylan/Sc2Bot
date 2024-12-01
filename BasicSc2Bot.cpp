@@ -32,8 +32,7 @@ void BasicSc2Bot::OnGameStart() {
 }
 static bool protoss_enemy = false;
 void BasicSc2Bot::OnGameFullStart() {
-	// this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
-	// PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
+
     
     const sc2::GameInfo game_info = Observation()->GetGameInfo();
     for (const auto& player : game_info.player_info) {
@@ -163,8 +162,22 @@ void BasicSc2Bot::OnStep() {
         return unit.display_type == sc2::Unit::DisplayType::Visible;
     });
 
+
+    // prevent tanks from getting stuck
+    const size_t RANGE = 16;
     if (!enemies.empty() && !tanks.empty()) {
-        TankAttack(tanks, enemies);
+        for (const auto &tank : tanks) {
+            float min_dist = std::numeric_limits<float>::max();
+            for (const auto& enemy : enemies) {
+                float dist = sc2::Distance2D(enemy->pos, tank->pos);
+                if (dist < min_dist) {
+                    min_dist = dist;
+                }
+            }
+            if (min_dist > RANGE) {
+                Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
+            }
+        }
     }
     
     // if (TryBuildSeigeTank()) {
@@ -268,13 +281,19 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 }
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
-    static int mineral_fields_destoryed;
-
-    ++mineral_fields_destoryed;
-    // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-    if (mineral_fields_destoryed % 10) {
+    if (unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_MINERALFIELD || unit->unit_type == sc2::UNIT_TYPEID::NEUTRAL_RICHMINERALFIELD) {
         HandleExpansion(true);
+        /*
+        ++mineral_fields_destoryed;
+        // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+        if (mineral_fields_destoryed % 10) {
+            HandleExpansion(true);
+        }
+        */
     }
+   
+
+    
     // std::cout << "Minerals destroyed" << std::endl;
 
      // save last death location for sending attack
