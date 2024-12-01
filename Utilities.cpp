@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include "Betweenness.h"
+#include <sc2api/sc2_typeenums.h>
 #include <unordered_map>
 #include <functional>
 
@@ -317,4 +318,91 @@ bool IsStructure(const sc2::Unit &unit) {
     const sc2::UNIT_TYPEID unit_type = unit.unit_type;
 
     return IsStructure(unit_type);
+}
+
+/**
+ * @brief Check if unit is neutral
+ * 
+ * @param unit_type 
+ * @return true 
+ * @return false 
+ */
+bool IsRock(const sc2::UNIT_TYPEID &unit_type) {
+    switch (unit_type) {
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLECITYDEBRIS6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEBLUR: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCK6X6: return true;
+    case sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCKEX1DIAGONALHUGEBLUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS2X4HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS2X4VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS2X6HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS2X6VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRIS4X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRISHUGEDIAGONALBLUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLECITYDEBRISHUGEDIAGONALULBR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEDEBRIS4X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE2X4HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE2X4VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE2X6HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE2X6VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE4X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICE6X6: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICEDIAGONALHUGEBLUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICEDIAGONALHUGEULBR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICEHORIZONTALHUGE: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEICEVERTICALHUGE: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK2X4VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK2X6HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK2X6VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK4X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCK6X6WEAK: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX12X4HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX12X4VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX12X6HORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX12X6VERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX14X4: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX16X6: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX1HORIZONTALHUGE: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEROCKEX1VERTICALHUGE: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLESANDBAGS: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45BL90R: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45BR90T: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45UL90B: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45ULBL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45ULUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45UR90L: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER45URBR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90B45UR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90BR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90L45BR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90LB: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90LT: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90R45UL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90T45BL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLCORNER90TR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLDIAGONALBLUR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLDIAGONALBLURLF: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLDIAGONALULBR: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLDIAGONALULBRLF: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLSTRAIGHTHORIZONTAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLSTRAIGHTHORIZONTALBF: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLSTRAIGHTVERTICAL: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEWALLVERTICALLF: return true;
+    case sc2::UNIT_TYPEID::DESTRUCTIBLEZERGINFESTATION3X3: return true;
+    default: return false;
+    }
+}
+
+/**
+ * @brief Check if unit is neutral
+ * 
+ * @param unit 
+ * @return true 
+ * @return false 
+ */
+bool IsRock(const sc2::Unit &unit) {
+    return IsRock(unit.unit_type);
 }

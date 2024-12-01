@@ -25,8 +25,21 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
     */
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Units marines = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    const sc2::Units bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const uint32_t& mineral_count = observation->GetMinerals();
     const uint32_t& gas_count = observation->GetVespene();
+
+    const size_t marauder_count = CountUnitTotal(
+        observation, sc2::UNIT_TYPEID::TERRAN_MARAUDER,
+        sc2::UNIT_TYPEID::TERRAN_BARRACKS,
+        sc2::ABILITY_ID::TRAIN_MARAUDER
+    );
+
+    const size_t marine_count = CountUnitTotal(
+        observation, sc2::UNIT_TYPEID::TERRAN_MARINE,
+        sc2::UNIT_TYPEID::TERRAN_BARRACKS,
+        sc2::ABILITY_ID::TRAIN_MARAUDER
+    );
    
 
     /*
@@ -60,10 +73,14 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
 
     // now we know that this barrack has an addon, but is it a reactor or a tech lab?
     const bool& has_tech_lab = barrack_addon->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB;
+    
 
     // if it has a tech lab, train marauders constantly
     // marauders only cost 25 gas, use >= 100 so that there's a bit of a buffer for other things
-    if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && Observation()->GetFoodUsed() < 100) {
+    const size_t goal_marauder = marine_count / 3 + 1;
+    //if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && Observation()->GetFoodUsed() < 100) {
+    if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && marauder_count < goal_marauder) {
+    //if (has_tech_lab && mineral_count >= 100 && gas_count >= 100 && marauder_count < N_MARAUDERS * bases.size()) {
         Actions()->UnitCommand(barrack, sc2::ABILITY_ID::TRAIN_MARAUDER);
         return;
     }
@@ -204,7 +221,7 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     }
     
     // train marauder
-    if (mineral_count >= 100 && gas_count >= 100 && CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) < n_marauders) {
+    if (mineral_count >= 100 && gas_count >= 100 && CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) < N_MARAUDERS) {
         Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::TRAIN_MARAUDER);
         return;
     }

@@ -70,7 +70,8 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
 
             build = true;
           //  std::cout << "Building siege tank\n";
-            Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
+            TryBuildSiegeTank(factory);
+            // Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
         }
     }
 
@@ -100,9 +101,17 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
  */
 bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
     const sc2::ObservationInterface* observation = Observation();
-    
+    const sc2::Unit *add_on = observation->GetUnit(factory->add_on_tag);
     // if cant build tank
-    if (factory->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+    if (add_on == nullptr) {
+        return false;
+    }
+    if (add_on->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
+
+    // up to 2 in production
+    if (factory->orders.size() > 1) {
         return false;
     }
 
@@ -113,12 +122,12 @@ bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
         Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
     }
     // TODO: get rid of couts here 
-    if (build){
-        sc2::Units tank = observation->GetUnits(
-            sc2::Unit::Alliance::Self, 
-            sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
-       // std::cout << "n_siegetanks=" << tank.size() << std::endl;
-    }
+    // if (build){
+    //     sc2::Units tank = observation->GetUnits(
+    //         sc2::Unit::Alliance::Self, 
+    //         sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SIEGETANK, sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED}));
+    //    // std::cout << "n_siegetanks=" << tank.size() << std::endl;
+    // }
     return true;
 }
 
@@ -138,7 +147,8 @@ bool BasicSc2Bot::TryBuildThor() {
     if (thors.size() >= (marines_size / 5)) return false;
     for (auto unit : units) {
         
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
+        TryBuildThor(unit);
+        // Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_THOR);
     }
     return true;
 }
@@ -152,6 +162,11 @@ bool BasicSc2Bot::TryBuildThor(const sc2::Unit* factory) {
         return false;
     }
     if (add_on->unit_type != sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB) {
+        return false;
+    }
+
+    // up to 2 in production
+    if (factory->orders.size() > 1) {
         return false;
     }
 
@@ -286,6 +301,11 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
     }
 
+    // nullptr check, no units available
+    if (unit_to_build == nullptr) {
+        return false;
+    }
+
     // TODO: bring back build logic
 
     float ry = sc2::GetRandomScalar() * 15.0f;
@@ -351,6 +371,11 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
         
         unit_to_build = worker;
         break;
+    }
+
+    // nullptr check, no units available
+    if (unit_to_build == nullptr) {
+        return false;
     }
     // todo: this as possible fix?
     float rx = sc2::GetRandomScalar();

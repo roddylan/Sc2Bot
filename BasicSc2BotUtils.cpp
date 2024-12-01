@@ -9,6 +9,7 @@
 #include "sc2api/sc2_interfaces.h"
 #include <limits>
 #include <sc2api/sc2_common.h>
+#include <sc2api/sc2_map_info.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
@@ -103,7 +104,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start
 
 const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location) {
 
-    sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    sc2::Units bases = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     float distance = std::numeric_limits<float>::max();
     const sc2::Unit* target = nullptr;
 
@@ -646,4 +647,34 @@ void BasicSc2Bot::SquadSplit(const size_t &split_sz, sc2::Units &units, sc2::Uni
         squad.push_back(units.back());
         units.pop_back();
     }
+}
+
+/**
+ * @brief Find random scout location with unit
+ * 
+ * @param unit unit to scout
+ * @param target 
+ * @return true 
+ * @return false 
+ */
+bool BasicSc2Bot::ScoutRandom(const sc2::Unit *unit, sc2::Point2D &target) {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::GameInfo gin = obs->GetGameInfo();
+
+    float playable_w = gin.playable_max.x - gin.playable_min.x;
+    float playable_h = gin.playable_max.y - gin.playable_min.y;
+
+    // if game info data invalid
+    if (playable_w == 0 || playable_h == 0) {
+        // default dims
+        playable_w = 236;
+        playable_h = 228;
+    }
+
+    target.x = playable_w * sc2::GetRandomFraction() + gin.playable_min.x;
+    target.y = playable_h * sc2::GetRandomFraction() + gin.playable_min.y;
+
+    // check if valid
+    float dist = Query()->PathingDistance(unit, target);
+    return dist > 0.1F;
 }

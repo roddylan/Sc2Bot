@@ -8,11 +8,15 @@
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
 #include <sc2api/sc2_common.h>
+#include <sc2api/sc2_gametypes.h>
+#include <sc2api/sc2_map_info.h>
+#include <sc2api/sc2_score.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
 #include <iostream>
 #include <cmath>
+#include <string>
 
 bool BasicSc2Bot::scout_died = false;
 void BasicSc2Bot::OnGameStart() {
@@ -24,9 +28,11 @@ void BasicSc2Bot::OnGameStart() {
     scout = nullptr; // no scout initially
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     enemy_starting_location = nullptr;  // we use a scout to find this
+    sent = false;
 }
 static bool protoss_enemy = false;
 void BasicSc2Bot::OnGameFullStart() {
+
     
     const sc2::GameInfo game_info = Observation()->GetGameInfo();
     for (const auto& player : game_info.player_info) {
@@ -118,7 +124,7 @@ void BasicSc2Bot::OnStep() {
     ));
     
 
-   //SendSquad();
+    // SendSquad();
     // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
@@ -131,7 +137,8 @@ void BasicSc2Bot::OnStep() {
         
     }
     */
-    SendSquad();
+    // SendSquad();
+    LaunchAttack(); // TODO: fix implementation for final attack logic
     HandleBuild();
     BuildWorkers();
     RecheckUnitIdle();
@@ -139,12 +146,12 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
 
-    //BuildArmy(); // TODO: use this
+    // BuildArmy(); // TODO: use this
     
 
     LaunchAttack(); // TODO: fix implementation for final attack logic
 
- //   HandleAttack();
+    HandleAttack();
 
     // TODO: temporary, move
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
@@ -155,8 +162,22 @@ void BasicSc2Bot::OnStep() {
         return unit.display_type == sc2::Unit::DisplayType::Visible;
     });
 
+
+    // prevent tanks from getting stuck
+    const size_t RANGE = 16;
     if (!enemies.empty() && !tanks.empty()) {
-        TankAttack(tanks, enemies);
+        for (const auto &tank : tanks) {
+            float min_dist = std::numeric_limits<float>::max();
+            for (const auto& enemy : enemies) {
+                float dist = sc2::Distance2D(enemy->pos, tank->pos);
+                if (dist < min_dist) {
+                    min_dist = dist;
+                }
+            }
+            if (min_dist > RANGE) {
+                Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
+            }
+        }
     }
     
     // if (TryBuildSeigeTank()) {
@@ -389,6 +410,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             }
         }
         this->enemy_starting_location = new sc2::Point2D(closest_base_position.x, closest_base_position.y);
+        this->visited_start = false;
     }
 }
 
@@ -598,6 +620,81 @@ void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shiel
         scv = FindNearestWorker(unit->pos, true, true);
     }
 
+
+
+}
+
+/**
+ * @brief Game end
+ * 
+ */
+void BasicSc2Bot::OnGameEnd() {
+    const sc2::ObservationInterface *obs = Observation();
+
+    const sc2::GameInfo &gin = obs->GetGameInfo();
+
+    const std::vector<sc2::PlayerResult> &results = obs->GetResults();
+
+    const sc2::Score &score = obs->GetScore();
+
+    // OUTPUT SCORE DETAILS
+    
+    std::cout << "------------------------- BOT SCORE -------------------------\n";
+
+    std::string score_type = "";
+
+    if (score.score_type == sc2::ScoreType::Curriculum) {
+        score_type = "CURRICULUM";
+    } else {
+        score_type = "MELEE";
+    }
+
+    std::cout << "Score Type: " << score_type << std::endl;
+    std::cout << "Score = " << score.score << std::endl;
+
+    // std::cout << "\n\n-------------------------------------------------------------\n\n";
+    
+    // OUTPUT RESULT DETAILS
+    
+    std::cout << "\n------------------------ GAME RESULTS -----------------------\n\n";
+
+    uint32_t pid = obs->GetPlayerID();
+    
+    for (const auto &result : results) {
+        std::string player_result{};
+        std::string player{};
+
+        switch (result.result) {
+        case sc2::GameResult::Loss: {
+            player_result = "Loss";
+            break;
+        }
+        case sc2::GameResult::Tie: {
+            player_result = "Tie";
+            break;
+        }
+        case sc2::GameResult::Win: {
+            player_result = "Win";
+            break;
+        }
+        case sc2::GameResult::Undecided: {
+            player_result = "Undecided";
+            break;
+        }
+        }
+
+        if (result.player_id == pid) {
+            std::cout << "Player [SELF] | " << player_result << std::endl;
+        } else {
+            std::cout << "Player [ENEMY] (" << result.player_id << ") | " << player_result << std::endl;
+        }
+
+    }
+    /*
+    ------------------------- BOT SCORE -------------------------
+    ------------------------ GAME RESULTS -----------------------
+    -------------------------------------------------------------
+    */
 
 
 }
