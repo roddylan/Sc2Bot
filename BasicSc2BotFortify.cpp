@@ -85,6 +85,17 @@ void BasicSc2Bot::Retreat(const sc2::Unit *unit, sc2::Point2D location) {
         return;
     }
 
+    float dist = sc2::Distance2D(unit->pos, location);
+
+    if (dist < 10) {
+        // do nothing if there and chilling
+        if (unit->orders.empty()) {
+            return;
+        }
+        // stop moving when close
+        Actions()->UnitCommand(unit, sc2::ABILITY_ID::STOP);
+    }
+
     Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
     return;
 
