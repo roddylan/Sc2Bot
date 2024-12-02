@@ -292,7 +292,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
 
     ++mineral_fields_destoryed;
     // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-    if (mineral_fields_destoryed % 10) {
+    if (mineral_fields_destoryed % 10 == 0) {
         HandleExpansion(true);
     }
     // std::cout << "Minerals destroyed" << std::endl;
