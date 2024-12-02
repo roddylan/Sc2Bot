@@ -100,3 +100,16 @@ void BasicSc2Bot::Retreat(const sc2::Unit *unit, sc2::Point2D location) {
     return;
 
 }
+
+/**
+ * @brief Repair base
+ * 
+ */
+void BasicSc2Bot::RepairBase() {
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());;
+    sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+
+    
+
+}
