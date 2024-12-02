@@ -702,7 +702,7 @@ void BasicSc2Bot::LaunchAttack() {
                     continue;
                 }
             }
-            act->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front());
+            act->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
         }
     }
 
