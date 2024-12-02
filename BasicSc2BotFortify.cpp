@@ -141,7 +141,7 @@ void BasicSc2Bot::Wall() {
         for (const auto &enemy : enemies) {
             // dont care about walling flying or dead enemies
             if (enemy->is_flying || !enemy->is_alive) {
-                break;
+                continue;
             }
             float dist = sc2::Distance2D(enemy->pos, depot->pos);
             wall = (dist <= WALL_RANGE);
