@@ -144,20 +144,15 @@ void BasicSc2Bot::Wall() {
                 continue;
             }
             float dist = sc2::Distance2D(enemy->pos, depot->pos);
-            wall = (dist <= WALL_RANGE);
-            // if need to wall and depot is lowered -> raise up wall
-            if (depot->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED && wall) {
-                act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
-            }
-            // go to next depot if walling
-            if (wall) {
+            if (dist <= WALL_RANGE) {
+                wall = true;
                 break;
             }
         }
         // go to next depot if walled up
         if (wall) {
-            continue;
-        } else if (depot->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) {
+            act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        } else {
             // dont need to wall but depot is raised -> lower it
             act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         }
