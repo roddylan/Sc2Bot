@@ -2,6 +2,7 @@
 // implementation for pure defensive functions (walling chokepoints, etc.)
 
 #include "BasicSc2Bot.h"
+#include "Utilities.h"
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
@@ -116,10 +117,48 @@ void BasicSc2Bot::RepairBase() {
 
 
 /**
- * @brief Walling
+ * @brief Make supply depots walls (rise up) when enemy near
  * 
  */
 
 void BasicSc2Bot::Wall() {
-    
+    // interfaces
+    const sc2::ObservationInterface *obs = Observation();
+    sc2::ActionInterface *act = Actions();
+
+    const sc2::Units supply_depots = obs->GetUnits(
+        sc2::Unit::Alliance::Self, sc2::IsUnits({
+            sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT,
+            sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED
+        })
+    );
+
+    // enemy troops
+    const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, IsArmy(obs));
+
+    for (const auto &depot : supply_depots) {
+        bool wall = false;
+        for (const auto &enemy : enemies) {
+            float dist = sc2::Distance2D(enemy->pos, depot->pos);
+            wall = (dist <= WALL_RANGE);
+            // if need to wall and depot is lowered -> raise up wall
+            if (depot->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED && wall) {
+                act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
+            }
+            // go to next depot if walling
+            if (wall) {
+                break;
+            }
+        }
+        // go to next depot if walled up
+        if (wall) {
+            continue;
+        }
+
+        // dont need to wall but depot is raised -> lower it
+        if (depot->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) {
+            act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        }
+    }
+
 }

@@ -214,6 +214,8 @@ private:
 	bool sent;
 
 	const size_t ATTACK_FOOD = 130;
+
+	const size_t WALL_RANGE = 5;
 };
 
 
