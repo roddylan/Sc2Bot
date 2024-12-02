@@ -696,9 +696,13 @@ void BasicSc2Bot::LaunchAttack() {
         }
         else if (!enemies.empty()){
             if (!unit->orders.empty()) {
-                continue;
+                sc2::UnitOrder order = unit->orders.front();
+                if (order.ability_id == sc2::ABILITY_ID::ATTACK ||
+                    order.ability_id == sc2::ABILITY_ID::ATTACK_ATTACK) {
+                    continue;
+                }
             }
-            act->UnitCommand(unit, sc2::ABILITY_ID::SMART, enemies.front());
+            act->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front());
         }
     }
 
