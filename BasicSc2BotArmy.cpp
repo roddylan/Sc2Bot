@@ -298,9 +298,9 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit *starport) {
     const sc2::Units& bases = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     
     const sc2::Units liberators = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
-    if (starport_techlabs.size() < bases.size()) {
-        Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
-    }
+    // if (starport_techlabs.size() < bases.size()) {
+    //     Actions()->UnitCommand(starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
+    // }
     // build a medivac!
     if (minerals >= 100 && gas >= 75 && (medivacs.size() < 2 || Observation()->GetFoodUsed() < 100)) {
         Actions()->UnitCommand(starport, sc2::ABILITY_ID::TRAIN_MEDIVAC);
