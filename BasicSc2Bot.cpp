@@ -147,7 +147,7 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
 
-    Wall();
+    // Wall();
 
     // BuildArmy(); // TODO: use this
     
