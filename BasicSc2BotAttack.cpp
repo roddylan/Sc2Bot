@@ -905,7 +905,7 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
     } else {
         range = unit->detect_range;
     }
-    range += 2;
+    range += RANGE_BUFFER;
 
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
     

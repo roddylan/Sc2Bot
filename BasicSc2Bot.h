@@ -216,6 +216,8 @@ private:
 	const size_t ATTACK_FOOD = 130;
 
 	const size_t WALL_RANGE = 25;
+	
+	const size_t RANGE_BUFFER = 2;
 };
 
 
