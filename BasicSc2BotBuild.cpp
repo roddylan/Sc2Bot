@@ -285,26 +285,41 @@ bool BasicSc2Bot::BuildRefinery() {
 bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type) {
     const sc2::ObservationInterface* observation = Observation();
 
-    const sc2::Unit* unit_to_build = nullptr;
+    sc2::Units available_workers = observation->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit &unit) {
+        if (unit.orders.empty()) {
+            return true;
+        }
+        if (unit.orders.front().ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
+            return true;
+        }
+        return false;
+    });
+
+    
+
+    if (available_workers.empty()) {
+        return false;
+    }
+    const sc2::Unit* unit_to_build = available_workers.front();
+
     sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self);
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
+    
+
+    // nullptr check, no units available
+    if (unit_to_build == nullptr) {
+        return false;
+    }
+
     for (const auto& unit : units) {
         for (const auto& order : unit->orders) {
             if (order.ability_id == ability_type_for_structure) {
                 return false;
             }
         }
-
-        if (unit->unit_type == unit_type) {
-            unit_to_build = unit;
-        }
-
     }
 
-    // nullptr check, no units available
-    if (unit_to_build == nullptr) {
-        return false;
-    }
+    
 
     // TODO: bring back build logic
 
