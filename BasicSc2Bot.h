@@ -125,7 +125,8 @@ private:
 	// const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 2; // goal no. mules per base
-	const size_t n_marines = 8; // per base
+	const size_t N_MARINE = 25; // per base
+	const size_t MAX_MARINE = 40; // per base
 	const size_t N_MARAUDERS = 5; // per base
 	const size_t n_bunkers = 6;
 	

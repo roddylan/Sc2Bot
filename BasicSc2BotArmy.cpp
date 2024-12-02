@@ -85,12 +85,13 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
         return;
     }
 
+    size_t marine_goal = std::min<size_t>(N_MARINE * bases.size(), MAX_MARINE);
     // if you have a reactor, you can build things twice as fast so you should spam train marines
-    if (mineral_count >= 50 && marines.size() < 25 && Observation()->GetFoodUsed() < 100) {
+    if (mineral_count >= 50 && marines.size() < marine_goal) {
         Actions()->UnitCommand(barrack, sc2::ABILITY_ID::TRAIN_MARINE);
     }
     // train a second one, if you can afford it (reactors build at double speed)
-    if (mineral_count >= 100 && Observation()->GetFoodUsed() < 100) {
+    if (mineral_count >= 100 && marines.size() < marine_goal) {
         Actions()->UnitCommand(barrack, sc2::ABILITY_ID::TRAIN_MARINE);
     }
 }
