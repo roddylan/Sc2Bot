@@ -172,6 +172,10 @@ void BasicSc2Bot::OnStep() {
         for (const auto &tank : tanks) {
             float min_dist = std::numeric_limits<float>::max();
             for (const auto& enemy : enemies) {
+                // dont care about flying
+                if (enemy->is_flying) {
+                    continue;
+                }
                 float dist = sc2::Distance2D(enemy->pos, tank->pos);
                 if (dist < min_dist) {
                     min_dist = dist;
