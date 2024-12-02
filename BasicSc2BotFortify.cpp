@@ -149,8 +149,8 @@ void BasicSc2Bot::Wall() {
                 break;
             }
         }
-        // go to next depot if walled up
         if (wall) {
+            // raise if wall
             act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
         } else {
             // dont need to wall but depot is raised -> lower it
