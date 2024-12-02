@@ -18,7 +18,6 @@
 #include <cmath>
 #include <string>
 
-bool BasicSc2Bot::scout_died = false;
 void BasicSc2Bot::OnGameStart() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::QueryInterface *query = Query();
@@ -29,6 +28,8 @@ void BasicSc2Bot::OnGameStart() {
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     enemy_starting_location = nullptr;  // we use a scout to find this
     sent = false;
+    scout_died = false;
+    last_death_location = sc2::Point2D(0, 0);
 }
 static bool protoss_enemy = false;
 void BasicSc2Bot::OnGameFullStart() {
@@ -52,7 +53,6 @@ void BasicSc2Bot::OnGameFullStart() {
 	
 
 
-sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
 // This is never called
 void BasicSc2Bot::CheckRefineries() {
     if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
