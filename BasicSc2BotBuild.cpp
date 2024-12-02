@@ -64,7 +64,7 @@ bool BasicSc2Bot::TryBuildSiegeTank() {
 
     if (!techlabs.empty()) {
         for (auto factory : factories) {
-            if (CountNearbySeigeTanks(factory) > n_tanks && factories.size() > 1) {
+            if (CountNearbySeigeTanks(factory) > N_TANKS && factories.size() > 1) {
                 continue;
             }
 
@@ -117,7 +117,7 @@ bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
 
     // sc2::Units units = observation->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB));
     bool build = false;
-    if (CountNearbySeigeTanks(factory) <= n_tanks) {
+    if (CountNearbySeigeTanks(factory) <= N_TANKS) {
         build = true;
         Actions()->UnitCommand(factory, sc2::ABILITY_ID::TRAIN_SIEGETANK);
     }

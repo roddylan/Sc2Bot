@@ -117,7 +117,7 @@ public:
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
 	
-	const size_t n_tanks = 3;
+	const size_t N_TANKS = 3;
 	const size_t n_bases = 3;
 	const size_t n_medivacs = 2;
 	// TODO: increase to 22
@@ -125,6 +125,7 @@ private:
 	// const size_t n_workers = 20; // workers per base goal amnt
 	const size_t n_missile = 3; // no. missile turrets per base
 	const size_t n_mules = 2; // goal no. mules per base
+	const size_t n_marines = 8; // expansion amnt per base
 	const size_t N_MARINE = 25; // per base
 	const size_t MAX_MARINE = 40; // per base
 	const size_t N_MARAUDERS = 5; // per base
