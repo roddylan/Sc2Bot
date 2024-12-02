@@ -659,7 +659,7 @@ void BasicSc2Bot::OnGameEnd() {
     
     // OUTPUT RESULT DETAILS
     
-    std::cout << "\n------------------------ GAME RESULTS -----------------------\n\n";
+    std::cout << "\n------------------------ GAME RESULTS -----------------------\n";
 
     uint32_t pid = obs->GetPlayerID();
     
@@ -691,6 +691,7 @@ void BasicSc2Bot::OnGameEnd() {
         } else {
             std::cout << "Player [ENEMY] (" << result.player_id << ") | " << player_result << std::endl;
         }
+        std::cout << "\n";
 
     }
     /*
