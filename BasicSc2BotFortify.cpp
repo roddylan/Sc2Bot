@@ -157,10 +157,8 @@ void BasicSc2Bot::Wall() {
         // go to next depot if walled up
         if (wall) {
             continue;
-        }
-
-        // dont need to wall but depot is raised -> lower it
-        if (depot->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) {
+        } else if (depot->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT) {
+            // dont need to wall but depot is raised -> lower it
             act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         }
     }
