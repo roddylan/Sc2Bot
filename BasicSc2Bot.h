@@ -108,12 +108,12 @@ public:
 	void SendSquad();
 	void LaunchAttack();
 	
-	sc2::Point2D last_death_location;
+	static sc2::Point2D last_death_location;
 	void BuildArmy(); // handle army build
 
 	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
-	bool scout_died;
+	static bool scout_died;
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
 private:
 	
