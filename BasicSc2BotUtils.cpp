@@ -370,7 +370,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                     // Stop searching if we cannot find a point before threshold -> use old way
                     if (direction_changes > 4) {
                         new_point = sc2::Point2D(0, 0); 
-                        break;
+                        return new_point;
                     }
                 }
             }

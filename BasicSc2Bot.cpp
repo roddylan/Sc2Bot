@@ -494,18 +494,20 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignEngineeringBayAction(*unit);
         break;
     }
-    case sc2::UNIT_TYPEID::TERRAN_MARINE: {
+         
+    //case sc2::UNIT_TYPEID::TERRAN_MARINE: {
         // if the bunkers are full
 
-        if (!LoadBunker(unit)) {
-            const sc2::GameInfo& game_info = Observation()->GetGameInfo();
+       // if (!LoadBunker(unit)) {
+         //   const sc2::GameInfo& game_info = Observation()->GetGameInfo();
             /*Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
                 , game_info.enemy_start_locations.front(), true);*/
             // std::cout << "sent";
-        }
+      //  }
 
-        break;
-    }
+     //   break;
+  // }
+
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         UpgradeFactoryTechLab(unit);
         // AssignFactoryAction(unit);

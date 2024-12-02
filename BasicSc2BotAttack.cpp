@@ -216,6 +216,8 @@ void BasicSc2Bot::SendSquad() {
             location = *enemy_starting_location;
             // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
         }
+        Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, location);
+        /*
         // prevent units from leaving something they're already attacking
         for (const auto &unit : squad) {
             if (!unit->orders.empty()) {
@@ -230,6 +232,7 @@ void BasicSc2Bot::SendSquad() {
             }
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
         }
+        */
         
         // Update last send time
         last_send_time = current_time;
