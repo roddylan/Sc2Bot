@@ -64,7 +64,7 @@ void BasicSc2Bot::SendSquadProtoss() {
         // Get enemy start location closest to last death location to prevent from sending to empty location
         float min_distance = std::numeric_limits<float>::max();
         for (const auto& start_location : enemy_locations) {
-            float distance = sc2::Distance2D(start_location, last_death_location);
+            float distance = sc2::Distance2D(start_location, BasicSc2Bot::last_death_location);
             if (distance < min_distance) {
                 min_distance = distance;
                 closest_start_location = start_location;
@@ -176,7 +176,7 @@ void BasicSc2Bot::SendSquad() {
         // Get enemy start location closest to last death location to prevent from sending to empty location
         float min_distance = std::numeric_limits<float>::max();
         for (const auto& start_location : enemy_locations) {
-            float distance = sc2::Distance2D(start_location, last_death_location);
+            float distance = sc2::Distance2D(start_location, BasicSc2Bot::last_death_location);
             if (distance < min_distance) {
                 min_distance = distance;
                 closest_start_location = start_location;
