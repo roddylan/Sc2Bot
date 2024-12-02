@@ -914,16 +914,7 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         // get destructible rocks
         neutral = obs->GetUnits(sc2::Unit::Alliance::Neutral, [](const sc2::Unit &unit) {
             // check for rocks
-            if (
-                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DEBRISRAMPLEFT ||
-                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DEBRISRAMPRIGHT ||
-                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLECITYDEBRIS6X6 ||
-                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRIS6X6 ||
-                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEBLUR ||
-                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEDEBRISRAMPDIAGONALHUGEULBR ||
-                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCK6X6 ||
-                unit.unit_type == sc2::UNIT_TYPEID::NEUTRAL_DESTRUCTIBLEROCKEX1DIAGONALHUGEBLUR
-            ) {
+            if (IsRock(unit.unit_type)) {
                 return true;
             }
             return false;
