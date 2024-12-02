@@ -2,7 +2,6 @@
 // implementation for pure defensive functions (walling chokepoints, etc.)
 
 #include "BasicSc2Bot.h"
-#include "Utilities.h"
 #include "sc2api/sc2_api.h"
 #include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
@@ -99,63 +98,5 @@ void BasicSc2Bot::Retreat(const sc2::Unit *unit, sc2::Point2D location) {
 
     Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
     return;
-
-}
-
-/**
- * @brief Repair base
- * 
- */
-void BasicSc2Bot::RepairBase() {
-    const sc2::ObservationInterface *obs = Observation();
-    sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());;
-    sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
-
-    
-
-}
-
-
-/**
- * @brief Make supply depots walls (rise up) when enemy near
- * 
- */
-
-void BasicSc2Bot::Wall() {
-    // interfaces
-    const sc2::ObservationInterface *obs = Observation();
-    sc2::ActionInterface *act = Actions();
-
-    const sc2::Units supply_depots = obs->GetUnits(
-        sc2::Unit::Alliance::Self, sc2::IsUnits({
-            sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT,
-            sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED
-        })
-    );
-
-    // enemy troops
-    const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, IsArmy(obs));
-
-    for (const auto &depot : supply_depots) {
-        bool wall = false;
-        for (const auto &enemy : enemies) {
-            // dont care about walling flying or dead enemies
-            if (enemy->is_flying || !enemy->is_alive) {
-                continue;
-            }
-            float dist = sc2::Distance2D(enemy->pos, depot->pos);
-            if (dist <= WALL_RANGE) {
-                wall = true;
-                break;
-            }
-        }
-        if (wall) {
-            // raise if wall
-            act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
-        } else {
-            // dont need to wall but depot is raised -> lower it
-            act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
-        }
-    }
 
 }

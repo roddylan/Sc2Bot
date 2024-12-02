@@ -138,15 +138,13 @@ void BasicSc2Bot::OnStep() {
     }
     */
     // SendSquad();
-    // LaunchAttack(); // TODO: fix implementation for final attack logic
+    LaunchAttack(); // TODO: fix implementation for final attack logic
     HandleBuild();
     BuildWorkers();
     RecheckUnitIdle();
 
     CheckScoutStatus();
     AttackIntruders();
-
-    // Wall();
 
     // BuildArmy(); // TODO: use this
     
@@ -171,10 +169,6 @@ void BasicSc2Bot::OnStep() {
         for (const auto &tank : tanks) {
             float min_dist = std::numeric_limits<float>::max();
             for (const auto& enemy : enemies) {
-                // dont care about flying
-                if (enemy->is_flying) {
-                    continue;
-                }
                 float dist = sc2::Distance2D(enemy->pos, tank->pos);
                 if (dist < min_dist) {
                     min_dist = dist;
@@ -313,7 +307,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     {
         BasicSc2Bot::last_death_location.x = unit->pos.x;
         BasicSc2Bot::last_death_location.y = unit->pos.y;
-        // std::cout << "last death location: " << BasicSc2Bot::last_death_location.x << BasicSc2Bot::last_death_location.y << std::endl;
+        std::cout << "last death location: " << BasicSc2Bot::last_death_location.x << BasicSc2Bot::last_death_location.y << std::endl;
     }
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
@@ -499,20 +493,18 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignEngineeringBayAction(*unit);
         break;
     }
-         
-    //case sc2::UNIT_TYPEID::TERRAN_MARINE: {
+    case sc2::UNIT_TYPEID::TERRAN_MARINE: {
         // if the bunkers are full
 
-       // if (!LoadBunker(unit)) {
-         //   const sc2::GameInfo& game_info = Observation()->GetGameInfo();
+        if (!LoadBunker(unit)) {
+            const sc2::GameInfo& game_info = Observation()->GetGameInfo();
             /*Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
                 , game_info.enemy_start_locations.front(), true);*/
             // std::cout << "sent";
-      //  }
+        }
 
-     //   break;
-  // }
-
+        break;
+    }
     case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
         UpgradeFactoryTechLab(unit);
         // AssignFactoryAction(unit);
