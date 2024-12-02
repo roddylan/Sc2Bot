@@ -221,16 +221,6 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
         return;
     }
     
-    // train marauder
-    if (mineral_count >= 100 && gas_count >= 100 && CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARAUDER) < N_MARAUDERS) {
-        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::TRAIN_MARAUDER);
-        return;
-    }
-
-    // train marine
-    if (mineral_count >= 50) {
-        Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::TRAIN_MARINE);
-    }
     return;
 }
 /*
