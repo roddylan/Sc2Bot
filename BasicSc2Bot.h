@@ -204,12 +204,20 @@ private:
 
 	void Retreat(const sc2::Unit *unit, const sc2::Point2D location = sc2::Point2D{0, 0});
 
+	void RepairBase();
+
+	void Wall(); // rise supply depots when enemy near
+
 	// bool CheckVisited();
 	bool visited_start;
 
 	bool sent;
 
 	const size_t ATTACK_FOOD = 130;
+
+	const size_t WALL_RANGE = 25;
+	
+	const size_t RANGE_BUFFER = 2;
 };
 
 
