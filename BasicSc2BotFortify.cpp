@@ -139,6 +139,10 @@ void BasicSc2Bot::Wall() {
     for (const auto &depot : supply_depots) {
         bool wall = false;
         for (const auto &enemy : enemies) {
+            // dont care about walling flying or dead enemies
+            if (enemy->is_flying || !enemy->is_alive) {
+                return;
+            }
             float dist = sc2::Distance2D(enemy->pos, depot->pos);
             wall = (dist <= WALL_RANGE);
             // if need to wall and depot is lowered -> raise up wall
