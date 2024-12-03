@@ -147,7 +147,7 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
 
-    // Wall();
+    Wall();
 
     // BuildArmy(); // TODO: use this
     
@@ -469,7 +469,7 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     // }
     case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: {
         // std::cout << "SUPPLY DEPOT IDLE" << std::endl;
-        Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
+        // Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
