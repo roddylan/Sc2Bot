@@ -15,11 +15,19 @@
 #include <sc2lib/sc2_search.h>
 #include <iostream>
 #include <cmath>
+/*
 
+    Enemy filter
+
+*/
 sc2::Filter isEnemy = [](const sc2::Unit& unit) {
     return unit.alliance != sc2::Unit::Alliance::Self; 
 };
+/*
 
+    Checks that a marine is already in a bunker 
+
+*/
 bool InBunker (sc2::Units myUnits, const sc2::Unit* marine) {
     for (auto& bunker : myUnits) {
         for (const auto& passenger : bunker->passengers) {
@@ -31,7 +39,11 @@ bool InBunker (sc2::Units myUnits, const sc2::Unit* marine) {
     }
     return false;
 }
+/*
 
+    Commands a marine to load into a bunker if it is not full
+
+*/
 bool BasicSc2Bot::LoadBunker(const sc2::Unit* marine) {
     sc2::Units myUnits = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
     bool bunkerLoaded = false;
@@ -49,7 +61,11 @@ bool BasicSc2Bot::LoadBunker(const sc2::Unit* marine) {
 
     return bunkerLoaded;
 }
+/*
 
+    Counts how many siege tanks are near given factory and returns the count
+
+*/
 int BasicSc2Bot::CountNearbySeigeTanks(const sc2::Unit* factory) {
     sc2::Units seige_tanks = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
     int count = 0;
@@ -61,15 +77,27 @@ int BasicSc2Bot::CountNearbySeigeTanks(const sc2::Unit* factory) {
     }
     return count;
 }
+/*
 
+    Counts units of type unit_type
+
+*/
 size_t BasicSc2Bot::CountUnitType(sc2::UNIT_TYPEID unit_type) {
     return Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(unit_type)).size();
 }
+/*
 
+    Filters out units that are not scv's
+
+*/
 sc2::Filter scvFilter = [](const sc2::Unit& unit) {
     return unit.unit_type == sc2::UNIT_TYPEID::TERRAN_SCV;
 };
+/*
 
+    Returns mineral patch that is closest to start point
+
+*/
 const sc2::Unit* BasicSc2Bot::FindNearestMineralPatch(const sc2::Point2D& start) {
     sc2::Units units = Observation()->GetUnits(sc2::Unit::Alliance::Neutral);
     float distance = std::numeric_limits<float>::max();
@@ -85,7 +113,11 @@ const sc2::Unit* BasicSc2Bot::FindNearestMineralPatch(const sc2::Point2D& start)
     }
     return target;
 }
+/*
 
+    Returns vespene geyser that is nearest to start point
+
+*/
 const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start) {
     sc2::Units units = Observation()->GetUnits(sc2::Unit::Alliance::Neutral);
     float distance = std::numeric_limits<float>::max();
@@ -101,7 +133,14 @@ const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start
     }
     return target;
 }
-
+/*
+ 
+    Finds the nearest commands center to start
+    @params
+    - not_start_location: if true, it will not return the starting location if it is the nearest command center
+    - start: point where we begin our search
+ 
+*/
 const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location) {
 
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
@@ -128,7 +167,11 @@ const sc2::Point2D BasicSc2Bot::FindNearestCommandCenter(const sc2::Point2D& sta
         return sc2::Point2D(0, 0);
     }
 }
+/*
 
+    Finds nearest refinery to start
+
+*/
 const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
 
     sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
@@ -154,7 +197,11 @@ const sc2::Point2D BasicSc2Bot::FindNearestRefinery(const sc2::Point2D& start) {
 }
 
 
-// checks that marine is nearby atleast size other marines
+/*
+
+    checks that marine is nearby atleast size other marines
+
+*/
 int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& marines) {
     int num_nearby_marines = 0;
     const float distance_threshold_sq = 25.0f;
@@ -173,6 +220,11 @@ int BasicSc2Bot::MarineClusterSize(const sc2::Unit* marine, const sc2::Units& ma
 
     return num_nearby_marines;
 }
+/*
+
+    Finds closest marine whose health is less than max health
+
+*/
 const sc2::Unit* BasicSc2Bot::FindInjuredMarine() {
     const sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
     
@@ -193,6 +245,11 @@ const sc2::Unit* BasicSc2Bot::FindInjuredMarine() {
     }
     return nullptr;
 }
+/*
+
+    Sort Medivacs according to distance from start
+
+*/
 const sc2::Units BasicSc2Bot::SortMedivacsAccordingToDistance(const sc2::Point2D start) {
     sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
     std::sort(medivacs.begin(), medivacs.end(), [&start](const sc2::Unit* unit_a, const sc2::Unit* unit_b) {
@@ -208,15 +265,19 @@ const sc2::Units BasicSc2Bot::SortMedivacsAccordingToDistance(const sc2::Point2D
         });
     return medivacs;
 }
+/*
+
+    Returns 2D point of largest marine clusters location
+
+*/
 const sc2::Point2D BasicSc2Bot::FindLargestMarineCluster(const sc2::Point2D& start, const sc2::Unit& unit) {
     const sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    // Sort medivacs according to distance from starting point
     sc2::Units medivacs = SortMedivacsAccordingToDistance(start);
 
     if (medivacs.empty()) {
         return sc2::Point2D(0, 0);
     }
-
-    // Sort medivacs by distance to the starting point
     
     const sc2::Unit* closest_medivac = nullptr;
     // Get closest medivac that isnt itself (unit)
@@ -370,7 +431,7 @@ sc2::Point2D BasicSc2Bot::FindPlaceablePositionNear(const sc2::Point2D& starting
                     // Stop searching if we cannot find a point before threshold -> use old way
                     if (direction_changes > 4) {
                         new_point = sc2::Point2D(0, 0); 
-                        break;
+                        return new_point;
                     }
                 }
             }
