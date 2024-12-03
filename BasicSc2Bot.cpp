@@ -18,7 +18,13 @@
 #include <cmath>
 #include <string>
 
+// indicates whether the scout has died
 bool BasicSc2Bot::scout_died = false;
+/*
+
+    Game start event
+
+*/
 void BasicSc2Bot::OnGameStart() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::QueryInterface *query = Query();
@@ -31,6 +37,11 @@ void BasicSc2Bot::OnGameStart() {
     sent = false;
 }
 static bool protoss_enemy = false;
+/*
+
+    Game full start event
+
+*/
 void BasicSc2Bot::OnGameFullStart() {
 	// this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
 	// PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
@@ -43,32 +54,33 @@ void BasicSc2Bot::OnGameFullStart() {
         }
         
     }
-    
-
-
-
     return;
 }
 	
 
-
+// last death location of a unit
 sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
-// This is never called
+/*
+
+    Checks that refineries have ideal amount of harvesters at all times 
+
+*/
 void BasicSc2Bot::CheckRefineries() {
+    // Check mineral to gas ratio 
     if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
         return;
     }
-
+    // Get refineries 
     sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
     if (refineries.empty()) {
         return;
     }
-
+    // Check all refineries
     for (const auto& refinery : refineries) {
         if (!refinery || !refinery->is_alive) {
             continue; 
         }
-
+        // Check that refinery has ideal harvesters
         if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
             int scvs_needed = refinery->ideal_harvesters - refinery->assigned_harvesters;
 
@@ -78,10 +90,11 @@ void BasicSc2Bot::CheckRefineries() {
             }
 
             for (const auto& scv : scvs) {
+                // Skip dead scvs
                 if (!scv || !scv->is_alive) {
                     continue; 
                 }
-
+                // Check that scv is harvesting 
                 bool is_harvesting = false;
                 for (const auto& order : scv->orders) {
                     if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
@@ -105,8 +118,11 @@ void BasicSc2Bot::CheckRefineries() {
 
 
 
+/*
 
+    Game loop
 
+*/
 void BasicSc2Bot::OnStep() {
     // HandleBuild(); // TODO: move rest of build inside
     const sc2::ObservationInterface *obs = Observation();
@@ -123,22 +139,9 @@ void BasicSc2Bot::OnStep() {
     sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
         sc2::UNIT_TYPEID::TERRAN_MARINE
     ));
-    
 
-    // SendSquad();
-    // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
-    /*
-    if (protoss_enemy) {
-        SendSquadProtoss();
-        ProtossBuild();
-    }
-    else {
-        
-    }
-    */
-    // SendSquad();
     LaunchAttack(); // TODO: fix implementation for final attack logic
     HandleBuild();
     BuildWorkers();
@@ -146,10 +149,6 @@ void BasicSc2Bot::OnStep() {
 
     CheckScoutStatus();
     AttackIntruders();
-
-    // BuildArmy(); // TODO: use this
-    
-
     LaunchAttack(); // TODO: fix implementation for final attack logic
 
     HandleAttack();
@@ -213,7 +212,11 @@ void BasicSc2Bot::RecheckUnitIdle() {
         OnUnitIdle(unit);
     }
 }
+/*
 
+    Action to take when unit is created
+
+*/
 void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
@@ -280,7 +283,11 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
     }
     
 }
+/*
 
+    Action to take when unit is destoryed
+
+*/
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     static int mineral_fields_destoryed;
 
@@ -393,7 +400,6 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
 
     }
 
-   
     if (unit == this->scout) {
         scout_died = true;
         // the scout was destroyed, so we found the base!
@@ -408,7 +414,11 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         this->visited_start = false;
     }
 }
+/*
 
+    Action to take when unit is idle 
+
+*/
 void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     // TODO: refactor
     sc2::Units barracks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING }));
