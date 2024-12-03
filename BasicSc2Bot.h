@@ -154,6 +154,8 @@ private:
 	const size_t N_ENGG_TOTAL = 1;
 	const size_t N_ARMORY_TOTAL = 1;
 	const size_t N_FUSION_CORE_TOTAL = 1;
+
+	const size_t SKIP_FRAME = 5;
 	
 	
 	// TODO: adjust

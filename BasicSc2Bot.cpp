@@ -112,7 +112,7 @@ void BasicSc2Bot::OnStep() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
     // skip a few frames for speed; avoid duplicate commands
-    int skip_frame = 5;
+    int skip_frame = SKIP_FRAME;
 
     if (obs->GetGameLoop() % skip_frame) {
         return;
@@ -221,6 +221,10 @@ void BasicSc2Bot::RecheckUnitIdle() {
 }
 
 void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
+    const sc2::ObservationInterface* obs = Observation();
+    if (obs->GetGameLoop() % SKIP_FRAME) {
+        return;
+    }
     switch (unit->unit_type.ToType()) {
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
         TryScouting(*unit);
@@ -288,6 +292,10 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 }
 
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
+    const sc2::ObservationInterface* obs = Observation();
+    if (obs->GetGameLoop() % SKIP_FRAME) {
+        return;
+    }
     static int mineral_fields_destoryed;
 
     ++mineral_fields_destoryed;
@@ -416,6 +424,10 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
 }
 
 void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
+    const sc2::ObservationInterface* obs = Observation();
+    if (obs->GetGameLoop() % SKIP_FRAME) {
+        return;
+    }
     // TODO: refactor
     sc2::Units barracks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING }));
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
