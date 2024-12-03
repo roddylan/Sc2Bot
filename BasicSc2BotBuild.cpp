@@ -14,14 +14,13 @@
 #include <iostream>
 #include <cmath>
 
-bool BasicSc2Bot::UpgradeFactoryTechLab(const sc2::Unit* factory) {
-        
-    Actions()->UnitCommand(factory, sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY);
-    
-    return true;
-
-}
-
+/**
+ * @brief Build factory
+ *
+ * @param 
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildFactory() {
     const sc2::ObservationInterface* observation = Observation();
     
@@ -38,7 +37,13 @@ bool BasicSc2Bot::TryBuildFactory() {
     }
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY);
 }
-
+/**
+ * @brief Build siege tank 
+ *
+ * @param 
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildSiegeTank() {
     const sc2::ObservationInterface* observation = Observation();
 
@@ -130,7 +135,13 @@ bool BasicSc2Bot::TryBuildSiegeTank(const sc2::Unit* factory) {
     // }
     return true;
 }
-
+/**
+ * @brief Tries to build a thor
+ *
+ * @param
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildThor() {
     const sc2::ObservationInterface* observation = Observation();
 
@@ -152,7 +163,13 @@ bool BasicSc2Bot::TryBuildThor() {
     }
     return true;
 }
-
+/**
+ * @brief Tries to build a thor given a factory
+ *
+ * @param factory: Unit*
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildThor(const sc2::Unit* factory) {
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Unit *add_on = observation->GetUnit(factory->add_on_tag);
@@ -181,7 +198,13 @@ bool BasicSc2Bot::TryBuildThor(const sc2::Unit* factory) {
     
     return true;
 }
-
+/**
+ * @brief Build bunker
+ *
+ * @param
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildBunker() {
 
     const sc2::ObservationInterface* observation = Observation();
@@ -199,6 +222,13 @@ bool BasicSc2Bot::TryBuildBunker() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BUNKER);
 }
 
+/**
+ * @brief Build barraCKS
+ *
+ * @param
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildBarracks() {
     const sc2::ObservationInterface* observation = Observation();
     int n_depot = CountUnitType(sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT);
@@ -215,7 +245,13 @@ bool BasicSc2Bot::TryBuildBarracks() {
     
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS);
 }
-
+/**
+ * @brief Build supply depot
+ *
+ * @param
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildSupplyDepot() {
     const sc2::ObservationInterface* observation = Observation();
     // Lower + normal supply depots = total # of depots
@@ -252,14 +288,26 @@ bool BasicSc2Bot::TryBuildSupplyDepot() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_SUPPLYDEPOT);
 }
 
-
+/**
+ * @brief Tries to build refinery
+ *
+ * @param
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
 
     return BuildRefinery();
 }
 
-
+/**
+ * @brief Build fusion core
+ *
+ * @param
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildFusionCore() {
     const sc2::ObservationInterface* observation = Observation();
 
@@ -267,7 +315,13 @@ bool BasicSc2Bot::TryBuildFusionCore() {
 }
 
 
-
+/**
+ * @brief Build's refinery
+ *
+ * @param
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::BuildRefinery() {
     const sc2::ObservationInterface* observation = Observation();
     const sc2::Unit* unit_to_build = GetGatheringScv();
@@ -281,7 +335,14 @@ bool BasicSc2Bot::BuildRefinery() {
 
     return true;
 }
-
+/*
+ * @brief Build's structure
+ *
+ * @param ability_type_for_strucure: ABILITY_ID
+ * @param unit_type: UNIT_TYPEID
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::UNIT_TYPEID unit_type) {
     const sc2::ObservationInterface* observation = Observation();
 
@@ -351,7 +412,16 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
 
     return true;
 }
-
+/*
+ * @brief Build's structure
+ *
+ * @param ability_type_for_strucure: ABILITY_ID
+ * @param unit_type: UNIT_TYPEID
+ * @param location: Point2D
+ * @param expansion_starting_point: Point2D
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, sc2::Point2D location, sc2::Point2D expansion_starting_point) {
     const sc2::ObservationInterface *obs = Observation();
     sc2::Units workers = obs->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
@@ -403,7 +473,13 @@ bool BasicSc2Bot::TryBuildStructure(sc2::ABILITY_ID ability_type_for_structure, 
     */
     return true;
 }
-
+/*
+ * @brief Build's missile turret
+ *
+ * @param 
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildMissileTurret() {
     // TODO: make it so it only builds missiles around each expansion and not favour the first one
     const sc2::ObservationInterface* observation = Observation();
@@ -425,13 +501,22 @@ bool BasicSc2Bot::TryBuildMissileTurret() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_MISSILETURRET);
 
 }
+/*
+ * @brief Build's armory
+ *
+ * @param
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildArmory() {
     return TryBuildStructure(sc2::ABILITY_ID::BUILD_ARMORY);
 }
 
-/**
- * @brief Handle unit upgrades
- * 
+/*
+ * @brief Handles upgrades
+ *
+ * @param
+ * @return void
  */
 void BasicSc2Bot::HandleUpgrades() {
     const sc2::ObservationInterface *obs = Observation();
@@ -440,6 +525,112 @@ void BasicSc2Bot::HandleUpgrades() {
 
     // get no. of bases
     size_t base_count = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall()).size();
+}
+
+/*
+ * @brief Handles building another command center
+ *
+ * @param resources_depleted: bool
+ * @return true
+ * @return false
+ */
+bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
+    const sc2::ObservationInterface* obs = Observation();
+    sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
+    sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self,
+        sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+    sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self,
+        sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+
+    size_t n_bases = bases.size();
+    size_t n_siege_tanks = siege_tanks.size();
+    size_t n_marines = marines.size();
+
+    /*
+    if (!(obs->GetFoodWorkers() >= n_workers * bases.size() &&
+        CountUnitType(sc2::UNIT_TYPEID::TERRAN_MARINE) >= n_marines * bases.size() &&
+        CountUnitType(sc2::UNIT_TYPEID::TERRAN_SIEGETANK) >= bases.size())) {
+        return false;
+    }
+    */
+    // TODO: change limit
+    if (resources_depleted) {
+        goto expand;
+    }
+    // TODO: change siege tank req
+    // if (n_bases > 0 && n_siege_tanks < (n_bases * 1 + 1) && n_marines >= this->n_marines * n_bases) {
+    // if (n_bases > 0 && (n_siege_tanks < (n_bases * this->n_tanks) || n_marines < this->n_marines * n_bases)) {
+    // if (n_bases > 0 && (n_siege_tanks < (n_bases * 1 + 1) || n_marines < this->n_marines * n_bases)) {
+    if (n_bases > 0 && (n_marines < this->n_marines * n_bases)) {
+        // only expand when enough units to defend base + protect expansion
+        return false;
+    }
+    // std::cout << "n_siege_tanks=" << n_siege_tanks;
+    // if (n_bases > 1 && n_marines >= this->n_marines * n_bases) {
+    //     // only expand when enough units to defend base + protect expansion
+    //     return false;
+    // }
+
+    if (bases.size() > 4) {
+        return false;
+    }
+    if (obs->GetMinerals() < std::min<size_t>(bases.size() * 600, 1800)) {
+        return false;
+    }
+expand:
+    int64_t game_loop = Observation()->GetGameLoop();
+
+
+    const int64_t ten_minutes_in_loops = 13440;
+    // if less than 10 min mark dont create more than 3 bases
+    if (game_loop < ten_minutes_in_loops && bases.size() > 1) {
+        return false;
+    }
+    const int64_t twenty_minutes_in_loops = 26880;
+    if (game_loop < twenty_minutes_in_loops && bases.size() > 3) {
+        return false;
+    }
+    const int64_t twenty_five_minutes_in_loops = 33600;
+    if (game_loop < twenty_five_minutes_in_loops && bases.size() > 4) {
+        return false;
+    }
+
+    const int64_t thirty_minutes_in_loops = 40320;
+    if (game_loop < thirty_minutes_in_loops && bases.size() > 5) {
+        return false;
+    }
+    float min_dist = std::numeric_limits<float>::max();
+    sc2::Point3D closest_expansion(0, 0, 0);
+
+    for (const auto& exp : expansion_locations) {
+        float cur_dist = sc2::Distance2D(sc2::Point2D(start_location), sc2::Point2D(exp.x, exp.y));
+        if (cur_dist < min_dist) {
+            sc2::Point2D nearest_command_center = FindNearestCommandCenter(sc2::Point2D(exp.x, exp.y));
+            if (nearest_command_center == sc2::Point2D(0, 0)) {
+                continue;
+            }
+
+            float dist_to_base = sc2::Distance2D(nearest_command_center, sc2::Point2D(exp.x, exp.y));
+
+
+            if (Query()->Placement(sc2::ABILITY_ID::BUILD_COMMANDCENTER, exp) && dist_to_base > 1.0f) {
+                min_dist = cur_dist;
+                closest_expansion = exp;
+            }
+        }
+    }
+
+    if (closest_expansion != sc2::Point3D(0, 0, 0)) {
+        sc2::Point2D expansion_location(closest_expansion.x, closest_expansion.y);
+        sc2::Point2D p(0, 0);
+
+        if (TryBuildStructure(sc2::ABILITY_ID::BUILD_COMMANDCENTER, p, expansion_location)) {
+            base_location = closest_expansion; // set base to closest expansion
+            // std::cout << "EXPANSION TIME BABY\n\n";
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -929,7 +1120,14 @@ void BasicSc2Bot::ProtossBuild() {
 
 }
 
-
+/*
+ * @brief Tries to build add-on
+ *
+ * @param ability_type_for_structure: ABILITY_ID
+ * @param base_structure: Tag
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure) {
     // TODO: finish
     return false;
