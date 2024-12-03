@@ -258,12 +258,14 @@ bool BasicSc2Bot::AttackIntruders() {
     last_frame_checked = current_frame;
     const sc2::Units &enemy_units = observation->GetUnits(sc2::Unit::Alliance::Enemy);
     
+    /*
     for (const sc2::Unit *target : enemy_units) {
         sc2::Units myUnits = Observation()->GetUnits(sc2::Unit::Alliance::Self, IsUnit(sc2::UNIT_TYPEID::TERRAN_BUNKER));
         for (auto myUnit : myUnits) {
             Actions()->UnitCommand(myUnit, sc2::ABILITY_ID::BUNKERATTACK, target);
         }
     }
+    */
 
     /*
     * Attack enemy units that are near the base

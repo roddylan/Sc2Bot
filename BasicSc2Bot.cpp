@@ -534,94 +534,94 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
  * @param shields The change in shields (damage is positive)
  */
 void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shields) {
-    const sc2::ObservationInterface *obs = Observation();
-    sc2::ActionInterface *acts = Actions();
+    //const sc2::ObservationInterface *obs = Observation();
+    //sc2::ActionInterface *acts = Actions();
 
-    // filter for buildings
-    // TODO: add rest of buildings
-    if (!(unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ARMORY ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB
-    )) {
-        return;
-    }
+    //// filter for buildings
+    //// TODO: add rest of buildings
+    //if (!(unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ARMORY ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
+    //      unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB
+    //)) {
+    //    return;
+    //}
 
    
-    const sc2::Units allies = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
-        sc2::UNIT_TYPEID::TERRAN_MARINE,
-        sc2::UNIT_TYPEID::TERRAN_MARAUDER,
-        sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
-        sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED,
-        sc2::UNIT_TYPEID::TERRAN_THOR,
-        sc2::UNIT_TYPEID::TERRAN_CYCLONE,
-        sc2::UNIT_TYPEID::TERRAN_CYCLONE,
-    }));
+    //const sc2::Units allies = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    //    sc2::UNIT_TYPEID::TERRAN_MARINE,
+    //    sc2::UNIT_TYPEID::TERRAN_MARAUDER,
+    //    sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
+    //    sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED,
+    //    sc2::UNIT_TYPEID::TERRAN_THOR,
+    //    sc2::UNIT_TYPEID::TERRAN_CYCLONE,
+    //    sc2::UNIT_TYPEID::TERRAN_CYCLONE,
+    //}));
 
-    // orbital commands
-    const sc2::Units orbitals = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
-        sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND,
-        sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING
-    }));
+    //// orbital commands
+    //const sc2::Units orbitals = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
+    //    sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND,
+    //    sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING
+    //}));
 
-    // supply depot -> try to do supplies calldown to heal depot
-    // TODO: add condition
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
-        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) {
-        for (const auto &orbital : orbitals) {
-            // TODO: orbital command probably never has enough energy, handle this
-            if (orbital->energy >= 50) {
-                acts->UnitCommand(orbital, sc2::ABILITY_ID::EFFECT_SUPPLYDROP, unit, false);
-            }
-        }
-    }
-    
-    // const sc2::Point2D base_pos = FindNearestCommandCenter(unit->pos);
-    
-    // radius around structure
-    const float rad = 20;
+    //// supply depot -> try to do supplies calldown to heal depot
+    //// TODO: add condition
+    //if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
+    //    unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) {
+    //    for (const auto &orbital : orbitals) {
+    //        // TODO: orbital command probably never has enough energy, handle this
+    //        if (orbital->energy >= 50) {
+    //            acts->UnitCommand(orbital, sc2::ABILITY_ID::EFFECT_SUPPLYDROP, unit, false);
+    //        }
+    //    }
+    //}
+    //
+    //// const sc2::Point2D base_pos = FindNearestCommandCenter(unit->pos);
+    //
+    //// radius around structure
+    //const float rad = 20;
 
-    const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
+    //const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
 
-    // count friendlies and enemies
-    size_t n_friendly{};
-    size_t n_enemy{};
-    
-    for (const auto &ally : allies){
-        if (sc2::Distance2D(ally->pos, unit->pos) < rad) {
-            ++n_friendly;
-        }
-    }
+    //// count friendlies and enemies
+    //size_t n_friendly{};
+    //size_t n_enemy{};
+    //
+    //for (const auto &ally : allies){
+    //    if (sc2::Distance2D(ally->pos, unit->pos) < rad) {
+    //        ++n_friendly;
+    //    }
+    //}
 
-    for (const auto &enemy : enemies){
-        if (sc2::Distance2D(enemy->pos, unit->pos) < rad) {
-            ++n_enemy;
-        }
-    }
+    //for (const auto &enemy : enemies){
+    //    if (sc2::Distance2D(enemy->pos, unit->pos) < rad) {
+    //        ++n_enemy;
+    //    }
+    //}
 
-    // no point in repairing, will probably die
-    if (n_friendly < N_REPAIR_RATIO * n_enemy) {
-        return;
-    }
+    //// no point in repairing, will probably die
+    //if (n_friendly < N_REPAIR_RATIO * n_enemy) {
+    //    return;
+    //}
 
-    // get nearby unit to repair
-    const sc2::Unit *scv = FindNearestWorker(unit->pos, true);
-    if (scv == nullptr) {
-        scv = FindNearestWorker(unit->pos, true, true);
-    }
+    //// get nearby unit to repair
+    //const sc2::Unit *scv = FindNearestWorker(unit->pos, true);
+    //if (scv == nullptr) {
+    //    scv = FindNearestWorker(unit->pos, true, true);
+    //}
 
 
 
