@@ -481,8 +481,8 @@ void BasicSc2Bot::HandleBuild() {
 
 
     // current counts
-    uint32_t n_minerals = obs->GetMinerals();
-    uint32_t n_gas = obs->GetMinerals();
+    // uint32_t n_minerals = obs->GetMinerals();
+    //uint32_t n_gas = obs->GetVespene();
 
     // goal amnts
     // TODO: change target amounts
@@ -508,7 +508,7 @@ void BasicSc2Bot::HandleBuild() {
 
     // build factory
     if (!barracks.empty() && factory.size() < (n_factory_target * bases.size())) {
-        if (n_minerals > FACTORY_MINERAL_COST && n_gas > FACTORY_GAS_COST && n_minerals - FACTORY_MINERAL_COST >= 400) {
+        if (obs->GetMinerals() > FACTORY_MINERAL_COST && obs->GetVespene() > FACTORY_GAS_COST && obs->GetMinerals() - FACTORY_MINERAL_COST >= 400) {
             //std::cout << "building factory\n\n";
             TryBuildFactory();
         }
@@ -559,7 +559,7 @@ void BasicSc2Bot::HandleBuild() {
     }
     // build a starport
     if (factory.size() > 0 && starports.size() < n_starports_target * bases.size()) {
-        if (n_minerals >= STARPORT_COST && n_gas >= STARPORT_GAS_COST) {
+        if (obs->GetMinerals() >= STARPORT_COST && obs->GetVespene() >= STARPORT_GAS_COST) {
             TryBuildStructure(sc2::ABILITY_ID::BUILD_STARPORT);
         }
     }
@@ -573,7 +573,7 @@ void BasicSc2Bot::HandleBuild() {
         **PHASE ONE DONE**
         
     */
-    if (armorys.size() < n_armory_target && n_minerals >= ARMORY_MINERAL_COST && n_gas >= ARMORY_GAS_COST) {
+    if (armorys.size() < n_armory_target && obs->GetMinerals() >= ARMORY_MINERAL_COST && obs->GetVespene() >= ARMORY_GAS_COST) {
         TryBuildArmory();
     }
     if (starports.size() > 0) {
@@ -606,7 +606,7 @@ void BasicSc2Bot::HandleBuild() {
     }
     */
     //if (!has_infantry_weapons_1) return;
-    if (n_minerals >= 400 && bases.size() <= 1) {
+    if (obs->GetMinerals() >= 400 && bases.size() <= 1) {
         HandleExpansion(false);
     }
     /*
@@ -661,7 +661,7 @@ void BasicSc2Bot::HandleBuild() {
     // TODO: improve count
     // Only need 2 engineering bays
     if (engg_bays.size() < n_engg_target) {
-        if (n_minerals > 150 && n_gas > 100) {
+        if (obs->GetMinerals() > 150 && obs->GetVespene() > 100) {
             //std::cout << "building engg bay\n\n";
             TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY);
         }
@@ -723,7 +723,7 @@ void BasicSc2Bot::ProtossBuild() {
 
     // current counts
     uint32_t n_minerals = obs->GetMinerals();
-    uint32_t n_gas = obs->GetMinerals();
+    uint32_t n_gas = obs->GetVespene();
 
     // goal amnts
     // TODO: change target amounts

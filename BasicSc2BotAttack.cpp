@@ -314,6 +314,10 @@ bool BasicSc2Bot::AttackIntruders() {
 
 bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
     const sc2::ObservationInterface* obs = Observation();
+    // cant afford
+    if (obs->GetMinerals() < 400) {
+        return false;
+    }
     sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     sc2::Units siege_tanks = obs->GetUnits(sc2::Unit::Alliance::Self, 
         sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
@@ -356,6 +360,7 @@ bool BasicSc2Bot::HandleExpansion(bool resources_depleted) {
         return false;
     }
 expand:
+    
     int64_t game_loop = Observation()->GetGameLoop();
 
     
