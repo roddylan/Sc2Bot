@@ -709,7 +709,10 @@ void BasicSc2Bot::LaunchAttack() {
                     continue;
                 }
             }
-            act->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+            if (enemies.front()->is_alive) {
+                act->UnitCommand(unit, sc2::ABILITY_ID::ATTACK, enemies.front()->pos);
+            }
+            
         }
     }
 

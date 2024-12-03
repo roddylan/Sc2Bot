@@ -91,7 +91,7 @@ const sc2::Unit* BasicSc2Bot::FindNearestVespeneGeyser(const sc2::Point2D& start
     float distance = std::numeric_limits<float>::max();
     const sc2::Unit* target = nullptr;
     for (const auto& u : units) {
-        if (u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_VESPENEGEYSER) {
+        if (u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_VESPENEGEYSER || u->unit_type == sc2::UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER) {
             float d = sc2::DistanceSquared2D(u->pos, start);
             if (d < distance) {
                 distance = d;
