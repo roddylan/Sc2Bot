@@ -6,12 +6,21 @@
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
+
+/*
+ * @brief Upgrades starport techlab
+ *
+ * @param starport: Unit&
+ * @return true
+ * @return false
+ */
 bool BasicSc2Bot::UpgradeStarportTechlab(const sc2::Unit &starport) {
     Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
     return true;
 }
-/*
- * Picks unit for the barrack to train and instructs it to train it
+/**
+ * @brief Picks unit for the barrack to train and instructs it to train it
+ * @param barrack: Unit*
  */
 void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
     // dont do anything if busy
@@ -96,8 +105,10 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
 }
 
 /*
-* Assigns an action to the engineering bay
-*/
+ * @brief Assigns an action to the engineering bay
+ *
+ * @param engineering_bay: Unit&
+ */
 void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
     const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
     const uint32_t minerals = Observation()->GetMinerals();
@@ -123,8 +134,11 @@ void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
 }
 
 /*
-* Assigns an action to the armory 
-*/
+ * @brief Assigns an action to the armory
+ *
+ * @param armory: Unit*
+ * 
+ */
 void BasicSc2Bot::AssignArmoryAction(const sc2::Unit *armory) {
     const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
     const bool has_vehicle_weapons_1 = std::find(upgrades.begin(), upgrades.end(), sc2::UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL1) != upgrades.end();
@@ -153,9 +167,13 @@ void BasicSc2Bot::AssignArmoryAction(const sc2::Unit *armory) {
     }
     
 }
+
 /*
-* Make sure the starport tech lab is researching things
-*/
+ * @brief Assigns an action starport techlab
+ *
+ * @param tech_lab: Unit*
+ *
+ */
 void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit *tech_lab) {
     const sc2::ObservationInterface* observation = Observation();
     const std::vector<sc2::UpgradeID>& upgrades = observation->GetUpgrades();
@@ -178,8 +196,11 @@ void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit *tech_lab) {
     }
 }
 /*
-* Make sure the barrack tech lab is researching things
-*/
+ * @brief Assigns an action barracks techlab
+ *
+ * @param tech_lab: Unit&
+ *
+ */
 void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     const sc2::ObservationInterface* observation = Observation();
     const std::vector<sc2::UpgradeID>& upgrades = observation->GetUpgrades();
@@ -232,9 +253,13 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     }
     return;
 }
+
 /*
-* Make sure the factory tech lab is researching things
-*/
+ * @brief Assigns an action to factory techlab
+ *
+ * @param tech_lab: Unit&
+ *
+ */
 void BasicSc2Bot::AssignFactoryTechlabAction(const sc2::Unit& tech_lab) {
     if(Observation()->GetMinerals() - 100 > 400) Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_SMARTSERVOS);
     
@@ -243,8 +268,11 @@ void BasicSc2Bot::AssignFactoryTechlabAction(const sc2::Unit& tech_lab) {
 }
 
 /*
-* Gives the Fusion Core an action
-*/
+ * @brief Assigns an action to fusion core
+ *
+ * @param fusion_core: Unit*
+ *
+ */
 void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit *fusion_core) {
     const sc2::ObservationInterface* observation = Observation();
     const uint32_t& minerals = observation->GetMinerals();

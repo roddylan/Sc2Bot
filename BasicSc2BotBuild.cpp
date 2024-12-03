@@ -15,6 +15,20 @@
 #include <cmath>
 
 /**
+ * @brief Build factory techlab
+ *
+ * @param factory: Unit*
+ * @return true
+ * @return false
+ */
+bool BasicSc2Bot::UpgradeFactoryTechLab(const sc2::Unit* factory) {
+
+    Actions()->UnitCommand(factory, sc2::ABILITY_ID::BUILD_TECHLAB_FACTORY);
+
+    return true;
+
+}
+/**
  * @brief Build factory
  *
  * @param 
