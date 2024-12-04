@@ -529,7 +529,7 @@ void BasicSc2Bot::HandleBuild() {
 
             //std::cout << "inseting pos: " << base->pos.x << " " << base->pos.y << " " << base->pos.z << std::endl;
             if (obs->GetMinerals() - 150 >= 400) {
-                if (orbital_commands.size() >= (bases.size() / 3)) {
+                if (orbital_commands.size() > bases.size() / 3) {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::MORPH_PLANETARYFORTRESS);
                 }
                 else {
