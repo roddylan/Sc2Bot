@@ -6,10 +6,11 @@
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
-/*
- * @brief Picks unit for the barrack to train and instructs it to train it
- *
- * @param barrack
+
+/**
+ * @brief Assign actions to barrack (build unit, upgrade)
+ * 
+ * @param barrack 
  */
 void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
     // Dont do anything if busy
@@ -95,10 +96,10 @@ void BasicSc2Bot::AssignBarrackAction(const sc2::Unit *barrack) {
     }
 }
 
-/*
- * @brief Assigns an action to the engineering bay
- *
- * @param engineering_bay
+/**
+ * @brief Assign action to engg bay
+ * 
+ * @param engineering_bay 
  */
 void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
     const std::vector<sc2::UpgradeID>& upgrades = Observation()->GetUpgrades();
@@ -124,10 +125,10 @@ void BasicSc2Bot::AssignEngineeringBayAction(const sc2::Unit& engineering_bay) {
     }
 }
 
-/*
+/**
  * @brief Assigns an action to the armory
- *
- * @param armory
+ * 
+ * @param armory 
  */
 void BasicSc2Bot::AssignArmoryAction(const sc2::Unit *armory) {
     // Get current vehicle weapons upgrades
@@ -159,10 +160,11 @@ void BasicSc2Bot::AssignArmoryAction(const sc2::Unit *armory) {
        
     }  
 }
-/*
- * @brief Makes sure the starport's techlab is researching things
- *
- * @param tech_lab
+
+/**
+ * @brief Assign action to starport techlab
+ * 
+ * @param tech_lab 
  */
 void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit *tech_lab) {
     const sc2::ObservationInterface* observation = Observation();
@@ -185,10 +187,11 @@ void BasicSc2Bot::AssignStarportTechLabAction(const sc2::Unit *tech_lab) {
     }
 }
 
-/*
- * @brief Makes sure the starport's techlab is researching things
- *
- * @param tech_lab
+
+/**
+ * @brief Assign action to barrack techlab
+ * 
+ * @param tech_lab 
  */
 void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     const sc2::ObservationInterface* observation = Observation();
@@ -232,20 +235,20 @@ void BasicSc2Bot::AssignBarrackTechLabAction(const sc2::Unit& tech_lab) {
     return;
 }
 
-/*
- * @brief Makes sure the starport's techlab is researching things
- *
- * @param tech_lab
+/**
+ * @brief Assign action to factory techlab
+ * 
+ * @param tech_lab 
  */
 void BasicSc2Bot::AssignFactoryTechlabAction(const sc2::Unit& tech_lab) {
     if(Observation()->GetMinerals() - 100 > 400) Actions()->UnitCommand(&tech_lab, sc2::ABILITY_ID::RESEARCH_SMARTSERVOS);
     return;
 }
 
-/*
- * @brief Gives the fusion core an action
- *
- * @param fusion_core
+/**
+ * @brief Assign action to fusion core
+ * 
+ * @param fusion_core 
  */
 void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit *fusion_core) {
     const sc2::ObservationInterface* observation = Observation();
@@ -260,12 +263,12 @@ void BasicSc2Bot::AssignFusionCoreAction(const sc2::Unit *fusion_core) {
 
     return;
 }
-/*
- * @brief Gives the Starport an action
- *       - builds a reactor if it does not have it
- *       - otherwise, train a medivac (air unit that heals other units)
- *
- * @param tech_lab
+
+
+/**
+ * @brief Assign action to starport
+ * 
+ * @param starport 
  */
 void BasicSc2Bot::AssignStarportAction(const sc2::Unit *starport) {
     // do nothing if starport isnt built or is idle
@@ -277,7 +280,7 @@ void BasicSc2Bot::AssignStarportAction(const sc2::Unit *starport) {
     const uint32_t& minerals = observation->GetMinerals();
     const uint32_t& gas = observation->GetVespene();
     
-    // currently the strategy is to spam medivacs, I'm not sure about the other air units & how good they are
+    // builds a reactor if it does not have it, else build air units
     // if you don't have an addon, build a reactor
     const sc2::Unit* starport_addon = observation->GetUnit(starport->add_on_tag);
     const sc2::Units starport_techlabs = observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB));
