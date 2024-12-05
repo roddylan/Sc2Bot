@@ -4,30 +4,31 @@
 #include "BasicSc2Bot.h"
 #include "Utilities.h"
 #include "sc2api/sc2_api.h"
-#include "sc2api/sc2_unit.h"
 #include "sc2api/sc2_interfaces.h"
+#include "sc2api/sc2_unit.h"
 #include <limits>
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
 
-
 /**
  * @brief Defend area with turret
- * 
- * @param turret 
+ *
+ * @param turret
  */
 void BasicSc2Bot::TurretDefend(const sc2::Unit *turret) {
     const sc2::ObservationInterface *obs = Observation();
     sc2::ActionInterface *acts = Actions();
-    
-    sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit &unit) {
-        // enemy visible
-        bool is_vis = (unit.display_type == sc2::Unit::DisplayType::Visible);
 
-        return is_vis && unit.is_flying;
-    });
+    sc2::Units enemies =
+        obs->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit &unit) {
+            // enemy visible
+            bool is_vis =
+                (unit.display_type == sc2::Unit::DisplayType::Visible);
+
+            return is_vis && unit.is_flying;
+        });
 
     if (enemies.empty()) {
         return;
@@ -53,7 +54,8 @@ void BasicSc2Bot::TurretDefend(const sc2::Unit *turret) {
         }
 
         // danger ratio
-        float ratio = (enemy_health + 1) / (distance + 1); // + 1 to prevent 0 division
+        float ratio =
+            (enemy_health + 1) / (distance + 1); // + 1 to prevent 0 division
 
         if (max_danger < ratio) {
             max_danger = ratio;
@@ -62,20 +64,17 @@ void BasicSc2Bot::TurretDefend(const sc2::Unit *turret) {
     }
 
     if (attack != nullptr) {
-       // std::cout << "TURRET ATTACK\n";
+        // std::cout << "TURRET ATTACK\n";
         // able to attack
         acts->UnitCommand(turret, sc2::ABILITY_ID::ATTACK_ATTACK, attack);
     }
-
-
 }
-
 
 /**
  * @brief Retreat unit to location or nearest base
- * 
- * @param unit 
- * @param location 
+ *
+ * @param unit
+ * @param location
  */
 void BasicSc2Bot::Retreat(const sc2::Unit *unit, sc2::Point2D location) {
     if (location == sc2::Point2D{0, 0}) {
@@ -99,22 +98,20 @@ void BasicSc2Bot::Retreat(const sc2::Unit *unit, sc2::Point2D location) {
 
     Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
     return;
-
 }
 
 /**
  * @brief Repair base
- * 
+ *
  */
 void BasicSc2Bot::RepairBase() {
     const sc2::ObservationInterface *obs = Observation();
-    sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());;
-    sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
-
-    
-
+    sc2::Units bases =
+        obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
+    ;
+    sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self,
+                                    sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
 }
-
 
 /**
  * @brief Make supply depots walls (rise up) when enemy near
@@ -126,14 +123,13 @@ void BasicSc2Bot::Wall() {
     sc2::ActionInterface *act = Actions();
 
     const sc2::Units supply_depots = obs->GetUnits(
-        sc2::Unit::Alliance::Self, sc2::IsUnits({
-            sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT,
-            sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED
-        })
-    );
+        sc2::Unit::Alliance::Self,
+        sc2::IsUnits({sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT,
+                      sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED}));
 
     // Enemy troops
-    const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, IsArmy(obs));
+    const sc2::Units enemies =
+        obs->GetUnits(sc2::Unit::Alliance::Enemy, IsArmy(obs));
 
     for (const auto &depot : supply_depots) {
         bool wall = false;
@@ -156,5 +152,4 @@ void BasicSc2Bot::Wall() {
             act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         }
     }
-
 }
