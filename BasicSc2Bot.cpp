@@ -18,128 +18,44 @@
 #include <cmath>
 #include <string>
 
+// Indicates whether a scout has died
 bool BasicSc2Bot::scout_died = false;
+/*
+ * @brief Gets called on game start
+ */
 void BasicSc2Bot::OnGameStart() {
     const sc2::ObservationInterface *obs = Observation();
     sc2::QueryInterface *query = Query();
     expansion_locations = sc2::search::CalculateExpansionLocations(obs, query);
     start_location = obs->GetStartLocation();
     base_location = start_location;
-    scout = nullptr; // no scout initially
+    scout = nullptr; // No scout initially
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
-    enemy_starting_location = nullptr;  // we use a scout to find this
+    enemy_starting_location = nullptr;  // We use a scout to find this
     sent = false;
 }
-static bool protoss_enemy = false;
-void BasicSc2Bot::OnGameFullStart() {
-	// this->pinchpoints = FindAllPinchPoints(Observation()->GetGameInfo().pathing_grid);
-	// PrintMap(Observation()->GetGameInfo().pathing_grid, pinchpoints);
-    
-    const sc2::GameInfo game_info = Observation()->GetGameInfo();
-    for (const auto& player : game_info.player_info) {
-        if (player.race_actual == sc2::Race::Protoss) {
-            protoss_enemy = true;
-            std::cout << "protoss" << std::endl;
-        }
-        
-    }
-    
 
-
-
-    return;
-}
 	
-
-
+// Last death location of a unit
 sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
-// This is never called
-void BasicSc2Bot::CheckRefineries() {
-    if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
-        return;
-    }
 
-    sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
-    if (refineries.empty()) {
-        return;
-    }
-
-    for (const auto& refinery : refineries) {
-        if (!refinery || !refinery->is_alive) {
-            continue; 
-        }
-
-        if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-            int scvs_needed = refinery->ideal_harvesters - refinery->assigned_harvesters;
-
-            sc2::Units scvs = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
-            if (scvs.empty()) {
-                return;
-            }
-
-            for (const auto& scv : scvs) {
-                if (!scv || !scv->is_alive) {
-                    continue; 
-                }
-
-                bool is_harvesting = false;
-                for (const auto& order : scv->orders) {
-                    if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
-                        is_harvesting = true;
-                        break;
-                    }
-                }
-                if (scvs_needed == 0) {
-                    break;
-                }
-
-                if (scv->orders.empty() || (is_harvesting && (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals()) < 0.6)) {
-                    Actions()->UnitCommand(scv, sc2::ABILITY_ID::HARVEST_GATHER_SCV, refinery);
-                    --scvs_needed;
-                }
-            }
-        }
-    }
-}
-
-
-
-
-
-
+/*
+ * @brief Gets called on every step of the game
+ */
 void BasicSc2Bot::OnStep() {
-    // HandleBuild(); // TODO: move rest of build inside
     const sc2::ObservationInterface *obs = Observation();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
-    // skip a few frames for speed; avoid duplicate commands
+
+    // Skip a few frames for speed; avoid duplicate commands
     int skip_frame = SKIP_FRAME;
 
     if (obs->GetGameLoop() % skip_frame) {
         return;
     }
-    sc2::Units scvs = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
-        sc2::UNIT_TYPEID::TERRAN_SCV
-        ));
-    sc2::Units marines = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(
-        sc2::UNIT_TYPEID::TERRAN_MARINE
-    ));
-    
 
-    // SendSquad();
-    // AssignWorkers();
     // **NOTE** order matters as the amount of minerals we have gets consumed, seige tanks are important to have at each expansion 
     TryBuildSupplyDepot();
-    /*
-    if (protoss_enemy) {
-        SendSquadProtoss();
-        ProtossBuild();
-    }
-    else {
-        
-    }
-    */
-    // SendSquad();
-    LaunchAttack(); // TODO: fix implementation for final attack logic
+    LaunchAttack(); 
     HandleBuild();
     BuildWorkers();
     RecheckUnitIdle();
@@ -147,16 +63,11 @@ void BasicSc2Bot::OnStep() {
     CheckScoutStatus();
     AttackIntruders();
 
-    // Wall();
-
-    // BuildArmy(); // TODO: use this
-    
-
-    LaunchAttack(); // TODO: fix implementation for final attack logic
+    LaunchAttack();
 
     HandleAttack();
 
-    // TODO: temporary, move
+
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
         sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED
@@ -166,13 +77,13 @@ void BasicSc2Bot::OnStep() {
     });
 
 
-    // prevent tanks from getting stuck
+    // Prevent tanks from getting stuck
     const size_t RANGE = 16;
     if (!enemies.empty() && !tanks.empty()) {
         for (const auto &tank : tanks) {
             float min_dist = std::numeric_limits<float>::max();
             for (const auto& enemy : enemies) {
-                // dont care about flying
+                // Dont care about flying
                 if (enemy->is_flying) {
                     continue;
                 }
@@ -181,27 +92,13 @@ void BasicSc2Bot::OnStep() {
                     min_dist = dist;
                 }
             }
+            // If enemies are out of preferred range, unsiege
             if (min_dist > RANGE) {
                 Actions()->UnitCommand(tank, sc2::ABILITY_ID::MORPH_UNSIEGE);
             }
         }
     }
     
-    // if (TryBuildSeigeTank()) {
-    //     return;
-    // }
-    // if (TryBuildMissileTurret()) {
-    //     return;
-    // }
-    /*
-    if (obs->GetMinerals() - 100 >= 400 || current_supply_use < ((1 / 2) * obs->get)) {
-        TryBuildSupplyDepot();
-        return;
-    } 
-    */
-    
-    
-
     return;
 }
 
@@ -220,6 +117,11 @@ void BasicSc2Bot::RecheckUnitIdle() {
     }
 }
 
+/*
+ * @brief Gives instructions to units on the event that they are created
+ *
+ * @param unit
+ */
 void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
     const sc2::ObservationInterface* obs = Observation();
     if (obs->GetGameLoop() % SKIP_FRAME) {
@@ -235,10 +137,15 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
          * For now, lower all supply depots by default
          * In the future, maybe we can take advantage of raising/lowering them to control movement
          */
-        //std::cout << "supply depot created!" << std::endl;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         break;
     }
+
+    /*
+        
+        Send army units to largest marine cluster upon creation
+        
+    */
     case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
         const sc2::Unit* injured_marine = FindInjuredMarine();
         if (injured_marine) {
@@ -271,26 +178,27 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
 
     }
     case sc2::UNIT_TYPEID::TERRAN_THOR: {
-        // TODO: thor should go to choke point when created?
         sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
         if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
         break;
     }
     case sc2::UNIT_TYPEID::TERRAN_MARINE: {
-        // TODO: marine should go to choke point when created
         sc2::Point2D largest_marine_cluster = FindLargestMarineCluster(unit->pos, *unit);
         if (largest_marine_cluster == sc2::Point2D(0, 0)) return;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, largest_marine_cluster);
         break;
     }
-
     default: 
         break;
     }
-    
 }
 
+/*
+ * @brief Decides what to do when a unit is destoryed, often used for defense or expansion
+ *
+ * @param unit
+ */
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     const sc2::ObservationInterface* obs = Observation();
     if (obs->GetGameLoop() % SKIP_FRAME) {
@@ -299,11 +207,10 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     static int mineral_fields_destoryed;
 
     ++mineral_fields_destoryed;
-    // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
+
     if (mineral_fields_destoryed % 10) {
         HandleExpansion(true);
     }
-    // std::cout << "Minerals destroyed" << std::endl;
 
      // save last death location for sending attack
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
@@ -316,7 +223,6 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     {
         BasicSc2Bot::last_death_location.x = unit->pos.x;
         BasicSc2Bot::last_death_location.y = unit->pos.y;
-        // std::cout << "last death location: " << BasicSc2Bot::last_death_location.x << BasicSc2Bot::last_death_location.y << std::endl;
     }
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER
@@ -328,28 +234,10 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV && unit != this->scout) {
 
-        /*
-        for (const auto& marine : marines) {
-            Actions()->UnitCommand(marine, sc2::ABILITY_ID::SMART, unit->pos);
-        }
-        */
         if ((Observation()->GetGameLoop() < 13200 && Distance2D(unit->pos, start_location) > 50.0f)) {
             return;
         }
-        if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
-            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_LIBERATOR
-            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER
-            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARAUDER
-            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SIEGETANK
-            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MARINE
-            || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SCV)
-        {
-            /*
-            if (sc2::Distance2D(unit->pos, start_location) > 70.0f) {
-                return;
-            }
-            */
-        }
+        // Remove units that are father than 70 away
         auto filter_units = [&](sc2::Units& units) {
             units.erase(std::remove_if(units.begin(), units.end(),
                 [&](const sc2::Unit* target_unit) {
@@ -357,7 +245,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
                 }),
                 units.end());
             };
-
+        // Add units to squad
         sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
         filter_units(vikings);
 
@@ -369,16 +257,17 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
 
         sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
         filter_units(banshees);
-
+        // Command to attack
         Actions()->UnitCommand(marines, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         Actions()->UnitCommand(marauders, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         Actions()->UnitCommand(vikings, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
-
+        // Cloak banshees
         for (const auto& banshee : banshees) {
             Actions()->UnitCommand(banshee, sc2::ABILITY_ID::BEHAVIOR_CLOAKON_BANSHEE);
             Actions()->UnitCommand(banshee, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
         }
 
+        // Add units to squad and order to attack
         sc2::Units thors = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
         filter_units(thors);
         Actions()->UnitCommand(thors, sc2::ABILITY_ID::ATTACK_ATTACK, unit->pos);
@@ -398,6 +287,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
         sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
         filter_units(medivacs);
 
+        // Send 2 medivacs
         int sent_medivacs = 0;
         for (const auto& medivac : medivacs) {
             Actions()->UnitCommand(medivac, sc2::ABILITY_ID::SMART, unit->pos);
@@ -407,11 +297,11 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
 
     }
 
-   
+    // If the unit that ws destoryed is the scout that means we found the base
     if (unit == this->scout) {
         scout_died = true;
-        // the scout was destroyed, so we found the base!
         const sc2::GameInfo& info = Observation()->GetGameInfo();
+        // Get nearest base to death location
         sc2::Point2D closest_base_position = info.enemy_start_locations[0];
         for (const sc2::Point2D& position : info.enemy_start_locations) {
             if (sc2::DistanceSquared2D(unit->pos, position) < sc2::DistanceSquared2D(unit->pos, closest_base_position)) {
@@ -423,23 +313,35 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     }
 }
 
+/*
+ * @brief Decides what to do when a unit enters idle state
+ *
+ * @param unit
+ */
 void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     const sc2::ObservationInterface* obs = Observation();
     if (obs->GetGameLoop() % SKIP_FRAME) {
         return;
     }
-    // TODO: refactor
+
     sc2::Units barracks = Observation()->GetUnits(sc2::Unit::Self, sc2::IsUnits({ sc2::UNIT_TYPEID::TERRAN_BARRACKS, sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING }));
     sc2::Units bases = Observation()->GetUnits(sc2::Unit::Self, sc2::IsTownHall());
 
     switch (unit->unit_type.ToType()) {
+
     case sc2::UNIT_TYPEID::TERRAN_SCV: {
+        // Assign scv to gather or scout if still valid
         AssignIdleWorkers(unit);
         if (TryScouting(*unit)) {
             break;
         }
         break;
     }
+    /*
+    
+        Start upgrading
+    
+    */
     case sc2::UNIT_TYPEID::TERRAN_STARPORT: {
         AssignStarportAction(unit);
         break;
@@ -453,6 +355,39 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         AssignArmoryAction(unit);
         break;
     }
+    case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
+        AssignBarrackAction(unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR: {
+        AssignBarrackAction(unit);
+    }
+    case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
+        AssignFusionCoreAction(unit);
+        break;
+
+    }
+    case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
+        AssignBarrackTechLabAction(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY: {
+        AssignEngineeringBayAction(*unit);
+        break;
+    }
+    case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
+        UpgradeFactoryTechLab(unit);
+    }
+
+    case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
+        AssignFactoryTechlabAction(*unit);
+        AssignFactoryAction(unit);
+    }
+    /*
+    
+        Medivacs must either go to injured marine or to largest marine cluster
+
+    */
     case sc2::UNIT_TYPEID::TERRAN_MEDIVAC: {
         int skip_frame = 10;
 
@@ -470,65 +405,11 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
         break;
 
     }
-    case sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND: {
-        // std::cout << "ORBITAL COMMAND\n";
-        //sc2::Agent::Actions()->UnitCommand(unit, sc2::ABILITY_ID::TRAIN_SCV);
-        break;
-    }
-    // case sc2::UNIT_TYPEID::TERRAN_MULE: {
-    //     AssignWorkers(unit);
-    //     break;
-    // }
+    // Lower supply depots
     case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT: {
-        // std::cout << "SUPPLY DEPOT IDLE" << std::endl;
         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         break;
-    }
-    case sc2::UNIT_TYPEID::TERRAN_BARRACKS: {
-        AssignBarrackAction(unit);
-        break;
-    }
-     
-    case sc2::UNIT_TYPEID::TERRAN_FUSIONCORE: {
-        AssignFusionCoreAction(unit);
-        break;
-       
-    }
-                                  
-    case sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR: {
-        AssignBarrackAction(unit);
-    }
-    case sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB: {
-        AssignBarrackTechLabAction(*unit);
-        break;
-    }
-    case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY: {
-        AssignEngineeringBayAction(*unit);
-        break;
-    }
-         
-    //case sc2::UNIT_TYPEID::TERRAN_MARINE: {
-        // if the bunkers are full
-
-       // if (!LoadBunker(unit)) {
-         //   const sc2::GameInfo& game_info = Observation()->GetGameInfo();
-            /*Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK
-                , game_info.enemy_start_locations.front(), true);*/
-            // std::cout << "sent";
-      //  }
-
-     //   break;
-  // }
-
-    case sc2::UNIT_TYPEID::TERRAN_FACTORY: {
-        UpgradeFactoryTechLab(unit);
-        // AssignFactoryAction(unit);
-    }
-
-    case sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB: {
-        AssignFactoryTechlabAction(*unit);
-        AssignFactoryAction(unit); // TODO: techlab should only be upgrading (not the actual factory)
-    }
+    }                      
     case sc2::UNIT_TYPEID::TERRAN_MISSILETURRET: {
         TurretDefend(unit);
     }
@@ -538,108 +419,6 @@ void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     }
 }
 
-/**
- * @brief Called when the unit in the current observation has lower health or shields than in the previous observation.
- * 
- * @param unit The damaged unit.
- * @param health The change in health (damage is positive)
- * @param shields The change in shields (damage is positive)
- */
-void BasicSc2Bot::OnUnitDamaged(const sc2::Unit *unit, float health, float shields) {
-    /*
-    const sc2::ObservationInterface* obs = Observation();
-    sc2::ActionInterface *acts = Actions();
-
-    // filter for buildings
-    // TODO: add rest of buildings
-    if (!(unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ARMORY ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKS ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSFLYING ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSREACTOR ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BARRACKSTECHLAB ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORY ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYFLYING ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYREACTOR ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_FACTORYTECHLAB ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORT ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTFLYING ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTREACTOR ||
-          unit->unit_type == sc2::UNIT_TYPEID::TERRAN_STARPORTTECHLAB
-    )) {
-        return;
-    }
-
-   
-    const sc2::Units allies = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
-        sc2::UNIT_TYPEID::TERRAN_MARINE,
-        sc2::UNIT_TYPEID::TERRAN_MARAUDER,
-        sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
-        sc2::UNIT_TYPEID::TERRAN_SIEGETANKSIEGED,
-        sc2::UNIT_TYPEID::TERRAN_THOR,
-        sc2::UNIT_TYPEID::TERRAN_CYCLONE,
-        sc2::UNIT_TYPEID::TERRAN_CYCLONE,
-    }));
-
-    // orbital commands
-    const sc2::Units orbitals = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
-        sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND,
-        sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING
-    }));
-
-    // supply depot -> try to do supplies calldown to heal depot
-    // TODO: add condition
-    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT ||
-        unit->unit_type == sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOTLOWERED) {
-        for (const auto &orbital : orbitals) {
-            // TODO: orbital command probably never has enough energy, handle this
-            if (orbital->energy >= 50) {
-                acts->UnitCommand(orbital, sc2::ABILITY_ID::EFFECT_SUPPLYDROP, unit, false);
-            }
-        }
-    }
-    
-    // const sc2::Point2D base_pos = FindNearestCommandCenter(unit->pos);
-    
-    // radius around structure
-    const float rad = 20;
-
-    const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy);
-
-    // count friendlies and enemies
-    size_t n_friendly{};
-    size_t n_enemy{};
-    
-    for (const auto &ally : allies){
-        if (sc2::Distance2D(ally->pos, unit->pos) < rad) {
-            ++n_friendly;
-        }
-    }
-
-    for (const auto &enemy : enemies){
-        if (sc2::Distance2D(enemy->pos, unit->pos) < rad) {
-            ++n_enemy;
-        }
-    }
-
-    // no point in repairing, will probably die
-    if (n_friendly < N_REPAIR_RATIO * n_enemy) {
-        return;
-    }
-
-    // get nearby unit to repair
-    const sc2::Unit *scv = FindNearestWorker(unit->pos, true);
-    if (scv == nullptr) {
-        scv = FindNearestWorker(unit->pos, true, true);
-    }
-    */
-
-
-
-}
 
 /**
  * @brief Game end
@@ -713,6 +492,5 @@ void BasicSc2Bot::OnGameEnd() {
     ------------------------ GAME RESULTS -----------------------
     -------------------------------------------------------------
     */
-
 
 }
