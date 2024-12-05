@@ -118,11 +118,10 @@ void BasicSc2Bot::RepairBase() {
 
 /**
  * @brief Make supply depots walls (rise up) when enemy near
- * 
  */
 
 void BasicSc2Bot::Wall() {
-    // interfaces
+    // Interfaces
     const sc2::ObservationInterface *obs = Observation();
     sc2::ActionInterface *act = Actions();
 
@@ -133,7 +132,7 @@ void BasicSc2Bot::Wall() {
         })
     );
 
-    // enemy troops
+    // Enemy troops
     const sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, IsArmy(obs));
 
     for (const auto &depot : supply_depots) {
@@ -150,10 +149,10 @@ void BasicSc2Bot::Wall() {
             }
         }
         if (wall) {
-            // raise if wall
+            // Raise if wall
             act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_RAISE);
         } else {
-            // dont need to wall but depot is raised -> lower it
+            // Dont need to wall but depot is raised -> lower it
             act->UnitCommand(depot, sc2::ABILITY_ID::MORPH_SUPPLYDEPOT_LOWER);
         }
     }
