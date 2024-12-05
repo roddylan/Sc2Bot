@@ -14,8 +14,9 @@
 #include <iostream>
 #include <cmath>
 
-/*
- * @brief Directs commands for command centers
+/**
+ * @brief Build workers order
+ * 
  */
 void BasicSc2Bot::BuildWorkers() {
     const sc2::ObservationInterface *obs = Observation();
@@ -52,10 +53,10 @@ void BasicSc2Bot::BuildWorkers() {
     }
 }
 
-/*
- * @brief Usually called from OnUnitIdle, Assigns work to SCV's
- *
- * @param unit
+/**
+ * @brief Assign idle workers to minerals/refineries
+ * 
+ * @param unit 
  */
 void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
     const sc2::ObservationInterface *obs = Observation();
