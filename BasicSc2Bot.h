@@ -82,8 +82,6 @@ public:
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
 	
-	void SendSquadProtoss();
-	
 	// handle attack for tank
 	void TankAttack(const sc2::Units &squad);
 	void TankAttack(const sc2::Units &squad, const sc2::Units &enemies); 
