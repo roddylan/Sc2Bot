@@ -19,6 +19,119 @@
 #include <cmath>
 
 /*
+    Sends squad of units to protoss start location that is closest to the last death location of a unit
+*/
+void BasicSc2Bot::SendSquadProtoss() {
+
+    const uint64_t minute = 1344;
+    // Dont continue if less than 13 mins has elapsed (build order not ready yet)
+    if (Observation()->GetGameLoop() < 5 * minute) {
+        return;
+    }
+    std::vector<sc2::Point2D> enemy_locations = Observation()->GetGameInfo().enemy_start_locations;
+    // Get Army units
+    sc2::Units marines = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+    sc2::Units banshees = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BANSHEE));
+    sc2::Units marauders = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARAUDER));
+    sc2::Units liberators = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_LIBERATOR));
+    sc2::Units tanks = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SIEGETANK));
+    sc2::Units vikings = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER));
+    sc2::Units battlecruisers = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER));
+    sc2::Units thors = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_THOR));
+    sc2::Units medivacs = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MEDIVAC));
+
+    // Create a squad of units with empty orders
+    std::vector<const sc2::Unit*> squad;
+    auto filter_units = [](const sc2::Units& units, std::vector<const sc2::Unit*>& squad) {
+        for (const auto& unit : units) {
+            if (unit->orders.empty()) {
+                squad.push_back(unit);
+            }
+        }
+
+        };
+    // Filter out units that have orders already
+    filter_units(thors, squad);
+    
+    filter_units(battlecruisers, squad);
+    filter_units(tanks, squad);
+    filter_units(banshees, squad);
+    filter_units(marauders, squad);
+    filter_units(liberators, squad);
+    filter_units(vikings, squad);
+    sc2::Point2D closest_start_location;
+    if (!scout_died) {
+        // Get enemy start location closest to last death location to prevent from sending to empty location
+        float min_distance = std::numeric_limits<float>::max();
+        for (const auto& start_location : enemy_locations) {
+            float distance = sc2::Distance2D(start_location, BasicSc2Bot::last_death_location);
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_start_location = start_location;
+            }
+        }
+    }
+
+    // Tracks the game loop when the last unit was sent
+    static uint64_t last_send_time = 0;
+    // Tracks the game loop of the last reset
+    static uint64_t last_reset_time = 0;
+    // FPS
+    const int frames_per_second = 22;
+    // 3 minutes in game loops (22 FPS � 60 seconds � 3)
+    const uint64_t reset_interval = 4032;
+    // Keeps track of how many times units have been sent
+    static int units_sent = 0;
+
+    // Reset units_sent every 3 minutes
+    uint64_t current_time = Observation()->GetGameLoop();
+    if (current_time > last_reset_time + reset_interval) {
+        units_sent = 0;
+        last_reset_time = current_time;
+        std::cout << "Resetting units_sent to 0 after 3 minutes" << std::endl;
+    }
+
+    // Add delay between sending units
+    if (current_time > (last_send_time + 15 * frames_per_second) && squad.size() > 10) {
+        sc2::Point2D location{};
+        if (!scout_died) {
+            filter_units(marines, squad);
+            location = closest_start_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, closest_start_location);
+            std::cout << "sending them to: " << closest_start_location.x << " " << closest_start_location.y  << std::endl;
+
+        }
+        else {
+            filter_units(marines, squad);
+            location = *enemy_starting_location;
+            // Actions()->UnitCommand(squad, sc2::ABILITY_ID::ATTACK_ATTACK, *enemy_starting_location);
+        }
+        // prevent units from leaving something they're already attacking
+        for (const auto &unit : squad) {
+            if (!unit->orders.empty()) {
+                sc2::UnitOrder order = unit->orders.front();
+                const sc2::Unit *target = Observation()->GetUnit(order.target_unit_tag);
+                if (target != nullptr) {
+                    if (target->alliance == sc2::Unit::Alliance::Enemy) {
+                        // dont assign unit if already engaged with enemy
+                        return;
+                    }
+                }
+            }
+            Actions()->UnitCommand(unit, sc2::ABILITY_ID::ATTACK_ATTACK, location);
+        }
+
+        // Update last send time
+        last_send_time = current_time;
+        units_sent++;
+    }
+
+    // Stop sending more units if all enemy locations are covered
+    if (units_sent >= enemy_locations.size()) {
+        return;
+    }
+}
+/*
     Sends squad of units to enemy start location that is closest to the last death location of a unit
 */
 void BasicSc2Bot::SendSquad() {
@@ -906,9 +1019,9 @@ void BasicSc2Bot::HandleAttack(const sc2::Unit *unit, const sc2::ObservationInte
         return;
     }
     // attack with battlecruiser
-    // if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER) {
-    //     BattlecruiserAttack({unit}, enemies_in_range);
-    // }
+    if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_BATTLECRUISER) {
+        BattlecruiserAttack({unit}, enemies_in_range);
+    }
 
     // // scv attack
     // // only attack with scvs holding mineral and isnt repairing

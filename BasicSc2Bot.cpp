@@ -28,6 +28,7 @@ void BasicSc2Bot::OnGameStart() {
     scout = nullptr; // no scout initially
     unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
     enemy_starting_location = nullptr;  // we use a scout to find this
+    sent = false;
 }
 static bool protoss_enemy = false;
 void BasicSc2Bot::OnGameFullStart() {
@@ -52,6 +53,55 @@ void BasicSc2Bot::OnGameFullStart() {
 
 
 sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
+// This is never called
+void BasicSc2Bot::CheckRefineries() {
+    if (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals() >= 0.6) {
+        return;
+    }
+
+    sc2::Units refineries = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
+    if (refineries.empty()) {
+        return;
+    }
+
+    for (const auto& refinery : refineries) {
+        if (!refinery || !refinery->is_alive) {
+            continue; 
+        }
+
+        if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
+            int scvs_needed = refinery->ideal_harvesters - refinery->assigned_harvesters;
+
+            sc2::Units scvs = Observation()->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+            if (scvs.empty()) {
+                return;
+            }
+
+            for (const auto& scv : scvs) {
+                if (!scv || !scv->is_alive) {
+                    continue; 
+                }
+
+                bool is_harvesting = false;
+                for (const auto& order : scv->orders) {
+                    if (order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER) {
+                        is_harvesting = true;
+                        break;
+                    }
+                }
+                if (scvs_needed == 0) {
+                    break;
+                }
+
+                if (scv->orders.empty() || (is_harvesting && (static_cast<double>(Observation()->GetVespene()) / Observation()->GetMinerals()) < 0.6)) {
+                    Actions()->UnitCommand(scv, sc2::ABILITY_ID::HARVEST_GATHER_SCV, refinery);
+                    --scvs_needed;
+                }
+            }
+        }
+    }
+}
+
 
 
 
@@ -91,9 +141,6 @@ void BasicSc2Bot::OnStep() {
     // SendSquad();
     LaunchAttack(); // TODO: fix implementation for final attack logic
     HandleBuild();
-    
-    
-
     BuildWorkers();
     RecheckUnitIdle();
 
@@ -256,6 +303,8 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     if (mineral_fields_destoryed % 10) {
         HandleExpansion(true);
     }
+    // std::cout << "Minerals destroyed" << std::endl;
+
      // save last death location for sending attack
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_VIKINGFIGHTER
         || unit->unit_type == sc2::UNIT_TYPEID::TERRAN_LIBERATOR
@@ -370,6 +419,7 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
             }
         }
         this->enemy_starting_location = new sc2::Point2D(closest_base_position.x, closest_base_position.y);
+        this->visited_start = false;
     }
 }
 
