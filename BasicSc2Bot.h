@@ -101,7 +101,7 @@ public:
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies, const bool &atk_pos = true);
 	void AttackWithUnit(const sc2::Unit *unit);
 	
-	// void SendSquad();
+	void SendSquad();
 	void LaunchAttack();
 	
 	static sc2::Point2D last_death_location;
