@@ -100,7 +100,6 @@ public:
 	void LaunchAttack();
 	
 	static sc2::Point2D last_death_location;
-	void BuildArmy(); // handle army build
 
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	static bool scout_died;
