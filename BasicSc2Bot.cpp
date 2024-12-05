@@ -35,7 +35,6 @@ void BasicSc2Bot::OnGameStart() {
     sent = false;
 }
 
-	
 // Last death location of a unit
 sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
 
@@ -59,14 +58,10 @@ void BasicSc2Bot::OnStep() {
     HandleBuild();
     BuildWorkers();
     RecheckUnitIdle();
-
     CheckScoutStatus();
     AttackIntruders();
-
     LaunchAttack();
-
     HandleAttack();
-
 
     sc2::Units tanks = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnits({
         sc2::UNIT_TYPEID::TERRAN_SIEGETANK,
@@ -75,7 +70,6 @@ void BasicSc2Bot::OnStep() {
     sc2::Units enemies = obs->GetUnits(sc2::Unit::Alliance::Enemy, [](const sc2::Unit &unit){
         return unit.display_type == sc2::Unit::DisplayType::Visible;
     });
-
 
     // Prevent tanks from getting stuck
     const size_t RANGE = 16;
