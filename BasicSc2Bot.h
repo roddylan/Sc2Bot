@@ -59,7 +59,6 @@ public:
 	const sc2::Unit* FindNearestMineralPatch(const sc2::Point2D& start);
 	size_t CountUnitType(sc2::UNIT_TYPEID unit_type);
 	const sc2::Unit* FindNearestVespeneGeyser(const sc2::Point2D& start);
-	void HandleUpgrades();
 	void HandleBuild(); // logic for building instead of just trying on each step
 	
 	void AssignIdleWorkers(const sc2::Unit *);
@@ -84,11 +83,9 @@ public:
 	int CountNearbySeigeTanks(const sc2::Unit* factory);
 	const sc2::Point2D FindNearestCommandCenter(const sc2::Point2D& start, bool not_start_location = false);
 	bool TryBuildMissileTurret();
-	bool TryBuildAddOn(sc2::ABILITY_ID ability_type_for_structure, sc2::Tag base_structure); // TODO: not finished
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
 	
-	void ProtossBuild();
 	void SendSquadProtoss();
 	
 	// handle attack for tank
@@ -111,7 +108,6 @@ public:
 	static sc2::Point2D last_death_location;
 	void BuildArmy(); // handle army build
 
-	// void TurretDefend(const sc2::Units &turrets); // missile turret defend (multiple turret)
 	void TurretDefend(const sc2::Unit *turret); // missile turret defend (one turret)
 	static bool scout_died;
 	const sc2::Unit* FindNearestWorker(const sc2::Point2D& pos, bool is_busy = false, bool mineral = false);
@@ -212,7 +208,6 @@ private:
 
 	void Wall(); // rise supply depots when enemy near
 
-	// bool CheckVisited();
 	bool visited_start;
 
 	bool sent;
