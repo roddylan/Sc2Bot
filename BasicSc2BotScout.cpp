@@ -18,8 +18,7 @@
 #include <cmath>
 
 /*
- * @brief Tries to send out the unit provided to scout out the enemy's base
- * Returns true if the unit was assigned the task, false otherwise
+ * @brief Tries to send out the unit provided to scout out the enemy's base (deprecated)
  *
  * @param unit_to_scout
  * @param refill_enemy_locations
@@ -63,12 +62,13 @@ bool BasicSc2Bot::TryScoutingForAttack(const sc2::Unit *unit_to_scout, bool refi
     }
     return false;
 }
-/*
- * @brief Tries to send out the unit provided to scout out the enemy's base
- * Returns true if the unit was assigned the task, false otherwise
- *
- * @param unit_to_scout
- * @return bool
+
+/**
+ * @brief Try to send out scv scout
+ * 
+ * @param unit_to_scout 
+ * @return true if unit assigned to scout
+ * @return false otherwise
  */
 bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
     if (this->scout != nullptr) {
@@ -91,8 +91,9 @@ bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
     return false;
 }
 
-/*
- * @brief Checks if there are enenmy locations left to scout and sends them if so
+/**
+ * @brief Checks if there are enemy locations left to scout for scv
+ * 
  */
 void BasicSc2Bot::CheckScoutStatus() {
     const sc2::ObservationInterface *observation = Observation();
