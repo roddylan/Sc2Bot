@@ -18,48 +18,7 @@
 #include <cmath>
 
 
-/*
- * Tries to send out the unit provided to scout out the enemy's base
- * Returns true if the unit was assigned the task, false otherwise
- */
-bool BasicSc2Bot::TryScoutingForAttack(const sc2::Unit *unit_to_scout, bool refill_enemy_locations) {
-    static std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
-    static int times_called;
-    if (times_called % 4 == 0) {
-        unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
-    }
-    ++times_called;
-    
-    if (unexplored_enemy_starting_locations.empty()) {
-        unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
-    }
 
-    // refill to send again
-    if (refill_enemy_locations) {
-        unexplored_enemy_starting_locations = Observation()->GetGameInfo().enemy_start_locations;
-    }
-
-    sc2::Point2D target{};
-
-    // if we haven't discovered the enemy's base location, try and find it
-    if (!unexplored_enemy_starting_locations.empty()) {
-        const sc2::GameInfo& info = Observation()->GetGameInfo();
-        // start from the back so we can .pop_back() (no pop_front equivalent)
-        target = unexplored_enemy_starting_locations.back();
-        // remove point
-        unexplored_enemy_starting_locations.pop_back();
-        // send 
-        Actions()->UnitCommand(unit_to_scout, sc2::ABILITY_ID::ATTACK_ATTACK, target);
-        return true;
-    } else {
-        // search random point
-        if (ScoutRandom(unit_to_scout, target)) {
-            Actions()->UnitCommand(unit_to_scout, sc2::ABILITY_ID::SMART, target);
-            return true;
-        }
-    }
-    return false;
-}
 /*
  * Tries to send out the unit provided to scout out the enemy's base
  * Returns true if the unit was assigned the task, false otherwise

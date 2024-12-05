@@ -38,9 +38,7 @@ public:
 	bool TryBuildRefinery();
 	bool TryBuildSiegeTank();
 	bool TryBuildSiegeTank(const sc2::Unit* factory);
-	
-	virtual void CheckRefineries();
-	
+		
 	bool BuildRefinery();
 	bool TryBuildFactory();
 	bool TryBuildBunker();
@@ -88,8 +86,6 @@ public:
 	bool TryBuildArmory();
 	void OnUnitDestroyed(const sc2::Unit* unit);
 	
-	void ProtossBuild();
-	void SendSquadProtoss();
 	
 	// handle attack for tank
 	void TankAttack(const sc2::Units &squad);
@@ -99,7 +95,7 @@ public:
 	void VikingAttack(const sc2::Units &squad, const sc2::Units &enemies);
 
 	// handle attack for a battlecruiser
-	void BattlecruiserAttack(const sc2::Units &squad); // TODO: implement
+	// void BattlecruiserAttack(const sc2::Units &squad); // TODO: implement
 	void BattlecruiserAttack(const sc2::Units &squad, const sc2::Units &enemies);
 	
 	void AttackWithUnit(const sc2::Unit *unit, const sc2::Units &enemies, const bool &atk_pos = true);
@@ -162,14 +158,12 @@ private:
 	const float N_REPAIR_RATIO = 1.5;
 	std::vector<sc2::Point3D> expansion_locations;
 	std::vector<sc2::Point2DI> pinchpoints;
-	sc2::Units FindNearbyBuildings(const sc2::Point2D& reference_point, size_t max_buildings);
 	sc2::Point3D start_location;
 	sc2::Point3D base_location;
 	const sc2::Unit *scout;
 	std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
 	sc2::Point2D *enemy_starting_location;
 	bool TryScouting(const sc2::Unit&);
-	bool TryScoutingForAttack(const sc2::Unit* unit_to_scout, bool refill_enemy_locations=false);
 	void CheckScoutStatus();
 	const sc2::Unit *GetGatheringScv();
 	void AssignBarrackAction(const sc2::Unit *barrack);
@@ -182,7 +176,6 @@ private:
 	bool EnemyNearBase(const sc2::Unit *base);
 	
 	const sc2::Unit* ChooseAttackTarget(const sc2::Unit *unit, const sc2::Units &enemies);
-	bool UseAbility(const sc2::Unit *unit, sc2::ABILITY_ID ability);
 
 	size_t CountUnitTotal(
 		const sc2::ObservationInterface *obs, 
@@ -213,9 +206,6 @@ private:
 	void Wall(); // rise supply depots when enemy near
 
 	// bool CheckVisited();
-	bool visited_start;
-
-	bool sent;
 
 	const size_t ATTACK_FOOD = 130;
 
