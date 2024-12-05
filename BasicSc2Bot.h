@@ -66,7 +66,7 @@ public:
 	bool TryBuildFusionCore();
 	void AssignStarportTechLabAction(const sc2::Unit *tech_lab);
 	const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
-	bool UpgradeStarportTechlab(const sc2::Unit& starport);
+
 	void AssignArmoryAction(const sc2::Unit *armory);
 	bool TryBuildThor(const sc2::Unit* factory);
 

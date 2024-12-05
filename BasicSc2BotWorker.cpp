@@ -189,15 +189,15 @@ void BasicSc2Bot::AssignWorkers() {
                     sc2::UnitOrder first_order = scv->orders.front();
 
                     // If unit already harvesting at current base
-                    if {
-                        first_order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER &&
+                    if (
+                        first_order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER && 
                         first_order.target_unit_tag == refinery->tag
+                    ) 
+                    {
+                        // Reassign worker via idle worker assign
+                        AssignIdleWorkers(scv);
+                        return;
                     }
-                    
-                    // Reassign worker via idle worker assign
-                    AssignIdleWorkers(scv);
-                    return;
-                    
                 }
             }
         } 
@@ -224,5 +224,7 @@ void BasicSc2Bot::AssignWorkers() {
             }
         }
     }
+
+
 
 }

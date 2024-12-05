@@ -6,10 +6,7 @@
 #include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit_filters.h>
 #include <sc2lib/sc2_search.h>
-bool BasicSc2Bot::UpgradeStarportTechlab(const sc2::Unit &starport) {
-    Actions()->UnitCommand(&starport, sc2::ABILITY_ID::BUILD_TECHLAB_STARPORT);
-    return true;
-}
+
 /*
  * Picks unit for the barrack to train and instructs it to train it
  */
