@@ -1,5 +1,5 @@
-# BasicSc2Bot
-Template SC2 Bot for CMPUT 350 at UAlberta.
+# Team Pesto Bot
+Team Pesto SC2 Bot for CMPUT 350 at UAlberta. Built on BasicSC2Bot
 
 This bot works with our fork of [Sc2LadderServer](https://github.com/solinas/Sc2LadderServer) which will be used to run the tournament at the end of the term. It should help you
 set up the build process with the correct version of SC2 API so you can focus on creating your bot.
