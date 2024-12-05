@@ -249,11 +249,10 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     if (obs->GetGameLoop() % SKIP_FRAME) {
         return;
     }
-    static int mineral_fields_destoryed;
+    static int units_destroyed;
 
-    ++mineral_fields_destoryed;
-    // std::cout << "mineral_destoryed count " << mineral_fields_destoryed << std::endl;
-    if (mineral_fields_destoryed % 10) {
+    ++units_destroyed;
+    if (units_destroyed % 10) {
         HandleExpansion(true);
     }
      // save last death location for sending attack
