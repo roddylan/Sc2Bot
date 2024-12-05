@@ -33,8 +33,8 @@ std::string GetStringFromRace(const sc2::Race RaceIn)
 }
 
 /**
-* @brief Gets the bit associated with the x,y position in an image
-* @param data: the image
+* @brief Gets the bit associated with the x,y position in a bitmap
+* @param data: the bitmap
 * @param x
 * @param y
 * @return 1,0, depending if the bit is set or not
@@ -83,7 +83,7 @@ void PrintMap(sc2::ImageData data) {
 /**
 * @brief Prints the map with a number of specified markers
 * @param data: the map
-* @param markers: the special markers to place
+* @param markers: vector of special markers to place
 */
 void PrintMap(sc2::ImageData data, std::vector<sc2::Point2DI> markers) {
     for (int y = data.height - 1; y > -1; --y) { // print starting at top of y level
@@ -110,6 +110,12 @@ IsUnit::IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
 bool IsUnit::operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
 
 
+/**
+* @brief Returns a chunk of a bitmap (delimitted by lower_left and top_right)
+* @param data: the bitmap
+* @param lower_left: Lower left coordinate from the original map
+* @param top_right: Upper right coordinate from the original map
+*/
 // segments the map into a chunk of the desired size (using bitmaps from the imagedata)
 sc2::ImageData GetMapChunk(sc2::ImageData data, sc2::Point2DI lower_left, sc2::Point2DI top_right) {
     // Validate the input bounds
@@ -176,13 +182,13 @@ namespace std {
     };
 }
 
-// returns a list of 50 pinch points on the map
+// returns a list of 75 pinch points on the map by default
 /**
-* @brief finda al pinch points in a given map
-* @param num_pinch_points: parameter for search
-* @param num_chunks: parameter for search
-* @param stride: parameter for search
-* @return a vector representing the pinch points in the map
+* @brief find a list of num_pinch_points pinch points in a given map
+* @param num_pinch_points: number of pinch points to find
+* @param num_chunks: number of chunks to iterate over
+* @param stride: change in x or y coordinate for each chunk (to enable chunk overlap)
+* @return a vector representing pinch points on the map
 */
 std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch_points, int num_chunks, int stride) {
 	// creates a square of num_chunks^2, with each chunk of size stride

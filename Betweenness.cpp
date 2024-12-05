@@ -75,9 +75,9 @@ vector<sc2::Point2DI> SampleNodes(int numSamples, int rows, int cols, sc2::Image
 // https://snap.stanford.edu/class/cs224w-readings/brandes01centrality.pdf
 /**
 * @brief does Monte-Carlo Brandes' search for betweenness
-* @param data: the map
+* @param data: the bitmap
 * @param betweenness: vector to populate
-* @param numSamples: parameter for search
+* @param numSamples: number of random samples for Monte Carlo approximation
 */
 void MonteCarloBrandesBetweenness(sc2::ImageData data, vector<vector<double>>& betweenness, int numSamples) {
     int rows = data.height;
@@ -143,7 +143,8 @@ void MonteCarloBrandesBetweenness(sc2::ImageData data, vector<vector<double>>& b
 
 /**
 * @brief Calculates betweenness centrality for a grid using Monte Carlo method
-* @param data: the map
+* @param data: the bitmap
+* @return tuple containing the point with highest betweenness value and its betweenness value
 */
 tuple<sc2::Point2DI, double> CalculateBetweenness(sc2::ImageData data) {
     int numSamples = 15;  // Number of samples for Monte Carlo approximation
@@ -180,7 +181,7 @@ tuple<sc2::Point2DI, double> CalculateBetweenness(sc2::ImageData data) {
 
 /**
 * @brief Collects multiple betweenness points in a vector
-* @return the betweenness points
+* @return vector of best betweenness points
 */
 vector<pair<sc2::Point2DI, double>> GetBetweennessList(sc2::ImageData data) {
     int numSamples = 15;  // Number of samples for Monte Carlo approximation
