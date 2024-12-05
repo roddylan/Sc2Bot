@@ -893,13 +893,9 @@ void BasicSc2Bot::HandleAttack() {
     sc2::ActionInterface *act = Actions();
 
     sc2::Units units = obs->GetUnits(sc2::Unit::Alliance::Self, NotStructure());
-    sc2::Units fortresses = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS));
     
     for (const auto &unit : units) {
         HandleAttack(unit, obs);
-    }
-    for (const auto& fortress : fortresses) {
-        HandleAttack(fortress, obs);
     }
 
 }
