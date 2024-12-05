@@ -469,9 +469,6 @@ void BasicSc2Bot::LaunchAttack() {
             bool check = ScoutRandom(unit, location);
             
             if (check) {
-                std::cout << "Scout Random: " << check << std::endl;
-                std::cout << "search random location\n";
-                std::cout << "(" << location.x << ", " << location.y << ")\n";
                 act->UnitCommand(unit, sc2::ABILITY_ID::SMART, location);
             }
         }
