@@ -7,6 +7,10 @@
 #include <functional>
 
 
+/**
+* @brief Converts race to string
+* @returns string-represetnation
+*/
 std::string GetStringFromRace(const sc2::Race RaceIn)
 {
     if (RaceIn == sc2::Race::Terran)
@@ -28,6 +32,13 @@ std::string GetStringFromRace(const sc2::Race RaceIn)
     return "random";
 }
 
+/**
+* @brief Gets the bit associated with the x,y position in an image
+* @param data: the image
+* @param x
+* @param y
+* @return 1,0, depending if the bit is set or not
+*/
 int GetDataValueBit(sc2::ImageData data, int x, int y)
 {
     int pixelID = x + y * data.width;
@@ -37,7 +48,11 @@ int GetDataValueBit(sc2::ImageData data, int x, int y)
     return bit == 0 ? 0 : 1;
 }
 
-// prints map with a singular marker
+/**
+* @brief Prints map with a singular marker
+* @param data: the map data
+* @param marker: the image marker in the map
+*/
 void PrintMap(sc2::ImageData data, sc2::Point2DI marker) {
     for (int y = data.height - 1; y > -1; --y) { // print starting at top of y level
         for (int x = 0; x < data.width; ++x) {
@@ -52,7 +67,10 @@ void PrintMap(sc2::ImageData data, sc2::Point2DI marker) {
     }
 }
 
-// prints map without any markers
+/**
+* @brief Prints the map to stdout
+* @param data: the map
+*/
 void PrintMap(sc2::ImageData data) {
     for (int y = data.height - 1; y > -1; --y) { // print starting at top of y level
         for (int x = 0; x < data.width; ++x) {
@@ -62,7 +80,11 @@ void PrintMap(sc2::ImageData data) {
     }
 }
 
-// prints map with multiple markers
+/**
+* @brief Prints the map with a number of specified markers
+* @param data: the map
+* @param markers: the special markers to place
+*/
 void PrintMap(sc2::ImageData data, std::vector<sc2::Point2DI> markers) {
     for (int y = data.height - 1; y > -1; --y) { // print starting at top of y level
 		for (int x = 0; x < data.width; ++x) {
@@ -84,6 +106,7 @@ void PrintMap(sc2::ImageData data, std::vector<sc2::Point2DI> markers) {
 }
 
 IsUnit::IsUnit(sc2::UNIT_TYPEID type) : type_(type) {}
+// implementaiton of compare
 bool IsUnit::operator()(const sc2::Unit& unit) { return unit.unit_type == type_; }
 
 
@@ -154,6 +177,13 @@ namespace std {
 }
 
 // returns a list of 50 pinch points on the map
+/**
+* @brief finda al pinch points in a given map
+* @param num_pinch_points: parameter for search
+* @param num_chunks: parameter for search
+* @param stride: parameter for search
+* @return a vector representing the pinch points in the map
+*/
 std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch_points, int num_chunks, int stride) {
 	// creates a square of num_chunks^2, with each chunk of size stride
     // does half strides resulting in (num_chunks * 2) - 1 chunk computations per dimension
