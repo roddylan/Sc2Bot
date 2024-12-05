@@ -188,21 +188,21 @@ void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
     }
 }
 
-/*
- * @brief Decides what to do when a unit is destoryed, often used for defense or expansion
- *
- * @param unit
+/**
+ * @brief Handle logic when a unit is destroyed
+ * 
+ * @param unit 
  */
 void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     const sc2::ObservationInterface* obs = Observation();
     if (obs->GetGameLoop() % SKIP_FRAME) {
         return;
     }
-    static int mineral_fields_destoryed;
+    static int unit_destroyed;
 
-    ++mineral_fields_destoryed;
+    ++unit_destroyed;
 
-    if (mineral_fields_destoryed % 10) {
+    if (unit_destroyed % 10) {
         HandleExpansion(true);
     }
 
@@ -307,10 +307,10 @@ void BasicSc2Bot::OnUnitDestroyed(const sc2::Unit* unit) {
     }
 }
 
-/*
+/**
  * @brief Decides what to do when a unit enters idle state
- *
- * @param unit
+ * 
+ * @param unit 
  */
 void BasicSc2Bot::OnUnitIdle(const sc2::Unit* unit) {
     const sc2::ObservationInterface* obs = Observation();
