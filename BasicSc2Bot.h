@@ -17,7 +17,6 @@
 class BasicSc2Bot : public sc2::Agent {
 public:
 
-	void OnGameFullStart();
 	void OnGameStart();
 	void OnStep();
 
@@ -25,7 +24,6 @@ public:
     //!< \param unit The damaged unit.
     //!< \param health The change in health (damage is positive)
     //!< \param shields The change in shields (damage is positive)
-    void OnUnitDamaged(const sc2::Unit*, float /*health*/, float /*shields*/);
 	void OnUnitIdle(const sc2::Unit* unit) final;
 	void OnUnitCreated(const sc2::Unit* unit);
 
@@ -38,8 +36,6 @@ public:
 	bool TryBuildRefinery();
 	bool TryBuildSiegeTank();
 	bool TryBuildSiegeTank(const sc2::Unit* factory);
-	
-	virtual void CheckRefineries();
 	
 	bool BuildRefinery();
 	bool TryBuildFactory();
@@ -70,7 +66,7 @@ public:
 	bool TryBuildFusionCore();
 	void AssignStarportTechLabAction(const sc2::Unit *tech_lab);
 	const sc2::Point2D FindNearestRefinery(const sc2::Point2D& start);
-	bool UpgradeStarportTechlab(const sc2::Unit& starport);
+
 	void AssignArmoryAction(const sc2::Unit *armory);
 	bool TryBuildThor(const sc2::Unit* factory);
 
