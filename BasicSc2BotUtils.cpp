@@ -15,12 +15,14 @@
 #include <sc2lib/sc2_search.h>
 #include <iostream>
 #include <cmath>
+
 /*
  * Enemy Filter
  */
 sc2::Filter isEnemy = [](const sc2::Unit& unit) {
     return unit.alliance != sc2::Unit::Alliance::Self; 
 };
+
 /*
  * @brief InBunker
  *

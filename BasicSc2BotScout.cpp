@@ -17,10 +17,13 @@
 #include <iostream>
 #include <cmath>
 
-
 /*
- * Tries to send out the unit provided to scout out the enemy's base
+ * @brief Tries to send out the unit provided to scout out the enemy's base
  * Returns true if the unit was assigned the task, false otherwise
+ *
+ * @param unit_to_scout
+ * @param refill_enemy_locations
+ * @return bool
  */
 bool BasicSc2Bot::TryScoutingForAttack(const sc2::Unit *unit_to_scout, bool refill_enemy_locations) {
     static std::vector<sc2::Point2D> unexplored_enemy_starting_locations;
@@ -61,8 +64,11 @@ bool BasicSc2Bot::TryScoutingForAttack(const sc2::Unit *unit_to_scout, bool refi
     return false;
 }
 /*
- * Tries to send out the unit provided to scout out the enemy's base
+ * @brief Tries to send out the unit provided to scout out the enemy's base
  * Returns true if the unit was assigned the task, false otherwise
+ *
+ * @param unit_to_scout
+ * @return bool
  */
 bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
     if (this->scout != nullptr) {
@@ -85,6 +91,9 @@ bool BasicSc2Bot::TryScouting(const sc2::Unit &unit_to_scout) {
     return false;
 }
 
+/*
+ * @brief Checks if there are enenmy locations left to scout and sends them if so
+ */
 void BasicSc2Bot::CheckScoutStatus() {
     const sc2::ObservationInterface *observation = Observation();
     if (this->scout == nullptr) {
