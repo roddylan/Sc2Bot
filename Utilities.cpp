@@ -206,7 +206,7 @@ std::vector<sc2::Point2DI> FindAllPinchPoints(sc2::ImageData data, int num_pinch
 
                 // Get chunk data
                 sc2::ImageData chunk_data = GetMapChunk(data, sc2::Point2DI(grid_x, grid_y), sc2::Point2DI(grid_x + stride, grid_y + stride));
-                std::vector<std::pair<sc2::Point2DI, double>> betweennessList = getBetweennessList(chunk_data);
+                std::vector<std::pair<sc2::Point2DI, double>> betweennessList = GetBetweennessList(chunk_data);
 
                 // Accumulate betweenness scores
                 for (const auto& in_list : betweennessList) {

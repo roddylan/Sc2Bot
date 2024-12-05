@@ -16,14 +16,18 @@ using namespace std;
 // Directions for moving in the grid (up, down, left, right)
 vector<sc2::Point2DI> directions = { sc2::Point2DI(0, 1), sc2::Point2DI(0, -1), sc2::Point2DI(-1, 0), sc2::Point2DI(1, 0) };
 
-// Check if a point is inside the grid boundaries
+/**
+* @brief Check if a point is inside the grid boundaries
+*/
 bool isValid(sc2::Point2DI p, sc2::ImageData data) {
     int rows = data.height;
     int cols = data.width;
     return (p.x >= 0 && p.x < rows && p.y >= 0 && p.y < cols && GetDataValueBit(data, p.x, p.y) == 1);
 }
 
-
+/**
+* Implementation of compare for Point2DI instances
+*/
 struct CompareBetweenness {
     bool operator()(const std::pair<sc2::Point2DI, double>& a, const std::pair<sc2::Point2DI, double>& b) {
         return a.second < b.second;  // Max-heap: largest betweenness first
@@ -42,7 +46,7 @@ struct PointComparator {
 };
 
 // Function to randomly sample nodes for the Monte Carlo approximation
-vector<sc2::Point2DI> sampleNodes(int numSamples, int rows, int cols, sc2::ImageData data) {
+vector<sc2::Point2DI> SampleNodes(int numSamples, int rows, int cols, sc2::ImageData data) {
     vector<sc2::Point2DI> sampledNodes;
     random_device rd;
     mt19937 gen(rd());
@@ -69,13 +73,18 @@ vector<sc2::Point2DI> sampleNodes(int numSamples, int rows, int cols, sc2::Image
 
 // Brandes' Algorithm For Betweenness Centrality:
 // https://snap.stanford.edu/class/cs224w-readings/brandes01centrality.pdf
-// Modified Brandes' algorithm using Monte Carlo approach
-void monteCarloBrandesBetweenness(sc2::ImageData data, vector<vector<double>>& betweenness, int numSamples) {
+/**
+* @brief does Monte-Carlo Brandes' search for betweenness
+* @param data: the map
+* @param betweenness: vector to populate
+* @param numSamples: parameter for search
+*/
+void MonteCarloBrandesBetweenness(sc2::ImageData data, vector<vector<double>>& betweenness, int numSamples) {
     int rows = data.height;
     int cols = data.width;
 
     // Randomly sample nodes for BFS runs
-    vector<sc2::Point2DI> sampledNodes = sampleNodes(numSamples, rows, cols, data);
+    vector<sc2::Point2DI> sampledNodes = SampleNodes(numSamples, rows, cols, data);
 
     // Loop over the sampled nodes
     for (const auto& src : sampledNodes) {
@@ -132,15 +141,18 @@ void monteCarloBrandesBetweenness(sc2::ImageData data, vector<vector<double>>& b
     }
 }
 
-// Function to calculate betweenness centrality for a grid using Monte Carlo method
-tuple<sc2::Point2DI, double> calculateBetweenness(sc2::ImageData data) {
+/**
+* @brief Calculates betweenness centrality for a grid using Monte Carlo method
+* @param data: the map
+*/
+tuple<sc2::Point2DI, double> CalculateBetweenness(sc2::ImageData data) {
     int numSamples = 15;  // Number of samples for Monte Carlo approximation
     int rows = data.height;
     int cols = data.width;
     vector<vector<double>> betweenness(rows, vector<double>(cols, 0));
 
     // Calculate Betweenness using Brandes' Algorithm
-    monteCarloBrandesBetweenness(data, betweenness, numSamples);
+    MonteCarloBrandesBetweenness(data, betweenness, numSamples);
 
     // Use a priority queue to find the top betweenness points efficiently
     std::priority_queue<std::pair<sc2::Point2DI, double>, std::vector<std::pair<sc2::Point2DI, double>>, CompareBetweenness> topPoints;
@@ -166,14 +178,18 @@ tuple<sc2::Point2DI, double> calculateBetweenness(sc2::ImageData data) {
 }
 
 
-vector<pair<sc2::Point2DI, double>> getBetweennessList(sc2::ImageData data) {
+/**
+* @brief Collects multiple betweenness points in a vector
+* @return the betweenness points
+*/
+vector<pair<sc2::Point2DI, double>> GetBetweennessList(sc2::ImageData data) {
     int numSamples = 15;  // Number of samples for Monte Carlo approximation
     int rows = data.height;
     int cols = data.width;
     vector<vector<double>> betweenness(rows, vector<double>(cols, 0));
 
     // Calculate Betweenness using Brandes' Algorithm
-    monteCarloBrandesBetweenness(data, betweenness, numSamples);
+    MonteCarloBrandesBetweenness(data, betweenness, numSamples);
 
     // Use a priority queue to find the top betweenness points efficiently
     std::priority_queue<std::pair<sc2::Point2DI, double>, std::vector<std::pair<sc2::Point2DI, double>>, CompareBetweenness> topPoints;
