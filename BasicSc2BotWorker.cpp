@@ -14,19 +14,17 @@
 #include <iostream>
 #include <cmath>
 
+/*
+ * @brief Directs commands for command centers
+ */
 void BasicSc2Bot::BuildWorkers() {
     const sc2::ObservationInterface *obs = Observation();
-    // const sc2::QueryInterface *query = Query();
     sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     
     // build MULEs (unless being attacked (enemies in range))
     for (const auto &base : bases) {
         if (base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMAND || base->unit_type == sc2::UNIT_TYPEID::TERRAN_ORBITALCOMMANDFLYING) {
-            // if enemies in range
-            // if () {
-                
-            // }
-            
+
             // if we havent reached goal amnt or larger energy req met
             if ((CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) < bases.size() * n_mules && base->energy > 50) || base->energy > 75) {
                 // find mineral target
@@ -34,27 +32,19 @@ void BasicSc2Bot::BuildWorkers() {
                 // if we find a nearby mineral patch
                 if (mineral_target) {
                     Actions()->UnitCommand(base, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE, mineral_target);
-                   // std::cout << "n_mules =" << CountUnitType(sc2::UNIT_TYPEID::TERRAN_MULE) << std::endl;
                 }
             }
-            // else if (base->energy > 75) {
-            //     // still create mules, but larger energy req
-            //     if (FindNearestMineralPatch(base->pos)) {
-            //         Actions()->UnitCommand(base, sc2::ABILITY_ID::EFFECT_CALLDOWNMULE);
-            //     }
-            // }
         }
     }
 
-    // dont build too many workers
+    // Dont build too many workers
     if (obs->GetFoodWorkers() > N_TOTAL_WORKERS) {
         return;
     }
+
     for (const auto &base : bases) {
-        // build SCV
-        // TODO: maybe just use ideal_harvesters (max)
+        // Build SCV
         if (base->assigned_harvesters < base->ideal_harvesters && base->build_progress == 1 && base->orders.empty()) {
-        // if (obs->GetFoodWorkers() < n_workers) {
             if (obs->GetMinerals() >= 50 && base->orders.empty() && obs->GetFoodUsed() < 120) {
                 sc2::Agent::Actions()->UnitCommand(base, sc2::ABILITY_ID::TRAIN_SCV);
             }
@@ -62,66 +52,62 @@ void BasicSc2Bot::BuildWorkers() {
     }
 }
 
+/*
+ * @brief Usually called from OnUnitIdle, Assigns work to SCV's
+ *
+ * @param unit
+ */
 void BasicSc2Bot::AssignIdleWorkers(const sc2::Unit *unit) {
     const sc2::ObservationInterface *obs = Observation();
     
     const sc2::Units refineries = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_REFINERY));
     const sc2::Units bases = obs->GetUnits(sc2::Unit::Alliance::Self, sc2::IsTownHall());
     const sc2::Unit* mineral_target;
-   // std::cout << "bases size: " << bases.size() << std::endl;
 
+    // No command centers
     if (bases.empty()) {
         return;
     }
 
-    // nothing to do for mules
+    // Nothing to do for mules
     if (unit->unit_type == sc2::UNIT_TYPEID::TERRAN_MULE) {
         return;
     }
 
     for (const auto &refinery : refineries) {
-        // if refinery under construction or all gas harvested
+        // If refinery under construction or all gas harvested
         if (refinery->build_progress != 1 || refinery->ideal_harvesters == 0) {
             continue;
         }
 
         if (refinery->assigned_harvesters < refinery->ideal_harvesters) {
-            // std::cout << "refinery assignment\n";
-            // sc2::Point2D point = FindNearestRefinery(unit->pos);
-            
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, refinery);
-            // std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
             return;
         }
-        // std::cout << refinery->assigned_harvesters << " : " << refinery->ideal_harvesters << std::endl;
-
     }
 
     for (const auto &base : bases) {
-        // if base under construction or all minerals mined
+        // If base under construction or all minerals mined
         if (base->build_progress != 1 || base->ideal_harvesters == 0) {
             continue;
         }
-        
+        // Not enough harvesters at refinery
         if (base->assigned_harvesters < base->ideal_harvesters) {
             mineral_target = FindNearestMineralPatch(base->pos);
-            // Actions()->UnitCommand(unit, sc2::ABILITY_ID::SMART, mineral_target);
             Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, mineral_target);
             return;
         }
     }
     
-    // worker not idle
+    // Worker not idle
     if (!unit->orders.empty()) {
         return;
     }
     
-    // assign to last
-    // const sc2::Unit *base = sc2::GetRandomEntry(bases);
+    // Assign to last
     const sc2::Unit *base = bases.back();
     mineral_target = FindNearestMineralPatch(base->pos);
     Actions()->UnitCommand(unit, sc2::ABILITY_ID::HARVEST_GATHER, mineral_target);
-
 }
 
 
@@ -149,35 +135,34 @@ void BasicSc2Bot::AssignWorkers() {
         sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV)
     );
     
-    // std::cout << "bases size: " << bases.size() << std::endl;
 
-    // no bases
+    // No bases
     if (bases.empty()) {
         return;
     }
 
     for (const auto &base : bases) {
-        // if base under construction or all minerals mined
+        // If base under construction or all minerals mined
         if (base->build_progress != 1 || base->ideal_harvesters == 0) {
             continue;
         }
         
-        // base has enough harvesters
+        // Base has enough harvesters
         if (base->assigned_harvesters > base->ideal_harvesters) {
             for (const auto &scv : workers) {
                 if (scv == scout) {
                     continue;
                 }
-                // scv busy
+                // SCV busy
                 if (scv->orders.size() > 0) {
                     sc2::UnitOrder first_order = scv->orders.front();
 
-                    // if unit already harvesting at current base
+                    // If unit already harvesting at current base
                     if (
                         first_order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER && 
                         first_order.target_unit_tag == base->tag
                     ) {
-                        // reassign worker via idle worker assign
+                        // Reassign worker via idle worker assign
                         AssignIdleWorkers(scv);
                         return;
                     }
@@ -188,47 +173,49 @@ void BasicSc2Bot::AssignWorkers() {
     }
 
     for (const auto &refinery : refineries) {
-        // if refinery under construction or all gas harvested -> skip
+        // If refinery under construction or all gas harvested -> skip
         if (refinery->build_progress != 1 || refinery->ideal_harvesters == 0) {
             continue;
         }
 
-        // if refinery already has enough scvs
+        // If refinery already has enough scvs
         if (refinery->assigned_harvesters > refinery->ideal_harvesters) {
             for (const auto &scv : workers) {
                 if (scv == scout) {
                     continue;
                 }
                 if (!scv->orders.empty()) {
-                    // scv busy
+                    // SCV busy
                     sc2::UnitOrder first_order = scv->orders.front();
 
-                    // if unit already harvesting at current base
-                    if (
-                        first_order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER && 
+                    // If unit already harvesting at current base
+                    if {
+                        first_order.ability_id == sc2::ABILITY_ID::HARVEST_GATHER &&
                         first_order.target_unit_tag == refinery->tag
-                    ) {
-                        // reassign worker via idle worker assign
-                        AssignIdleWorkers(scv);
-                        return;
                     }
+                    
+                    // Reassign worker via idle worker assign
+                    AssignIdleWorkers(scv);
+                    return;
+                    
                 }
             }
-        } else {
+        } 
+        else {
             for (const auto &scv : workers) {
                 if (!scv->orders.empty()) {
-                    // scv busy
+                    // SCV busy
                     sc2::UnitOrder first_order = scv->orders.front();
 
-                    // get target building
+                    // Get target building
                     const sc2::Unit *target = obs->GetUnit(first_order.target_unit_tag);
 
-                    // if no target (not mining, etc.) -> skip worker
+                    // If no target (not mining, etc.) -> skip worker
                     if (target == nullptr) {
                         continue;
                     }
 
-                    // if not at refinery
+                    // If not at refinery
                     if (target->unit_type != sc2::UNIT_TYPEID::TERRAN_REFINERY) {
                         AssignIdleWorkers(scv);
                         return;
@@ -237,7 +224,5 @@ void BasicSc2Bot::AssignWorkers() {
             }
         }
     }
-
-
 
 }
