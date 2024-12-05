@@ -20,8 +20,10 @@
 
 // Indicates whether a scout has died
 bool BasicSc2Bot::scout_died = false;
-/*
- * @brief Gets called on game start
+
+/**
+ * @brief Initialize game
+ * 
  */
 void BasicSc2Bot::OnGameStart() {
     const sc2::ObservationInterface *obs = Observation();
@@ -38,8 +40,9 @@ void BasicSc2Bot::OnGameStart() {
 // Last death location of a unit
 sc2::Point2D BasicSc2Bot::last_death_location = sc2::Point2D(0, 0);
 
-/*
+/**
  * @brief Gets called on every step of the game
+ * 
  */
 void BasicSc2Bot::OnStep() {
     const sc2::ObservationInterface *obs = Observation();
@@ -96,13 +99,18 @@ void BasicSc2Bot::OnStep() {
     return;
 }
 
-/*
-* The OnUnitIdle hook that's automatically called by the game is only called ONCE when the unit starts idling.
-* This is an issue for barracks because when OnUnitIdle is called for them but they don't have the resources to
-* train a unit, they won't take an action and OnUnitIdle is never called on them again so they never get a kick to
-* start training when resources are available.
-*/
+
+/**
+ * @brief Recall idle units
+ * 
+ */
 void BasicSc2Bot::RecheckUnitIdle() {
+    /*
+     * The OnUnitIdle hook that's automatically called by the game is only called ONCE when the unit starts idling.
+     * This is an issue for barracks because when OnUnitIdle is called for them but they don't have the resources to
+     * train a unit, they won't take an action and OnUnitIdle is never called on them again so they never get a kick to
+     * start training when resources are available.
+     */
     const sc2::Units& idle_units = Observation()->GetUnits(sc2::Unit::Alliance::Self, [](const sc2::Unit& unit) {
         return unit.orders.empty();
     });
@@ -111,10 +119,10 @@ void BasicSc2Bot::RecheckUnitIdle() {
     }
 }
 
-/*
+/**
  * @brief Gives instructions to units on the event that they are created
- *
- * @param unit
+ * 
+ * @param unit 
  */
 void BasicSc2Bot::OnUnitCreated(const sc2::Unit* unit) {
     const sc2::ObservationInterface* obs = Observation();
